@@ -60,7 +60,7 @@
     for (const wait of [0, 2000, 6000, 15000]) {
       await new Promise(r => setTimeout(r, wait));
       try {
-        const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/plays`, { method: 'POST', headers, body, keepalive: true });
+        const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/plays`, { method: 'POST', headers, body });
         if (r.ok || r.status === 409) return; // 409: 이미 저장된 판
       } catch { /* 다음 시도 */ }
     }
