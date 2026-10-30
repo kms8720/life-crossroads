@@ -102,16 +102,16 @@
     const top = '<path d="M-25 -120c-4-26 12-38 32-36 18 2 26 14 25 30-8-9-20-12-32-11-10 1-17 6-20 17Z"/>';
     let h;
     if (style === 'long') h = `<path d="M-27 -124c-6 22-3 40 6 46l5-20c-4-8-5-17-4-26Z"/>${top}${st === 'senior' ? '<circle cx="-18" cy="-150" r="9"/>' : ''}${L.clip ? `<circle cx="-14" cy="-146" r="4" fill="${L.clip}"/>` : ''}`;
-    else if (style === 'bob') h = `<path d="M-28 -122c-4 14-2 22 3 26l5-12c-2-5-3-10-2-15Z"/>${top}<path d="M27 -128c3 8 2 15-2 19l-3-9Z"/>`;
-    else if (style === 'kid') h = '<path d="M-27 -118c-3-28 14-40 33-37 17 3 25 15 24 31-12-6-26-7-40-4-7 2-12 5-17 10Z"/>';
+    else if (style === 'bob') h = `<path d="M-28 -122c-4 14-2 22 3 26l5-12c-2-5-3-10-2-15Z"/>${top}`;
+    else if (style === 'kid') h = '<path d="M-27 -118c-3-28 14-40 33-37 17 3 25 15 24 28-12-6-26-7-40-5-7 2-12 6-17 14Z"/>';
     else h = top;
     const cap = L.cap && st !== 'senior' ? `<path d="M-25 -134c2-24 48-26 53-3Z" fill="${L.cap}"/><path d="M26 -137h22q3 6-6 7H25Z" fill="${shade(L.cap, .8)}"/>` : '';
     return `<g fill="${gray}">${h}</g>${cap}`;
   }
-  function face(mood) {
+  function face(mood, brows = true) {
     const eye = mood === 'happy' ? '<path d="M5 -124q4-6 8 0M17 -124q4-6 8 0" stroke="#3b302b" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
       : '<circle cx="9" cy="-125" r="3" fill="#3b302b"/><circle cx="21" cy="-125" r="3" fill="#3b302b"/>';
-    const brow = mood === 'sad' ? '<path d="M4 -133l8 3M26 -133l-8 3" stroke="#3b302b" stroke-width="2" stroke-linecap="round"/>' : '';
+    const brow = mood === 'sad' && brows ? '<path d="M5 -130l7-3M25 -130l-7-3" stroke="#3b302b" stroke-width="2" stroke-linecap="round"/>' : '';
     const mouth = mood === 'happy' ? '<path d="M11 -115q5 8 10 0Z" fill="#a0504a"/>'
       : mood === 'sad' ? '<path d="M12 -110q4-5 8 0" fill="none" stroke="#a0604d" stroke-width="2" stroke-linecap="round"/>'
         : mood === 'neutral' ? '<path d="M12 -112h8" stroke="#a0604d" stroke-width="2" stroke-linecap="round"/>'
@@ -165,7 +165,7 @@
     const backpack = st === 'child' && lookName !== 'partner' ? `<rect x="-33" y="-96" width="15" height="34" rx="6" fill="#e2725b"/><path d="M-18 -94c6 6 8 16 6 26" stroke="#c75a45" stroke-width="3" fill="none"/>` : '';
     const guitar = wear.has('guitar') ? `<g transform="rotate(-28 -20 -72)"><rect x="-23" y="-150" width="6" height="62" rx="2" fill="#6b4a30"/><rect x="-25" y="-156" width="10" height="10" rx="2" fill="#3e2c1f"/><path d="M-20 -96c-14 0-18 10-14 18-8 4-8 18 2 22 8 3 16 3 24 0 10-4 10-18 2-22 4-8 0-18-14-18Z" fill="#c9763d"/><circle cx="-20" cy="-74" r="4" fill="#3e2c1f"/></g>` : '';
     const glasses = st === 'senior' || wear.has('glasses') ? `<g fill="none" stroke="#6b6f6b" stroke-width="1.8"><circle cx="9" cy="-125" r="6"/><circle cx="22" cy="-125" r="6"/><path d="M15 -125h1M-3 -127l6 1"/></g>` : '';
-    const bandage = wear.has('bandage') ? '<g transform="rotate(-20 24 -112)"><rect x="17" y="-115" width="14" height="6" rx="3" fill="#f3d8a8"/><circle cx="22" cy="-112" r=".9" fill="#c9a874"/><circle cx="26" cy="-112" r=".9" fill="#c9a874"/></g>' : '';
+    const bandage = wear.has('bandage') ? '<g transform="rotate(-20 -1 -115)"><rect x="-8" y="-118" width="14" height="6" rx="3" fill="#f3d8a8"/><circle cx="-3" cy="-115" r=".9" fill="#c9a874"/><circle cx="1" cy="-115" r=".9" fill="#c9a874"/></g>' : '';
     const beret = wear.has('beret') && st !== 'senior' ? '<ellipse cx="0" cy="-151" rx="27" ry="9" fill="#9b2f3b"/><circle cx="2" cy="-160" r="3" fill="#9b2f3b"/>' : '';
     const strawhat = wear.has('strawhat') ? '<ellipse cx="3" cy="-146" rx="42" ry="8" fill="#e7c77a"/><path d="M-20 -147c0-22 46-22 46 0Z" fill="#edd38f"/><path d="M-20 -149h46" stroke="#b5894a" stroke-width="4"/>' : '';
     const headband = wear.has('headband') ? '<path d="M-25 -141c14-8 38-8 52 0" stroke="#e2577a" stroke-width="6" fill="none" stroke-linecap="round"/>' : '';
@@ -175,7 +175,7 @@
     const cane = st === 'senior' && lookName === 'me' ? `<path d="M26 -58 30 0" stroke="#8a6447" stroke-width="5" stroke-linecap="round"/><path d="M20 -60q6-6 8 2" stroke="#8a6447" stroke-width="5" fill="none" stroke-linecap="round"/>` : '';
     const baby = opts.baby ? `<g class="baby"><ellipse cx="17" cy="-74" rx="13" ry="11" fill="#fff4dc" stroke="#e8d7b0" stroke-width="2"/><circle cx="22" cy="-86" r="8" fill="${skin}"/><path d="M17 -91c3-4 9-4 11 0" fill="#e8d7b0"/><circle cx="25" cy="-86" r="1.3" fill="#3b302b"/></g>` : '';
     return `<g class="person look-${lookName} st-${st}"><ellipse class="shadow" cx="2" cy="1" rx="${26 * s}" ry="${6 * s}" fill="#2b3a2a" opacity=".16"/>
-      <g transform="scale(${s})"><g class="bob">${guitar}${backpack}${leg('l2', legBack)}${arm('a2', armBack)}${leg('l1', pants)}${torso}${lanyard}${camera}<rect x="-6" y="-106" width="12" height="10" rx="4" fill="${skin}"/><circle cx="3" cy="-127" r="28" fill="${skin}"/>${hair(L, st)}${headband}${beret}${strawhat}${face(opts.mood)}${glasses}${bandage}${arm('a1', armTop, watch + held(opts.hold))}${cane}${baby}</g></g></g>`;
+      <g transform="scale(${s})"><g class="bob">${guitar}${backpack}${leg('l2', legBack)}${arm('a2', armBack)}${leg('l1', pants)}${torso}${lanyard}${camera}<rect x="-6" y="-106" width="12" height="10" rx="4" fill="${skin}"/><circle cx="3" cy="-127" r="28" fill="${skin}"/>${hair(L, st)}${headband}${beret}${strawhat}${face(opts.mood, L.hairstyle !== 'kid')}${glasses}${bandage}${arm('a1', armTop, watch + held(opts.hold))}${cane}${baby}</g></g></g>`;
   }
 
   // ---------- 자연 ----------
