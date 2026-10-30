@@ -4,7 +4,7 @@
   "description": "A browser game about the choices that shape a life, from age 10 to 80",
   "scripts": {
     "build": "node build.mjs",
-    "build:web": "node build.mjs --out dist/index.html",
+    "build:web": "node build.mjs --site dist",
     "test": "node --test tests/engine.test.mjs",
     "fonts": "python3 tools/subset_fonts.py"
   }

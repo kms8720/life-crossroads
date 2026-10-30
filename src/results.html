@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>두 번의 삶 — 인생 갈림길</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f5d4a'/%3E%3Cpath d='M32 54V34M32 34 18 16M32 34l14-18' stroke='%23f6e7c1' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<style>
+/*__FONTS__*/
+:root { --ink: #1f2d27; --ink-2: #44544b; --muted: #77847b; --paper: #fffaf0; --line: #e2dac8; --track: #efe8d8; --green: #2f5d4a; --changed: #6f5bd6; --same: #d9d2c2; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #16201c; overflow: hidden; }
+body { font-family: 'PretendardLG', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--paper); padding: 64px 84px 48px; display: flex; flex-direction: column; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; }
+h1 { margin: 0; font-family: 'YacheLG', 'PretendardLG', sans-serif; font-size: 76px; font-weight: 400; line-height: 1.1; color: var(--green); }
+#count { font-size: 24px; font-weight: 700; color: var(--muted); white-space: nowrap; padding-bottom: 10px; }
+main { flex: 1; min-height: 0; display: grid; grid-template-columns: 560px 1fr; gap: 64px; align-items: center; }
+h2 { margin: 0 0 26px; font-size: 32px; font-weight: 800; }
+.changed-box { text-align: center; }
+.changed-box svg { display: block; width: 420px; height: 420px; margin: 0 auto 26px; }
+.legend { display: flex; justify-content: center; gap: 32px; font-size: 26px; font-weight: 700; color: var(--ink-2); }
+.legend i { display: inline-block; width: 22px; height: 22px; border-radius: 7px; margin-right: 10px; vertical-align: -3px; }
+.endings { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+.ending { text-align: center; }
+.ending svg { display: block; width: 100%; aspect-ratio: 1; }
+.ending b { display: block; margin-top: 14px; min-height: 92px; font-size: 25px; line-height: 1.3; font-weight: 800; word-break: keep-all; }
+.ending span { display: inline-block; margin-top: 4px; padding: 6px 16px; border-radius: 999px; background: var(--track); font-size: 22px; font-weight: 800; color: var(--ink-2); }
+.key { display: flex; gap: 36px; margin-top: 30px; justify-content: center; font-size: 22px; font-weight: 700; color: var(--ink-2); }
+.key i { display: inline-block; width: 44px; height: 12px; border-radius: 6px; background: var(--ink-2); margin-right: 10px; vertical-align: 2px; }
+.key i.first { opacity: .32; }
+details { font-size: 20px; color: var(--ink-2); }
+summary { cursor: pointer; font-weight: 700; }
+table { margin-top: 10px; border-collapse: collapse; }
+th, td { padding: 4px 22px 4px 0; text-align: left; font-weight: 600; }
+#empty { grid-column: 1 / -1; text-align: center; font-size: 38px; font-weight: 700; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <header><h1>두 번의 삶, 무엇이 달라졌을까?</h1><div id="count"></div></header>
+  <main id="view"></main>
+  <details id="table" hidden><summary>표로 보기</summary><div id="table-body"></div></details>
+</div>
+<!--__CONFIG__-->
+<script type="application/json" id="game-data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const CONFIG = JSON.parse($('#game-config').textContent), DATA = JSON.parse($('#game-data').textContent);
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function fit() {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080), st = $('#stage');
+    st.style.transform = `scale(${s})`;
+    st.style.left = `${(innerWidth - 1920 * s) / 2}px`;
+    st.style.top = `${(innerHeight - 1080 * s) / 2}px`;
+  }
+  addEventListener('resize', fit); fit();
+
+  const arc = (r, pct, color, width, extra = '') => pct > 0 ? `<circle r="${r}" pathLength="100" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="${pct < 100 ? 'round' : 'butt'}" stroke-dasharray="${pct.toFixed(2)} ${(100 - pct).toFixed(2)}" transform="rotate(-90)" ${extra}/>` : '';
+  const share = (n, total) => total ? n / total * 100 : 0;
+
+  function render(r) {
+    const pairs = r.pairs || 0;
+    $('#count').textContent = `두 번 플레이한 사람 ${pairs}명`;
+    if (!pairs) { $('#view').innerHTML = `<div id="empty">두 번째 플레이가 끝나면 여기에 나타나요.</div>`; $('#table').hidden = true; return; }
+    const changed = r.changed || 0, same = pairs - changed;
+    const donut = `<svg viewBox="-110 -110 220 220" role="img" aria-label="엔딩이 바뀐 사람과 그대로인 사람의 비율">
+      <circle r="84" fill="none" stroke="var(--same)" stroke-width="36"><title>엔딩이 그대로인 사람</title></circle>
+      ${arc(84, share(changed, pairs), 'var(--changed)', 36).replace('/>', '><title>엔딩이 바뀐 사람</title></circle>')}</svg>`;
+    const rings = DATA.endings.map(e => {
+      const a = r.before?.[e.key] || 0, b = r.after?.[e.key] || 0, pa = share(a, pairs), pb = share(b, pairs);
+      const word = b > a ? '▲ 늘었어요' : b < a ? '▼ 줄었어요' : '그대로예요';
+      return `<div class="ending"><svg viewBox="-100 -100 200 200" role="img" aria-label="${esc(e.name)}: 1회차와 2회차 비교, ${word}">
+        <circle r="84" fill="none" stroke="var(--track)" stroke-width="20"/>${arc(84, pa, e.color, 20, 'opacity=".32"')}
+        <circle r="54" fill="none" stroke="var(--track)" stroke-width="20"/>${arc(54, pb, e.color, 20)}<title>${esc(e.name)}: ${word}</title></svg>
+        <b>${esc(e.name)}</b><span>${word}</span></div>`;
+    }).join('');
+    $('#view').innerHTML = `<section class="changed-box"><h2>엔딩이 달라진 사람</h2>${donut}
+        <div class="legend"><span><i style="background:var(--changed)"></i>바뀌었어요</span><span><i style="background:var(--same)"></i>그대로예요</span></div></section>
+      <section><h2>엔딩별로 보면</h2><div class="endings">${rings}</div>
+        <div class="key"><span><i class="first"></i>바깥 연한 원: 1회차</span><span><i></i>안쪽 진한 원: 2회차</span></div></section>`;
+    $('#table').hidden = false;
+    $('#table-body').innerHTML = `<table><tr><th>엔딩</th><th>1회차</th><th>2회차</th></tr>${DATA.endings.map(e => `<tr><td>${esc(e.name)}</td><td>${r.before?.[e.key] || 0}명</td><td>${r.after?.[e.key] || 0}명</td></tr>`).join('')}</table>`;
+  }
+
+  async function refresh() {
+    if (!CONFIG.supabaseUrl || !CONFIG.supabaseKey) { $('#view').innerHTML = `<div id="empty">아직 기록 저장소가 연결되지 않았어요.</div>`; return; }
+    const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json' };
+    if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
+    try {
+      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/results_summary`, { method: 'POST', headers, body: '{}' });
+      if (res.ok) render(await res.json());
+    } catch { /* 다음 주기에 다시 시도 */ }
+    setTimeout(refresh, 5000);
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh, refresh); else refresh();
+})();
+</script>
+</body>
+</html>

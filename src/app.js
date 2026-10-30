@@ -17,13 +17,16 @@
   const FORK_X = -700, FORK_CAM = -1100, RES_X = 1720, RES_CAM = 900, TITLE_X = 560;
   const PARTNER_DX = -128, KID_DX = 88, BASE = 494;
   const OPT = [{ key: 'a', c: '#ef6a4c', cs: '#fde6df', cg: 'rgba(239,106,76,.28)', arrow: '▲' }, { key: 'b', c: '#6f5bd6', cs: '#e9e5fb', cg: 'rgba(111,91,214,.28)', arrow: '▼' }];
-  const SAVE_KEY = 'insaeng-galimgil.save.v4', SET_KEY = 'insaeng-galimgil.settings.v4';
+  // 주소로 화면을 나눈다: 기본은 각자 플레이, /presentation/ 은 발표용 5문항 (단일 파일은 주소 끝에 #presentation)
+  const MODE = document.documentElement.dataset.mode || (/presentation/.test(location.hash) ? 'presentation' : 'solo');
+  const SAVE_KEY = `insaeng-galimgil.save.v5.${MODE}`, SET_KEY = 'insaeng-galimgil.settings.v5', NAME_KEY = 'insaeng-galimgil.name';
+  const decade = a => `${Math.max(1, Math.floor(a / 10)) * 10}대`;
 
   let C, REV, settings, state, history = [], world, savedGame = null;
   const view = { x: TITLE_X, cam: 0, age: 8, lane: 0, fork: -1 };
   const ui = { notes: false, modal: null, highlight: null, moving: false, showGauges: true, rewindSel: null, give: null };
   let peopleKey = '', lastLook = null;
-  const present = () => !!settings.present;           // 발표 모드: 팀 의도 공개 · 반 투표 · 하나 바꾸기
+  const present = () => MODE === 'presentation';      // 발표 화면: 수업 연결 · 반 투표
   const votesOn = () => present() && settings.votes;
 
   // ---------- 저장 (막혀 있어도 게임은 돌아간다) ----------
@@ -34,17 +37,34 @@
   };
   function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
   function loadSettings() {
-    const d = E.defaultSettings(C), s = store.get(SET_KEY);
-    if (!s || !s.v) return d;
-    // 콘텐츠가 바뀌어도 설정은 유지한다. 사라진 시기는 버리고 새 시기는 기본값을 따른다.
-    const stages = Object.fromEntries(Object.keys(d.stages).map(id => [id, s.v.stages?.[id] ?? d.stages[id]]));
-    const { randomQuestions, ...rest } = s.v; // 질문은 항상 나이대별 무작위
-    return { ...d, ...rest, stages };
+    const { stages, present: _, randomQuestions, ...rest } = store.get(SET_KEY)?.v || {};
+    // 각자 플레이는 10문항 전부, 발표 화면은 발표용 5문항만 나온다.
+    return { ...E.defaultSettings(C), ...rest, stages: Object.fromEntries(C.stages.map(st => [st.id, !present() || !!st.presentation])) };
   }
   function saveSettings() { store.set(SET_KEY, { rev: REV, v: settings }); }
   function saveGame() {
     if (state.phase === 'title') return;
     store.set(SAVE_KEY, { rev: REV, state, history: history.slice(-80) });
+  }
+
+  // ---------- 플레이 기록 (각자 플레이만). 저장에 실패해도 게임은 그대로 진행한다 ----------
+  const CONFIG = (() => { try { return JSON.parse($('#game-config')?.textContent || '{}'); } catch { return {}; } })();
+  const dbOn = () => !present() && !!(CONFIG.supabaseUrl && CONFIG.supabaseKey);
+  let recorded = null;
+  async function recordPlay(s) {
+    if (!dbOn() || recorded === s.seed) return;
+    recorded = s.seed;
+    const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
+    if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
+    const body = JSON.stringify({ run_id: String(s.seed), nickname: store.get(NAME_KEY) || '이름 없음', ending: E.typeOf(C, s.gauges), gauges: s.gauges, picks: s.picks.map(p => ({ stage: p.stageId, opt: p.opt })) });
+    for (const wait of [0, 2000, 6000, 15000]) {
+      await new Promise(r => setTimeout(r, wait));
+      try {
+        const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/plays`, { method: 'POST', headers, body, keepalive: true });
+        if (r.ok || r.status === 409) return; // 409: 이미 저장된 판
+      } catch { /* 다음 시도 */ }
+    }
+    console.warn('플레이 기록을 저장하지 못했습니다.');
   }
 
   // ---------- 효과음 ----------
@@ -353,7 +373,7 @@
     showBubble(null);
     const cap = $('#caption');
     if (target || next.phase === 'ending') {
-      cap.innerHTML = target ? `<div class="cap-age">${target.age}세</div><div class="cap-era">${esc(target.era)}</div>` : `<div class="cap-age">${C.endingAge}세</div><div class="cap-era">돌아보는 삶</div>`;
+      cap.innerHTML = target ? `<div class="cap-age">${decade(target.age)}</div><div class="cap-era">${esc(target.era)}</div>` : `<div class="cap-age">${C.endingAge}세</div><div class="cap-era">돌아보는 삶</div>`;
     } else cap.innerHTML = '';
     animate(dur, t => {
       const e = easeInOut(t), age = lerp(from.age, to.age, smooth(t * 1.15));
@@ -466,8 +486,13 @@
     const kind = transition(prev, next);
     if (kind === 'walk') walk(prev, next);
     else if (kind === 'move') moveThrough(prev, next);
-    if (kind !== 'walk' && next.phase === 'start') Sound.play('card');
-    else { setPose(poseOf(next), next); if (next.phase === 'result') { const p = next.picks.at(-1); showBubble(E.question(C, next).options[p.opt].item, p.opt); } else showBubble(null); renderUI(); afterArrive(prev, next); }
+    else {
+      if (next.phase === 'start') Sound.play('card');
+      setPose(poseOf(next), next);
+      if (next.phase === 'result') { const p = next.picks.at(-1); showBubble(E.question(C, next).options[p.opt].item, p.opt); } else showBubble(null);
+      renderUI(); afterArrive(prev, next);
+    }
+    if (next.phase === 'ending' && prev.phase !== 'ending') recordPlay(next);
     saveGame();
   }
   function transition(prev, next) {
@@ -489,6 +514,8 @@
     if (state.phase === 'result') { const p = state.picks.at(-1); showBubble(E.question(C, state).options[p.opt].item, p.opt); } else showBubble(null);
     renderUI(); saveGame(); toast('한 단계 되돌렸어요.');
   }
+  // 이름은 1·2회차 기록을 잇는 데만 쓴다. 기록을 안 할 때는 묻지 않는다.
+  function begin() { if (dbOn()) openModal('name'); else newGame(); }
   function newGame() {
     const seed = (Date.now() ^ (Math.random() * 1e9)) % 2147483647;
     let s;
@@ -502,7 +529,7 @@
   function primary() {
     if (anim) return finish();
     switch (state.phase) {
-      case 'title': return newGame();
+      case 'title': return begin();
       case 'fork': {
         const h = ui.highlight ?? majority();
         if (h == null) return toast('1 또는 2를 눌러 길을 골라 주세요.');
@@ -540,13 +567,12 @@
   }
   function renderTitle() {
     const n = E.activeStages(C, settings).length;
-    const mins = Math.round(n * 2.6 + (settings.events ? 2 : 0) + 4);
-    $('#title').innerHTML = `<div class="t-sub">${esc(C.subtitle)}</div><h1 class="t-title">${esc(C.title)}</h1><p class="t-tag">${esc(C.tagline)}</p>
+    $('#title').innerHTML = `<div class="t-sub">${esc(C.subtitle)}</div><h1 class="t-title ${present() ? 'hero' : ''}">${esc(present() ? C.presentation.title : C.title)}</h1><p class="t-tag">${esc(C.tagline)}</p>
       <ul class="t-rules">${(present() ? C.intro.rules : C.intro.rulesSolo || C.intro.rules).map((t, k) => `<li><i>${A.icon(['skip', present() ? 'vote' : 'heart', 'dice'][k] || 'star')}</i>${esc(t)}</li>`).join('')}</ul>
       <div class="t-actions"><button class="btn primary" data-act="start">${A.icon('play')} 시작하기 <span class="kbd">Space</span></button>
       ${savedGame ? `<button class="btn" data-act="resume">${A.icon('replay')} 이어하기 <span class="kbd">C</span></button>` : ''}
-      ${present() ? `<button class="btn" data-act="settings" title="설정 (S)">${A.icon('gear')} 설정</button>` : ''}<button class="btn" data-act="help" title="조작법 (H)">${A.icon('help')} 조작법</button></div>
-      ${present() ? `<div class="t-status"><span class="mode on">발표 모드</span><span>갈림길 ${n}개 · 약 ${mins}분</span><span>${settings.votes ? '반 투표 켜짐' : '반 투표 꺼짐'}</span><span>${settings.startCards ? '출발 카드' : '출발 카드 없음'}</span><span>${settings.events ? '운명 카드' : '운명 카드 없음'}</span></div>` : ''}`;
+      <button class="btn" data-act="help" title="조작법 (H)">${A.icon('help')} 조작법</button></div>
+      ${present() ? `<div class="t-status"><span class="mode on">발표 화면</span><span>갈림길 ${n}개</span><span>손들기 투표</span></div>${CONFIG.qr ? `<figure class="t-qr">${CONFIG.qr}<figcaption>${esc(C.presentation.qrCaption)}</figcaption></figure>` : ''}` : ''}`;
   }
   function renderHud() {
     if (state.phase === 'title') return;
@@ -560,16 +586,18 @@
     const passed = k => state.phase === 'ending' || k < state.i || (k === state.i && state.phase === 'result');
     $('#timeline').innerHTML = ids.map((id, k) => {
       const s = C.stages.find(x => x.id === id), p = picks[id];
-      if (p && passed(k)) { const o = pickView(p).o; return `<div class="t-node done${k === cur ? ' current-done' : ''}" style="--c:${OPT[p.opt].c}"><div class="t-dot">${A.icon(o.item)}</div><div class="t-age">${s.age}세</div></div>`; }
-      if (passed(k)) return `<div class="t-node skipped"><div class="t-dot">–</div><div class="t-age">${s.age}세</div></div>`;
-      if (k === cur) return `<div class="t-node current"><div class="t-dot">${s.age}</div><div class="t-age">${s.age}세</div></div>`;
-      return `<div class="t-node"><div class="t-dot"></div><div class="t-age">${s.age}세</div></div>`;
+      if (p && passed(k)) { const o = pickView(p).o; return `<div class="t-node done${k === cur ? ' current-done' : ''}" style="--c:${OPT[p.opt].c}"><div class="t-dot">${A.icon(o.item)}</div><div class="t-age">${decade(s.age)}</div></div>`; }
+      if (passed(k)) return `<div class="t-node skipped"><div class="t-dot">–</div><div class="t-age">${decade(s.age)}</div></div>`;
+      if (k === cur) return `<div class="t-node current"><div class="t-dot">${parseInt(decade(s.age), 10)}</div><div class="t-age">${decade(s.age)}</div></div>`;
+      return `<div class="t-node"><div class="t-dot"></div><div class="t-age">${decade(s.age)}</div></div>`;
     }).join('') + `<div class="t-node end"><div class="t-dot">${A.icon('star')}</div><div class="t-age">${C.endingAge}세</div></div>`;
     const s = ['fork', 'result'].includes(state.phase) ? E.stageAt(C, state, state.i) : null;
     renderAge(Math.round(view.age), s ? s.era : state.phase === 'start' ? '출발' : state.phase === 'event' ? (present() ? '운명의 순간' : '그 무렵') : null);
   }
+  let ageHtml = '';
   function renderAge(age, era) {
-    $('#agebadge').innerHTML = `<div class="age-era">${era ? esc(era) : '인생 산책 중'}</div><div class="age-num">${age}<small>세</small></div>`;
+    const end = age >= C.endingAge, html = `<div class="age-era">${era ? esc(era) : '인생 산책 중'}</div><div class="age-num">${end ? age : parseInt(decade(age), 10)}<small>${end ? '세' : '대'}</small></div>`;
+    if (html !== ageHtml) $('#agebadge').innerHTML = ageHtml = html;
   }
   function effectChips(eff) {
     return C.dimensions.filter(d => eff?.[d.key]).map(d => { const v = eff[d.key]; return `<span class="chip ${v < 0 ? 'neg' : ''}" style="--dc:${d.color}">${A.icon(d.icon)}${esc(d.label)} ${v > 0 ? '+' : '−'}${Math.abs(v)}</span>`; }).join('');
@@ -585,8 +613,8 @@
       const opts = [0, 1].map(k => E.optionView(q, k, state.flags)), evQ = E.isEventQuestion(q);
       const evCtx = !evQ && (q.contextIf || []).some(ci => (ci.when || []).some(f => f.startsWith('ev-')) && E.matches(ci.when, state.flags));
       const hint = only != null ? `${A.icon('lock')}${present() ? '운명 카드 때문에 ' : '이번엔 '}한 길만 열려 있어요 · <span class="kbd">Space</span>로 계속`
-        : votesOn() ? `${A.icon('vote')}다 같이 손을 들어 골라 주세요 · <span class="kbd">V</span> 손 든 사람 수 입력` : `<span class="kbd">1</span> <span class="kbd">2</span> 또는 문을 눌러 고르기`;
-      p.innerHTML = `<div><span class="tag">${A.icon('clock')} ${s.age}세 · ${esc(s.era)}</span>${present() && (evQ || evCtx) ? `<span class="tag ev">${A.icon('dice')} ${evQ ? '운명 카드로 바뀐 질문' : '운명 카드로 달라진 상황'}</span>` : ''}<h2 class="q-title">${esc(q.title)}</h2><p class="q-context">${esc(E.contextOf(q, state.flags))}</p>
+        : votesOn() ? `${A.icon('vote')}다 같이 손을 들어 골라 주세요 · <span class="kbd">V</span> 손 든 사람 수 입력` : `<span class="kbd">1</span> <span class="kbd">2</span> <span class="keys-only">또는 </span>문을 눌러 고르기`;
+      p.innerHTML = `<div><span class="tag">${A.icon('clock')} ${decade(s.age)} · ${esc(s.era)}</span>${present() && (evQ || evCtx) ? `<span class="tag ev">${A.icon('dice')} ${evQ ? '운명 카드로 바뀐 질문' : '운명 카드로 달라진 상황'}</span>` : ''}<h2 class="q-title">${esc(q.title)}</h2><p class="q-context">${esc(E.contextOf(q, state.flags))}</p>
         <div class="hint">${hint}</div></div>
         <div class="options">${opts.map((o, k) => `<button class="opt ${hl === k ? 'hl' : ''} ${o.locked ? 'locked' : ''}" data-opt="${k}" style="--c:${OPT[k].c};--cs:${OPT[k].cs};--cg:${OPT[k].cg}"><span class="key">${o.locked ? A.icon('lock') : `${k + 1}<small>${OPT[k].arrow}</small>`}</span><span><strong>${esc(o.title)}</strong><span class="d">${o.locked ? `닫힌 길 · ${esc(o.locked)}` : esc(o.desc)}</span></span>${present() && o.changed && !o.locked ? `<span class="ev-chip">${A.icon('dice')} 운명 카드로 달라짐</span>` : ''}${total && !o.locked ? `<span class="vote">${v[k]}명 · ${Math.round(v[k] / total * 100)}%</span><span class="vote-bar" style="width:${v[k] / total * 100}%"></span>` : ''}</button>`).join('')}</div>
         ${votesOn() && only == null ? `<button class="pill-btn vote-btn" data-act="vote">${A.icon('vote')} 투표 수 입력 <span class="kbd">V</span></button>` : ''}
@@ -608,17 +636,16 @@
     if (ui.moving || (ph !== 'start' && ph !== 'event')) { el.hidden = true; return; }
     el.hidden = false;
     const isStart = ph === 'start', card = isStart ? C.starts.cards.find(c => c.id === state.run.startId) : C.events.cards.find(c => c.id === state.eventId);
-    const label = present() ? `${isStart ? C.starts.label : `${C.events.label} · ${E.ageOf(C, state)}세 무렵`}` : isStart ? C.starts.labelSolo || '나의 출발' : `${E.ageOf(C, state)}세 무렵`;
+    const label = present() ? `${isStart ? `${C.presentation.hero}의 ${C.starts.label}` : `${C.events.label} · ${decade(E.ageOf(C, state))} 무렵`}` : isStart ? C.starts.labelSolo || '나의 출발' : `${decade(E.ageOf(C, state))} 무렵`;
     el.innerHTML = `<div class="card-inner ${isStart ? 'start' : ''}"><div class="c-label">${A.icon(isStart ? 'house' : 'dice')} ${esc(label)}</div>
       <div class="c-icon">${A.icon(card.icon)}</div><h2 class="c-title">${esc(card.title)}</h2><p class="c-text">${esc(card.text)}</p>
       <div class="effects">${effectChips(card.effects)}</div>${present() && !isStart && E.eventAffectsNext(C, state) ? `<p class="c-next">${A.icon('arrow')} 바로 다음 갈림길이 달라져요</p>` : ''}<p class="c-reflect">“${esc(isStart ? C.starts.reflection : card.reflection)}”</p>
       <div class="c-actions"><button class="btn primary" data-act="next">${isStart ? '길을 나서기' : '계속 걷기'} ${A.icon('arrow')} <span class="kbd">Space</span></button></div></div>`;
   }
-  // 체험 모드(각자 플레이)는 의도를 숨기고, 발표 모드는 하나 바꾸기·같은 크기의 원·마무리까지 보여 준다.
+  // 각자 플레이는 의도를 숨기고, 발표 화면은 손들기 결과까지만 보여 준다. 의도는 2회차 뒤 발표에서 밝힌다.
   function endingPages() {
     if (!present()) return ['result', 'outro'];
-    const sum = E.summary(C, state);
-    return ['result', 'rewind', 'path', ...(sum.voted.length ? ['votes'] : []), 'types', 'closing'];
+    return ['result', ...(E.summary(C, state).voted.length ? ['votes'] : [])];
   }
   function renderMemories() {
     const g = $('#memories');
@@ -687,17 +714,17 @@
       html = `<div class="e-kicker">이번 판에서 나올 수 있었던 ${Object.values(avg).reduce((a, b) => a + b.n, 0).toLocaleString()}가지 삶</div><h2 class="e-h2">${esc(tp.title)}</h2><p class="e-cap">${esc(tp.caption)}</p>
         <div class="e-types">${order.map(k => { const a = avg[k], prof = C.ending.profiles[k], g = a ? Object.fromEntries(Object.entries(a.g).map(([x, v]) => [x, v / a.n])) : {}; return `<div class="${k === sum.type ? 'mine' : ''} ${a ? '' : 'none'}">${a ? ring(g, { R: 70, w: 34 }).svg : '<svg class="ring" viewBox="-108 -108 216 216"><circle r="70" fill="none" stroke="#efe8d8" stroke-width="34"/></svg>'}<b>${esc(prof.persona || prof.title)}</b><small>${a ? `${Math.round(a.n / Object.values(avg).reduce((x, y) => x + y.n, 0) * 100)}%의 삶` : '이번 판엔 없음'}${k === sum.type ? ' · 나의 엔딩' : ''}</small></div>`; }).join('')}</div>`;
     } else if (page === 'result') {
-      html = `<div class="e-kicker">${C.endingAge}세 · ${esc(C.ending.intro)}</div><div class="e-persona">${esc(sum.profile.persona || '')}</div><h2 class="e-title">${esc(sum.profile.title)}</h2><p class="e-body">${esc(sum.profile.body)}</p>
+      html = `<div class="e-kicker">${present() ? `${esc(C.presentation.hero)} · ` : ''}${C.endingAge}세 · ${esc(C.ending.intro)}</div><div class="e-persona">${esc(sum.profile.persona || '')}</div><h2 class="e-title">${esc(sum.profile.title)}</h2><p class="e-body">${esc(sum.profile.body)}</p>
         ${donut(sum)}
         ${present() ? `<p class="e-low">${esc(C.ending.lowest.replace('{label}', sum.low.label))}</p>` : ''}`;
     } else if (page === 'path') {
       const rn = C.ending.roadNotTaken;
       html = `<div class="e-kicker">${esc(rn.source)}</div><h2 class="e-h2">${esc(rn.title)}</h2><p class="e-cap">${esc(rn.caption)}</p>
-        <div class="e-path ${sum.path.length > 8 ? 'dense' : ''} ${sum.path.length > 10 ? 'denser' : ''}"><div class="e-row head"><span></span><span>고른 길</span><span>가지 않은 길 · 얻을 수도 있었던 것</span></div>${sum.path.map(p => `<div class="e-row"><div class="age">${p.stage.age}<small>${esc(p.stage.era)}</small></div><div class="took"><i style="--c:${OPT[p.opt].c}">${A.icon(p.chosen.item)}</i>${esc(p.chosen.title)}</div><div class="not"><b>${esc(p.other.title)}</b><span>${p.forced ? `닫혀 있던 길 · ${esc(p.other.locked || '')}` : esc(p.other.gain)}</span></div></div>`).join('')}</div>`;
+        <div class="e-path ${sum.path.length > 8 ? 'dense' : ''} ${sum.path.length > 10 ? 'denser' : ''}"><div class="e-row head"><span></span><span>고른 길</span><span>가지 않은 길 · 얻을 수도 있었던 것</span></div>${sum.path.map(p => `<div class="e-row"><div class="age">${decade(p.stage.age)}<small>${esc(p.stage.era)}</small></div><div class="took"><i style="--c:${OPT[p.opt].c}">${A.icon(p.chosen.item)}</i>${esc(p.chosen.title)}</div><div class="not"><b>${esc(p.other.title)}</b><span>${p.forced ? `닫혀 있던 길 · ${esc(p.other.locked || '')}` : esc(p.other.gain)}</span></div></div>`).join('')}</div>`;
     } else if (page === 'votes') {
       const vt = C.ending.votes;
       html = `<div class="e-kicker">우리 반 ${sum.voted.length}번의 투표</div><h2 class="e-h2">${esc(vt.title)}</h2><p class="e-cap">${esc(vt.caption)}</p>
-        <div class="e-votes ${sum.voted.length > 5 ? 'dense' : ''} ${sum.voted.length > 8 ? 'denser' : ''}">${sum.voted.map(p => { const [a, b] = p.votes, t = a + b; return `<div class="e-vote ${p === sum.split ? 'split' : ''}"><header><span>${p.stage.age}세 · ${esc(p.question.title)}</span>${p === sum.split ? '<small>가장 팽팽했던 질문</small>' : ''}</header><div class="vbar"><span class="va" style="width:${a / t * 100}%">${a ? `${p.opt === 0 ? '✓ ' : ''}${esc(p.question.options[0].gate)} ${a}` : ''}</span><span class="vb" style="width:${b / t * 100}%">${b ? `${b} ${esc(p.question.options[1].gate)}${p.opt === 1 ? ' ✓' : ''}` : ''}</span></div></div>`; }).join('')}</div>`;
+        <div class="e-votes ${sum.voted.length > 5 ? 'dense' : ''} ${sum.voted.length > 8 ? 'denser' : ''}">${sum.voted.map(p => { const [a, b] = p.votes, t = a + b; return `<div class="e-vote ${p === sum.split ? 'split' : ''}"><header><span>${decade(p.stage.age)} · ${esc(p.question.title)}</span>${p === sum.split ? '<small>가장 팽팽했던 질문</small>' : ''}</header><div class="vbar"><span class="va" style="width:${a / t * 100}%">${a ? `${p.opt === 0 ? '✓ ' : ''}${esc(p.question.options[0].gate)} ${a}` : ''}</span><span class="vb" style="width:${b / t * 100}%">${b ? `${b} ${esc(p.question.options[1].gate)}${p.opt === 1 ? ' ✓' : ''}` : ''}</span></div></div>`; }).join('')}</div>`;
     } else {
       const cl = C.ending.closing;
       html = `<div class="e-kicker">${esc(cl.credits)}</div><h2 class="e-h2">${esc(cl.title)}</h2><p class="e-closing">${esc(cl.text)}</p><ol class="e-disc">${cl.discussion.map(d => `<li>${esc(d)}</li>`).join('')}</ol><div class="e-credit">${esc(cl.source)}</div>`;
@@ -711,13 +738,13 @@
     if (!state.rewindPick) {
       const sel = ui.rewindSel;
       return `<div class="e-kicker">딱 한 번의 기회</div><h2 class="e-h2">${esc(rw.title)}</h2><p class="e-cap">${esc(rw.caption)} <span class="kbd">↑</span><span class="kbd">↓</span> 고르고 <span class="kbd">Enter</span></p>
-        <div class="e-path pick ${sum.path.length > 8 ? 'dense' : ''} ${sum.path.length > 10 ? 'denser' : ''}">${sum.path.map(p => `<button class="e-row ${sel === p.stage.id ? 'sel' : ''} ${p.forced ? 'off' : ''}" data-rewind="${p.stage.id}" ${p.forced ? 'disabled' : ''}><div class="age">${p.stage.age}<small>${esc(p.stage.era)}</small></div><div class="took"><i style="--c:${OPT[p.opt].c}">${A.icon(p.chosen.item)}</i>${esc(p.chosen.title)}</div><div class="not"><b>${p.forced ? '닫혀 있던 길이라 바꿀 수 없어요' : `→ ${esc(p.other.title)}`}</b></div></button>`).join('')}</div>`;
+        <div class="e-path pick ${sum.path.length > 8 ? 'dense' : ''} ${sum.path.length > 10 ? 'denser' : ''}">${sum.path.map(p => `<button class="e-row ${sel === p.stage.id ? 'sel' : ''} ${p.forced ? 'off' : ''}" data-rewind="${p.stage.id}" ${p.forced ? 'disabled' : ''}><div class="age">${decade(p.stage.age)}<small>${esc(p.stage.era)}</small></div><div class="took"><i style="--c:${OPT[p.opt].c}">${A.icon(p.chosen.item)}</i>${esc(p.chosen.title)}</div><div class="not"><b>${p.forced ? '닫혀 있던 길이라 바꿀 수 없어요' : `→ ${esc(p.other.title)}`}</b></div></button>`).join('')}</div>`;
     }
     const alt = E.rerun(C, state, state.rewindPick), altSum = E.summary(C, alt), ov = Math.round(E.overlap(state.gauges, alt.gauges) * 100);
     const p = sum.path.find(x => x.stage.id === state.rewindPick);
     const diff = C.dimensions.map(d => [d, alt.gauges[d.key] - state.gauges[d.key]]).filter(([, v]) => v);
     const later = alt.picks.filter(x => x.stageId !== state.rewindPick && state.picks.find(y => y.stageId === x.stageId)?.qid !== x.qid).length;
-    return `<div class="e-kicker">${p.stage.age}세 · ${esc(p.chosen.title)} → ${esc(p.other.title)}</div><h2 class="e-h2">${esc(rw.overlap.replace('{pct}', ov))}</h2>
+    return `<div class="e-kicker">${decade(p.stage.age)} · ${esc(p.chosen.title)} → ${esc(p.other.title)}</div><h2 class="e-h2">${esc(rw.overlap.replace('{pct}', ov))}</h2>
       <div class="e-compare"><div>${ring(state.gauges, { R: 92, w: 42, center: ['지금의 삶', sum.profile.persona ? sum.tops.map(d => d.label).join(' · ') : ''] }).svg}<b>지금의 삶</b><small>${esc(sum.profile.title)}</small></div>
         <div class="arrow">${A.icon('arrow')}</div>
         <div>${ring(alt.gauges, { R: 92, w: 42, center: ['그 길을 골랐다면', altSum.tops.map(d => d.label).join(' · ')] }).svg}<b>그 길을 골랐다면</b><small>${esc(altSum.profile.title)}${altSum.type === sum.type ? ' (같은 엔딩)' : ''}</small></div></div>
@@ -774,7 +801,7 @@
     const tb = $('#toolbar');
     tb.className = state.phase === 'title' || state.phase === 'ending' ? 'top' : '';
     tb.hidden = state.phase === 'ending';
-    tb.innerHTML = [...(present() ? [['notes', 'notes', '발표자 메모 (N)', ui.notes]] : []), [settings.sound ? 'sound' : 'mute', 'sound', settings.sound ? '소리 끄기 (M)' : '소리 켜기 (M)'], ...(present() ? [['gear', 'settings', '설정 (S)']] : []), ['help', 'help', '조작법 (H)'], ['expand', 'fullscreen', '전체 화면 (F)']]
+    tb.innerHTML = [...(present() ? [['notes', 'notes', '발표자 메모 (N)', ui.notes]] : []), [settings.sound ? 'sound' : 'mute', 'sound', settings.sound ? '소리 끄기 (M)' : '소리 켜기 (M)'], ['help', 'help', '조작법 (H)'], ['expand', 'fullscreen', '전체 화면 (F)']]
       .map(([ic, act, label, on]) => `<button data-act="${act}" class="${on ? 'on' : ''}" title="${label}" aria-label="${label}">${A.icon(ic)}</button>`).join('');
   }
 
@@ -784,10 +811,14 @@
     const m = $('#modal'); m.hidden = false;
     if (kind === 'help') m.innerHTML = `<div class="m-box"><h2>조작법</h2><p>키보드나 마우스로 진행할 수 있어요.</p><div class="keys">${[
       ['다음 / 결정', 'Space', 'Enter', '→'], ['위 길 고르기', '1', '↑'], ['아래 길 고르기', '2', '↓'], ...(present() ? [['리모컨으로 고르기', '◀ 두 번 = 위', '▶ 두 번 = 아래']] : []),
-      ['되돌리기', 'Backspace', '←'], ...(present() ? [['투표 수 입력', 'V'], ['이 갈림길 건너뛰기', 'X'], ['발표자 메모', 'N'], ['설정', 'S'], ['발표 모드 끄기 (첫 화면)', 'Shift+P']] : []), ['게이지 보이기/숨기기', 'G'], ['전체 화면', 'F'],
+      ['되돌리기', 'Backspace', '←'], ...(present() ? [['투표 수 입력', 'V'], ['이 갈림길 건너뛰기', 'X'], ['발표자 메모', 'N']] : []), ['게이지 보이기/숨기기', 'G'], ['전체 화면', 'F'],
       ['처음 화면으로', 'R'], ['소리 켜기/끄기', 'M'], ['걷는 중 빨리 감기', 'Space'], ['창 닫기', 'Esc']].map(([l, ...ks]) => `<div><span>${l}</span><span>${ks.map(k => `<span class="kbd">${k}</span>`).join(' ')}</span></div>`).join('')}</div>
       <p style="margin-top:20px">갈림길 화면에서 ← →는 길을 먼저 표시하고, 같은 쪽을 한 번 더 누르면 결정해요. 다른 화면에서 ←는 되돌리기예요.</p><div class="m-actions"><button class="btn primary" data-act="close">닫기 <span class="kbd">Esc</span></button></div></div>`;
-    else if (kind === 'settings') renderSettings();
+    else if (kind === 'name') {
+      m.innerHTML = `<div class="m-box small"><h2>이름을 적어 주세요</h2><p>두 번 플레이할 때 같은 이름을 쓰면 엔딩이 어떻게 달라졌는지 비교할 수 있어요. 발표 화면에 이름은 나오지 않아요.</p><form id="name-form"><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="이름 또는 닉네임" value="${esc(store.get(NAME_KEY) || '')}"><div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div></form></div>`;
+      const f = $('#name-form'); f.nick.focus(); f.nick.select();
+      f.addEventListener('submit', e => { e.preventDefault(); const nick = f.nick.value.trim(); if (!nick) return; store.set(NAME_KEY, nick); closeModal(); newGame(); });
+    }
     else if (kind === 'vote') {
       const s = E.stageAt(C, state, state.i), q = E.question(C, state), v = state.votes?.[s.id] || ['', ''];
       m.innerHTML = `<div class="m-box small"><h2>손 든 사람 수</h2><p>${esc(q.title)}</p><form id="vote-form"><div class="vote-grid">${q.options.map((o, k) => `<label style="--c:${OPT[k].c};--cs:${OPT[k].cs}"><b>${k + 1}. ${esc(o.title)}</b><input type="number" min="0" max="999" inputmode="numeric" name="v${k}" value="${v[k]}" placeholder="0"></label>`).join('')}</div>
@@ -796,16 +827,6 @@
       f.addEventListener('submit', e => { e.preventDefault(); const a = Math.max(0, parseInt(f.v0.value, 10) || 0), b = Math.max(0, parseInt(f.v1.value, 10) || 0); closeModal(); state = E.setVotes(state, s.id, a, b); ui.highlight = a === b ? null : a > b ? 0 : 1; renderPanel(); renderGates(state); saveGame(); toast(a === b ? '동점이에요. 1 또는 2로 골라 주세요.' : `${a > b ? 1 : 2}번이 더 많아요. Space로 결정!`); });
     } else if (kind === 'confirm') m.innerHTML = `<div class="m-box small"><h2>처음 화면으로 갈까요?</h2><p>지금 진행 중인 이야기는 끝나요. (이어하기로 다시 불러올 수 있어요)</p><div class="m-actions"><button class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" data-act="restart-yes">처음으로 <span class="kbd">Enter</span></button></div></div>`;
   }
-  function renderSettings() {
-    const n = E.activeStages(C, settings).length;
-    const tog = (k, label, sub) => `<button class="tog ${settings[k] ? 'on' : ''}" data-tog="${k}"><span class="check">${settings[k] ? A.icon('check') : ''}</span><span>${label}<small>${sub}</small></span></button>`;
-    $('#modal').innerHTML = `<div class="m-box"><h2>설정</h2>
-      <button class="tog wide ${settings.present ? 'on' : ''}" data-tog="present"><span class="check">${settings.present ? A.icon('check') : ''}</span><span>발표 모드<small>끄면 체험 모드(각자 플레이용): 팀의 의도·수업 연결·반 투표·하나 바꾸기를 숨기고 '발표에서 이어집니다'로 끝나요.</small></span></button>
-      <p>켜 둔 시기만 게임에 나와요. 나이대마다 질문 2~3개 중 하나가 무작위로 나와요 (<b>+1</b>은 대신 나올 수 있는 질문 수).</p>
-      <div class="set-list">${C.stages.map(s => { const on = settings.stages[s.id]; return `<div class="set-row ${on ? '' : 'off'}" data-stage="${s.id}"><span class="check">${on ? A.icon('check') : ''}</span><span class="age">${s.age}세 · ${esc(s.era)}</span><span class="qs" title="${esc(s.questions.map(q => q.title).join(' / '))}">${esc(s.questions[0].title)}${s.questions.length > 1 ? `<small>+${s.questions.length - 1}</small>` : ''}</span></div>`; }).join('')}</div>
-      <div class="set-togs">${tog('votes', '반 투표 (발표 모드)', '손 든 사람 수를 기록해 엔딩에서 보여 줌')}${tog('startCards', '출발 카드', '시작 조건을 무작위로 정함')}${tog('events', '운명 카드', '중간중간 예상 못 한 사건이 생김')}${tog('gauges', '게이지 보이기', '왼쪽 위 4가지 게이지 (G)')}${tog('sound', '소리', '책장·웃음·문 통과 효과음 (M)')}${tog('fast', '빠른 걷기', '이동 애니메이션을 짧게')}</div>
-      <div class="m-actions"><span class="m-sum">갈림길 ${n}개 · 예상 약 ${Math.round(n * 2.6 + (settings.events ? 2 : 0) + 4)}분 (투표·토론 포함)</span><button class="btn" data-act="defaults">기본값</button><button class="btn" data-act="close">닫기 <span class="kbd">Esc</span></button><button class="btn primary" data-act="apply">적용하고 처음으로</button></div></div>`;
-  }
   function closeModal() { ui.modal = null; $('#modal').hidden = true; $('#modal').innerHTML = ''; }
 
   // ---------- 기타 ----------
@@ -813,11 +834,6 @@
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); }
   function fullscreen() {
     try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); } catch { toast('이 브라우저에서는 전체 화면을 쓸 수 없어요.'); }
-  }
-  function toggleMode() {
-    if (state.phase !== 'title') return;
-    settings.present = !settings.present; saveSettings(); closeModal(); renderUI();
-    toast(settings.present ? '발표 모드: 팀 의도와 반 투표를 보여 줘요.' : '체험 모드: 각자 플레이용으로 의도를 숨겨요.');
   }
   function rewindMove(d) {
     const rows = E.summary(C, state).path.filter(p => !p.forced).map(p => p.stage.id);
@@ -846,12 +862,11 @@
   }
   function act(a) {
     switch (a) {
-      case 'start': return newGame();
+      case 'start': return begin();
       case 'resume': return resume();
       case 'next': return primary();
       case 'back': return back();
       case 'vote': return openModal('vote');
-      case 'settings': return openModal('settings');
       case 'help': return openModal('help');
       case 'notes': ui.notes = !ui.notes; renderNotes(); renderToolbar(); return;
       case 'fullscreen': return fullscreen();
@@ -859,9 +874,6 @@
       case 'restart': return state.phase === 'ending' ? startTitle() : openModal('confirm');
       case 'restart-yes': return startTitle();
       case 'replay': return newGame();
-      case 'defaults': settings = E.defaultSettings(C); return renderSettings();
-      case 'apply': saveSettings(); store.del(SAVE_KEY); closeModal(); startTitle(); return toast('설정을 적용했어요.');
-      case 'mode': return toggleMode();
       case 'sound': settings.sound = !settings.sound; saveSettings(); renderToolbar(); if (settings.sound) Sound.play('pop'); return toast(settings.sound ? '소리를 켰어요.' : '소리를 껐어요.');
     }
   }
@@ -870,24 +882,20 @@
   document.addEventListener('click', e => {
     const rw = e.target.closest('[data-rewind]');
     if (rw && !rw.disabled) { if (ui.rewindSel === rw.dataset.rewind) return primary(); ui.rewindSel = rw.dataset.rewind; return renderEnding(); }
-    const b = e.target.closest('[data-act],[data-opt],[data-tog],[data-stage]');
-    if (!b) { if (anim) finish(); return; }
+    const b = e.target.closest('[data-act],[data-opt]');
+    if (!b) { if (anim) finish(); else if (state.phase === 'title' && !ui.modal) begin(); return; }
     if (b.blur) b.blur();
     if (b.dataset.fork != null && (state.phase !== 'fork' || +b.dataset.fork !== state.i)) return;
     if (b.dataset.act) return act(b.dataset.act);
     if (b.dataset.opt != null) return pickOption(+b.dataset.opt);
-    if (b.dataset.tog) { settings[b.dataset.tog] = !settings[b.dataset.tog]; saveSettings(); renderToolbar(); return renderSettings(); }
-    if (b.dataset.stage) { settings.stages[b.dataset.stage] = !settings.stages[b.dataset.stage]; if (!E.activeStages(C, settings).length) { settings.stages[b.dataset.stage] = true; toast('하나 이상은 켜 두어야 해요.'); } saveSettings(); return renderSettings(); }
   });
   document.addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
-    // 숨은 단축키: 첫 화면에서 Shift+P → 발표 모드 켜기/끄기
-    if (e.shiftKey && (k === 'P' || k === 'p')) { e.preventDefault(); if (!ui.modal) toggleMode(); return; }
     if (ui.modal) {
       if (k === 'Escape') { e.preventDefault(); closeModal(); }
       else if (k === 'Enter' && ui.modal === 'confirm') { e.preventDefault(); startTitle(); }
-      else if (k === 'Enter' && ui.modal !== 'vote') { e.preventDefault(); closeModal(); }
+      else if (k === 'Enter' && !['vote', 'name'].includes(ui.modal)) { e.preventDefault(); closeModal(); }
       return;
     }
     const fork = state.phase === 'fork' && !anim;
@@ -899,7 +907,7 @@
       v: () => { if (state.phase !== 'fork' || !votesOn()) return; if (openOnly() != null) return toast('이번 갈림길은 한 길만 열려 있어요.'); openModal('vote'); },
       m: () => act('sound'), x: () => { if (present() && state.phase === 'fork' && !anim) { go(E.skip(C, state)); toast('이 갈림길은 건너뛰었어요.'); } },
       n: () => present() && act('notes'), g: () => { settings.gauges = !settings.gauges; saveSettings(); $('#gauges').hidden = !settings.gauges || state.phase === 'title'; },
-      f: fullscreen, h: () => openModal('help'), '?': () => openModal('help'), s: () => present() && openModal('settings'),
+      f: fullscreen, h: () => openModal('help'), '?': () => openModal('help'),
       r: () => state.phase === 'title' ? null : act('restart'), c: () => state.phase === 'title' && resume(),
     };
     const fn = map[k.length === 1 ? k.toLowerCase() : k];
@@ -917,7 +925,7 @@
     }
     REV = hash(raw);
     settings = loadSettings();
-    document.title = `${C.title} — ${C.subtitle}`;
+    document.title = present() ? C.presentation.title : `${C.title} — ${C.subtitle}`;
     startTitle();
     // 레이아웃 점검용 (주소 끝에 #debug 를 붙였을 때만)
     if (/debug/.test(location.hash)) window.__game = { C, E, show(s) { finish(); state = s; buildWorld(s.run.stageIds); peopleKey = ''; lastLook = null; setPose(poseOf(s), s); showBubble(null); renderUI(); }, look: s => appearance(s, E.ageOf(C, s)), get state() { return state; }, settings: () => settings };

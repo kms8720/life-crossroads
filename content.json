@@ -6,121 +6,49 @@
   "startAge": 8,
   "endingAge": 80,
   "baseline": 2,
-  "eventRate": 0.3,
-  "maxEvents": 3,
+  "eventRate": 1,
+  "maxEvents": 1,
   "dimensions": [
-    {
-      "key": "growth",
-      "label": "성장",
-      "desc": "배움·성취·인정",
-      "color": "#3b78d4",
-      "icon": "growth"
-    },
-    {
-      "key": "passion",
-      "label": "즐거움",
-      "desc": "몰입·취미·설렘",
-      "color": "#e39a12",
-      "icon": "joy"
-    },
-    {
-      "key": "ease",
-      "label": "안정",
-      "desc": "생활·여유·건강",
-      "color": "#22977a",
-      "icon": "calm"
-    },
-    {
-      "key": "connection",
-      "label": "관계",
-      "desc": "가족·친구·이웃",
-      "color": "#de5277",
-      "icon": "bond"
-    }
+    {"key": "growth", "label": "성장", "desc": "배움·성취·인정", "color": "#3b78d4", "icon": "growth"},
+    {"key": "passion", "label": "즐거움", "desc": "몰입·취미·설렘", "color": "#e39a12", "icon": "joy"},
+    {"key": "ease", "label": "안정", "desc": "생활·여유·건강", "color": "#22977a", "icon": "calm"},
+    {"key": "connection", "label": "관계", "desc": "가족·친구·이웃", "color": "#de5277", "icon": "bond"}
   ],
   "intro": {
-    "rules": ["인생의 시기마다 두 갈래 길이 나타나요.", "다 같이 손을 들어 우리 반의 길을 골라요.", "가끔은 예상하지 못한 운명 카드가 나와요."],
-    "note": "발표 모드(숨은 단축키 Shift+P). 규칙 안내 → 시작. 각 갈림길에서 반 전체가 손을 들어 다수결로 고릅니다. V로 손 든 사람 수를 입력하면 마지막에 '우리 반의 선택'으로 다시 보여 줍니다. 게이지는 행복 점수가 아니라 '삶을 무엇으로 채웠는지'를 보여 주는 이야기용 표시라고 먼저 말해 두면 좋습니다.",
-    "rulesSolo": ["인생의 시기마다 두 갈래 길이 나타나요.", "마음이 가는 쪽 문으로 들어가 보세요."]
+    "rules": [
+      "인생의 시기마다 두 갈래 길이 나타나요.",
+      "다 같이 손을 들어 행복이의 길을 골라요.",
+      "가끔은 예상하지 못한 운명 카드가 나와요."
+    ],
+    "note": "발표용 화면. 각 갈림길에서 조별로 이야기한 뒤 손을 들어 고릅니다. V로 손 든 사람 수를 입력하면 마지막에 우리 반의 선택으로 다시 보여 줍니다. 게이지는 행복 점수가 아니라 삶을 무엇으로 채웠는지를 보여 주는 표시라고 먼저 말해 두면 좋습니다.",
+    "rulesSolo": [
+      "인생의 시기마다 두 갈래 길이 나타나요.",
+      "마음이 가는 쪽 문으로 들어가 보세요."
+    ]
   },
   "starts": {
     "label": "출발 카드",
     "reflection": "내가 고르지 않은 출발선도 행복의 조건이 될까?",
-    "note": "녹음(10/15) 팀 논의의 '시작 조건을 랜덤으로' 아이디어. 출발선이 달라도 이후 선택으로 삶이 어떻게 달라지는지 보자고 안내합니다.",
+    "note": "출발선이 달라도 이후 선택으로 삶이 어떻게 달라지는지 보자고 안내합니다. 출발 카드는 모두에게 같습니다.",
     "cards": [
-      {"id": "bigfamily", "icon": "family", "title": "시끌벅적한 대가족", "text": "할머니, 사촌들까지 늘 북적이는 집에서 자랐다. 혼자 있을 틈은 없었지만 외로울 틈도 없었다.", "effects": {"connection": 2}},
-      {"id": "bookhouse", "icon": "book", "title": "책이 가득한 조용한 집", "text": "거실 한쪽이 전부 책장인 집. 궁금한 건 언제든 찾아볼 수 있었지만, 집은 늘 조용했다.", "effects": {"growth": 2}},
-      {"id": "alley", "icon": "ball", "title": "골목이 놀이터인 동네", "text": "해가 질 때까지 골목에서 뛰어놀았다. 하고 싶은 건 많았고, 다니는 학원은 적었다.", "effects": {"passion": 2}},
-      {"id": "steady", "icon": "piggy", "title": "알뜰하고 단단한 살림", "text": "부모님은 늘 바빴지만 생활은 흔들리지 않았다. 아껴 쓰는 법을 일찍 배웠다.", "effects": {"ease": 2}},
-      {"id": "moving", "icon": "suitcase", "title": "자주 이사를 다닌 집", "text": "초등학교만 세 번 옮겼다. 새로 시작하는 데는 익숙해졌고, 오래된 친구는 적었다.", "effects": {"growth": 1, "passion": 1}}
+      {"id": "steady", "icon": "piggy", "title": "알뜰하고 단단한 살림", "text": "부모님은 늘 바빴지만 생활은 흔들리지 않았다. 아껴 쓰는 법을 일찍 배웠다.", "effects": {"ease": 2}}
     ],
     "labelSolo": "나의 출발"
   },
   "events": {
     "label": "운명 카드",
-    "note": "행복 포럼 「미스터 노바디와 경제학」의 우연과 불확실성. 운명 카드는 바로 다음 갈림길에 영향을 준다: 문이 닫히거나, 선택지가 바뀌거나, 질문이 바뀐다. 좋은 우연도 있다.",
+    "note": "행복 포럼 「미스터 노바디와 경제학」의 우연과 불확실성. 모두에게 같은 카드가 같은 자리에서 나옵니다.",
     "cards": [
-      {"id": "transfer", "minAge": 8, "maxAge": 18, "icon": "suitcase", "title": "갑자기 전학을 가게 됐다", "text": "부모님 일 때문에 낯선 학교로 옮겼다. 첫날 점심시간이 유난히 길었다.", "effects": {"growth": 1, "connection": -1}, "reflection": "내가 고르지 않은 변화에도 적응하는 힘이 있다.", "targets": ["middle-school"]},
-      {"id": "bestfriend", "minAge": 8, "maxAge": 30, "icon": "hands", "title": "평생 친구를 만났다", "text": "우연히 옆자리에 앉은 친구와 이야기가 끝없이 이어졌다.", "effects": {"connection": 2}, "reflection": "가장 소중한 만남은 계획에 없던 순간에 온다.", "targets": ["middle-school", "university"]},
-      {"id": "hobby", "minAge": 12, "maxAge": 65, "icon": "palette", "title": "우연히 시작한 취미", "text": "친구 따라 간 동호회에서 생각지도 못한 재미를 발견했다.", "effects": {"passion": 2}, "reflection": "몰입할 무언가가 생기면 하루의 결이 달라진다.", "targets": ["university", "sixties"]},
-      {"id": "recession", "minAge": 22, "maxAge": 58, "icon": "chartdown", "title": "갑작스러운 경기 침체", "text": "회사가 어려워져 월급이 동결됐다. 내가 열심히 한다고 막을 수 있는 일이 아니었다.", "effects": {"ease": -2}, "reflection": "노력과 상관없는 우연도 삶을 흔든다.", "targets": ["first-job", "career-mid", "fifties"]},
-      {"id": "lottery", "minAge": 20, "maxAge": 78, "icon": "star", "title": "복권 3등 당첨!", "text": "생각지도 못한 돈이 생겼다. 한 달쯤 들떴다가, 어느새 평소로 돌아왔다.", "effects": {"ease": 1, "passion": 1}, "reflection": "쾌락 적응: 큰 기쁨도 생각보다 빨리 익숙해진다 (Brickman 외, 1978).", "targets": ["career-mid", "fifties"]},
-      {"id": "illness", "minAge": 30, "maxAge": 72, "icon": "pill", "title": "몸이 보낸 신호", "text": "과로 끝에 쓰러져 한동안 쉬었다. 처음으로 아무것도 하지 않는 시간을 보냈다.", "effects": {"ease": -1, "connection": 1}, "reflection": "건강을 잃고 나서야 보이는 행복의 조건이 있다.", "targets": ["career-mid", "sixties"]},
-      {"id": "parents", "minAge": 40, "maxAge": 66, "icon": "family", "title": "부모님이 편찮으시다", "text": "부모님이 쓰러지셨다는 연락을 받았다. 앞으로의 돌봄을 정해야 한다.", "effects": {"ease": -1}, "reflection": "돌봄은 예고 없이 찾아온다.", "targets": ["midlife"]},
-      {"id": "chance", "minAge": 24, "maxAge": 56, "icon": "briefcase", "title": "뜻밖의 기회", "text": "우연히 만난 선배가 새로운 프로젝트에 함께하자고 했다.", "effects": {"growth": 2}, "reflection": "준비된 사람에게 우연은 기회가 되기도 한다.", "targets": ["first-job", "career-mid"]},
-      {"id": "reunion", "minAge": 42, "maxAge": 80, "icon": "cup", "title": "오랜 친구와의 재회", "text": "동창 모임에서 수십 년 만에 친구를 만났다. 웃음이 터지는 지점은 그대로였다.", "effects": {"connection": 2}, "reflection": "오래된 관계는 잠시 멀어져도 다시 이어질 수 있다.", "targets": ["fifties", "sixties"]},
-      {"id": "learning", "minAge": 50, "maxAge": 80, "icon": "pen", "title": "늦깎이 학생이 되다", "text": "오래 미뤄 둔 공부를 다시 시작했다. 강의실 맨 앞자리에서 다시 학생이 된 기분을 느꼈다.", "effects": {"growth": 1, "passion": 1}, "reflection": "배움에는 정해진 나이가 없다.", "targets": ["sixties"]}
+      {"id": "parents", "minAge": 40, "maxAge": 66, "icon": "family", "title": "부모님이 편찮으시다", "text": "부모님이 쓰러지셨다는 연락을 받았다. 앞으로의 돌봄을 정해야 한다.", "effects": {"ease": -1}, "reflection": "돌봄은 예고 없이 찾아온다.", "targets": ["midlife"]}
     ],
     "labelSolo": "그 무렵"
   },
   "stages": [
     {
-      "id": "childhood",
-      "age": 10,
-      "era": "어린 시절",
-      "scene": "town",
-      "enabled": true,
-      "questions": [
-        {
-          "id": "study-or-play",
-          "title": "시험 전날 오후, 무엇을 할까?",
-          "context": "내일은 단원평가. 그런데 친구들이 운동장에서 같이 놀자고 부른다. 공부 걱정에 요즘은 쉬는 시간까지 마음이 바쁘다.",
-          "reflection": "미래를 위해 오늘의 즐거움을 어디까지 미룰 수 있을까?",
-          "concept": {"kind": "수업", "label": "3주차 · 현재의 행복 vs 미래의 행복", "text": "3주차 칠판과 행복 포럼에서 '미래의 행복을 위해 현재의 행복을 어디까지 포기할 수 있는가'를 토론했다. 성적이 주는 보람과 부담, 친구·취미가 주는 힘이 함께 나왔다."},
-          "sources": [
-            {"label": "3주차 칠판: 친구·취미·성적"},
-            {"label": "3주차 칠판: 공부·자유·가족"},
-            {"label": "행복 포럼: 미래와 현재의 행복"}
-          ],
-          "note": "첫 질문이라 가볍게. 투표 후 소수 쪽을 고른 사람에게 이유를 물어보면 대화가 잘 열립니다. 공부를 고르면 책장 넘기는 소리와 함께 안경을 쓰고(평생 유지), 놀기를 고르면 아이들 웃음소리와 함께 공을 들고 볼에 반창고가 붙는다.",
-          "options": [
-            {"id": "study", "gate": "공부하기", "title": "오늘은 공부에 집중", "desc": "노는 건 시험이 끝난 뒤로 미룬다.", "item": "book", "effects": {"growth": 3}, "gain": "풀 수 있는 문제가 늘었다", "cost": "친구들과 놀 오후를 놓쳤다", "result": "막혔던 문제를 풀자 마음이 놓인다. 창밖 웃음소리가 조금 아쉽다. 준비는 내일의 걱정을 줄여 주지만, 미래의 행복까지 약속하진 않는다.", "memory": "미래를 위해 애쓴 오후. 해냈다는 뿌듯함 옆에 미뤄 둔 즐거움도 남았다.", "show": {"wear": ["glasses"], "sound": "page"}},
-            {"id": "play", "gate": "놀러 가기", "title": "친구들과 실컷 놀기", "desc": "좋아하는 걸 하고, 공부는 조금만.", "item": "ball", "effects": {"passion": 2, "connection": 1}, "gain": "친구들과 함께 웃고 몰입한 시간", "cost": "남은 시험 범위가 마음에 걸린다", "result": "해가 질 때까지 뛰어노니 긴장이 풀린다. 집에 오니 풀지 못한 문제는 그대로다. 즐거웠다는 사실도, 할 일이 남았다는 사실도 사라지지 않는다.", "memory": "친구들과 뛰놀던 오후. 좋아하는 일을 하는 시간도 삶의 한 부분이라는 감각이 남았다.", "show": {"wear": ["bandage"], "wearUntil": 19, "hold": "ball", "holdUntil": 15, "sound": "laugh"}}
-          ]
-        },
-        {
-          "id": "allowance",
-          "title": "모아 둔 용돈, 지금 쓸까 더 모을까?",
-          "context": "몇 달 동안 모은 용돈으로 친구들이 다 가진 게임기를 살 수 있다. 조금만 더 모으면 더 좋은 것도 살 수 있다.",
-          "reflection": "지금 갖는 기쁨과 기다려서 얻는 기쁨, 무엇이 더 클까?",
-          "concept": {"kind": "연구", "label": "만족 지연", "text": "당장의 보상을 미루는 힘을 다룬 '마시멜로 실험'(Mischel)이 유명하지만, 이후 연구에서는 가정 형편 같은 환경의 영향도 크다는 반론이 나왔다 (Watts 외, 2018). 3주차의 '현재 vs 미래의 행복'과도 이어진다."},
-          "sources": [
-            {"label": "행복 포럼: 미래와 현재의 행복"}
-          ],
-          "note": "10세에 무작위로 나옵니다. 지금 사면 게임기를, 모으면 돼지저금통을 들고 다닙니다.",
-          "options": [
-            {"id": "buy-now", "gate": "지금 사기", "title": "지금 게임기를 산다", "desc": "친구들과 같이 놀 수 있다.", "item": "game", "effects": {"passion": 2, "connection": 1}, "gain": "친구들과 함께하는 신나는 방과 후", "cost": "통장은 다시 텅 비었다", "result": "새 게임기를 들고 친구 집으로 달려간다. 한동안은 매일이 신난다. 몇 주 지나자 처음만큼 설레지는 않는다는 것도 알게 된다.", "memory": "용돈을 탈탈 털어 산 게임기와 친구들의 환호.", "show": {"hold": "game", "holdUntil": 15}},
-            {"id": "save-more", "gate": "더 모으기", "title": "조금 더 모은다", "desc": "갖고 싶은 마음을 꾹 참는다.", "item": "piggy", "effects": {"growth": 1, "ease": 2}, "gain": "차곡차곡 늘어나는 통장", "cost": "친구들 이야기에 끼지 못한다", "result": "저금통이 묵직해질수록 뿌듯하다. 하지만 쉬는 시간마다 게임 이야기가 나오면 조용해진다. 기다림이 늘 더 큰 기쁨으로 돌아오는지는 아직 모르겠다.", "memory": "하루하루 묵직해지던 돼지저금통.", "show": {"hold": "piggy", "holdUntil": 15}}
-          ]
-        }
-      ]
-    },
-    {
       "id": "middle-school",
       "age": 15,
       "era": "새 학년",
       "scene": "school",
-      "enabled": true,
       "questions": [
         {
           "id": "old-or-new-friend",
@@ -132,65 +60,10 @@
             {"label": "6주차 칠판: 관계에 관한 질문"},
             {"label": "6주차 칠판: 함께한 시간과 갈등"}
           ],
-          "note": "옛 친구를 고르면 단짝 1명이, 새 친구를 고르면 친구 2명이 함께 걷는다. 23세에 애인이 생기면 친구들은 각자의 길로 간다. '전학' 운명 카드가 나오면 옛 친구 문이 닫힌다.",
-          "lock": [
-            {"when": ["ev-transfer"], "option": 0, "reason": "전학을 와서 옆 반에 아는 친구가 없다"}
-          ],
+          "note": "옛 친구를 고르면 단짝 1명이, 새 친구를 고르면 친구 2명이 함께 걷는다.",
           "options": [
-            {"id": "old-friend", "gate": "옆 반 옛 친구", "title": "옆 반 친구를 보러 간다", "desc": "익숙한 우정을 지킨다.", "item": "heart", "effects": {"connection": 2, "ease": 1}, "gain": "변함없는 단짝", "cost": "우리 반은 아직 어색하다", "result": "쉬는 시간마다 옆 반으로 달려간다. 친구와는 여전히 말이 잘 통한다. 다만 우리 반 단톡방에서는 아직 조용한 편이다.", "memory": "쉬는 시간마다 옆 반으로 달려가던 우정.", "show": {"friends": "old"}, "ifFlag": [{"when": ["ev-bestfriend"], "gain": "평생 단짝과 더 단단해진 우정", "effects": {"connection": 3, "ease": 1}}]},
+            {"id": "old-friend", "gate": "옆 반 옛 친구", "title": "옆 반 친구를 보러 간다", "desc": "익숙한 우정을 지킨다.", "item": "heart", "effects": {"connection": 2, "ease": 1}, "gain": "변함없는 단짝", "cost": "우리 반은 아직 어색하다", "result": "쉬는 시간마다 옆 반으로 달려간다. 친구와는 여전히 말이 잘 통한다. 다만 우리 반 단톡방에서는 아직 조용한 편이다.", "memory": "쉬는 시간마다 옆 반으로 달려가던 우정.", "show": {"friends": "old"}},
             {"id": "new-friends", "gate": "우리 반 새 친구", "title": "우리 반 친구들과 친해진다", "desc": "새 얼굴들에게 먼저 말을 건다.", "item": "bond", "effects": {"passion": 2, "growth": 1}, "gain": "새 친구들과 넓어진 세계", "cost": "옛 친구와는 조금씩 멀어진다", "result": "먼저 말을 걸자 생각보다 금방 친해졌다. 새 친구들과 매점 가는 시간이 즐겁다. 옛 친구와는 복도에서 손만 흔드는 날이 늘었다.", "memory": "용기 내어 먼저 말을 걸었던 새 학년의 봄.", "show": {"friends": "new"}}
-          ]
-        },
-        {
-          "id": "liberal-or-science",
-          "title": "문과와 이과, 어디로 갈까?",
-          "context": "곧 고등학교에 간다. 사람과 사회 이야기를 읽는 게 좋은데, 친구들은 '이과가 갈 데가 많다'며 대부분 이과를 고른다.",
-          "reflection": "내가 끌리는 길과 '남들이 좋다는 길'이 다를 때, 무엇을 기준으로 할까?",
-          "concept": {"kind": "연구", "label": "내재적 동기", "text": "스스로 흥미를 느껴 하는 일은 보상이나 평가 때문에 하는 일보다 오래 지속되고 만족도도 높은 경향이 있다 (자기결정성 이론, Deci & Ryan)."},
-          "note": "지금은 문·이과 구분이 공식적으로 없어졌지만 과목 선택에서 같은 고민이 이어진다는 점을 덧붙여도 좋습니다. 15세에 무작위로 나옵니다.",
-          "options": [
-            {"id": "liberal", "gate": "문과", "title": "끌리는 문과로", "desc": "글과 사람, 사회에 대한 관심을 따른다.", "item": "pen", "effects": {"passion": 2, "connection": 1}, "gain": "좋아하는 과목이 많아졌다", "cost": "'나중에 후회하지 않을까' 하는 주변의 걱정", "result": "토론 수업이 기다려진다. 가끔 친구들의 진로 이야기를 들으면 마음이 흔들린다. 그래도 매일 하는 공부가 내 것 같다.", "memory": "끌리는 쪽을 골랐던 열여섯의 선택.", "show": {"hold": "pen"}},
-            {"id": "science", "gate": "이과", "title": "선택지가 넓은 이과로", "desc": "진로의 폭이 넓다는 말을 따른다.", "item": "flask", "effects": {"growth": 2, "ease": 1}, "gain": "넓어진 진로 선택지", "cost": "좋아하던 과목과는 조금 멀어졌다", "result": "수학과 과학 시간이 늘었다. 어렵지만 해낼수록 자신감이 붙는다. 다만 가끔은 읽고 싶던 책을 뒤로 미룬다.", "memory": "가능성을 넓히려 했던 선택. 그 안에서 좋아하는 것을 찾는 일은 계속됐다.", "show": {"hold": "flask"}}
-          ]
-        }
-      ]
-    },
-    {
-      "id": "college",
-      "age": 19,
-      "era": "대학 입시",
-      "scene": "library",
-      "enabled": true,
-      "questions": [
-        {
-          "id": "major-or-name",
-          "title": "원서 마감 하루 전, 어디에 낼까?",
-          "context": "점수로 갈 수 있는 두 곳. 정말 배우고 싶은 학과와, 이름이 더 알려진 대학의 다른 학과.",
-          "reflection": "남들이 인정하는 선택과 내가 원하는 선택, 무엇이 더 오래 갈까?",
-          "concept": {"kind": "연구", "label": "사회적 비교", "text": "사람은 자기 처지를 남과 비교해 평가하는 경향이 있다 (Festinger, 1954). 만족의 기준을 바깥에 두면 쉽게 흔들린다. 5주차 진로 집단상담에서 나온 '불확실한 진로 탐색과 비교' 고민과도 이어진다."},
-          "sources": [
-            {"label": "5주차 칠판: 진로 선택 질문"},
-            {"label": "5주차 칠판: 불확실한 진로와 비교"}
-          ],
-          "note": "우리 대부분이 최근에 겪은 선택이라 실제 경험을 물어보기 좋습니다. 좋아하는 학과는 밝은색 과잠, 이름 있는 대학은 남색 과잠을 입는다.",
-          "options": [
-            {"id": "major", "gate": "좋아하는 학과", "title": "배우고 싶은 학과로", "desc": "학교 이름보다 공부할 내용을 고른다.", "item": "sprout", "effects": {"passion": 3}, "gain": "수업 시간이 기다려진다", "cost": "학교 이름을 설명해야 할 때가 있다", "result": "전공 수업이 생각보다 재미있다. 친척들의 '거기가 어디야?'에 가끔 마음이 쓰인다. 그래도 매일 하는 공부가 지루하지 않다는 건 큰 힘이다.", "memory": "배우고 싶은 것을 골랐던 스무 살 직전의 용기.", "show": {"outfit": "jacket-bright"}},
-            {"id": "name", "gate": "더 좋은 대학", "title": "이름 있는 대학으로", "desc": "관심은 덜해도 학벌과 기회를 고른다.", "item": "cap", "effects": {"growth": 2, "ease": 1}, "gain": "든든한 간판과 넓은 인맥", "cost": "전공이 내 것 같지 않은 날이 있다", "result": "학교 이름이 열어 주는 기회는 분명 있다. 그런데 시험 기간마다 '이게 내가 하고 싶던 공부일까' 싶다. 남들이 부러워하는 것과 내가 즐거운 것은 다를 수 있다.", "memory": "기회의 문을 넓히려 했던 선택. 그 문 너머에서 무엇을 할지는 계속 물어야 했다.", "show": {"outfit": "jacket-navy"}}
-          ]
-        },
-        {
-          "id": "retry-or-accept",
-          "title": "원하던 대학에 떨어졌다. 다시 도전할까?",
-          "context": "1지망은 떨어지고 2지망에만 붙었다. 1년 더 공부하면 붙을 수도 있지만 장담은 못 한다. 친구들은 새내기 생활 이야기로 바쁘다.",
-          "reflection": "1년이라는 시간, 무엇과 바꿀 수 있을까?",
-          "concept": {"kind": "수업", "label": "행복 포럼 · 미래 감정 예측", "text": "미스터 노바디 토론처럼, 우리는 미래의 내가 얼마나 기쁘거나 슬플지 실제보다 크게 예측하는 경향이 있다 (정서 예측, Gilbert & Wilson). 실패의 아픔도 생각보다 빨리 옅어지곤 한다."},
-          "sources": [
-            {"label": "행복 포럼: 미스터 노바디와 경제학"}
-          ],
-          "note": "19세에 무작위로 나옵니다. 재수를 고르면 책을 들고 다니고, 붙은 곳에 가면 남색 과잠을 입습니다.",
-          "options": [
-            {"id": "retry", "gate": "재수하기", "title": "1년 더 도전한다", "desc": "원하던 곳을 향해 다시 공부한다.", "item": "book", "effects": {"growth": 2, "passion": 1, "ease": -1}, "gain": "끝까지 해 보는 끈기", "cost": "친구들보다 1년 늦은 출발", "result": "독서실 같은 자리에서 1년을 보낸다. 실력은 늘었지만 친구들 사진을 볼 때마다 마음이 흔들린다. 결과와 상관없이, 버틴 1년은 내 것이다.", "memory": "독서실 창가에서 버텨 낸 1년.", "show": {"hold": "books"}},
-            {"id": "accept", "gate": "붙은 곳 가기", "title": "붙은 대학에 간다", "desc": "지금 할 수 있는 곳에서 시작한다.", "item": "cap", "effects": {"ease": 2, "connection": 1}, "gain": "친구들과 함께 시작한 새내기 생활", "cost": "'그때 다시 했다면' 하는 마음", "result": "생각지 않던 학교였지만 좋은 친구들을 만났다. 가끔 1지망 학교 이야기를 들으면 마음이 쓰인다. 기대하지 않던 곳에서 좋아하는 것을 찾기도 한다.", "memory": "예상 밖의 학교에서 만난 소중한 사람들.", "show": {"outfit": "jacket-navy"}}
           ]
         }
       ]
@@ -200,7 +73,7 @@
       "age": 21,
       "era": "대학 생활",
       "scene": "campus",
-      "enabled": true,
+      "presentation": true,
       "questions": [
         {
           "id": "spec-or-band",
@@ -211,39 +84,24 @@
           "sources": [
             {"label": "행복 포럼: 미래와 현재의 행복"}
           ],
-          "note": "스펙을 고르면 상장을 들고 다니고, 밴드를 고르면 기타를 멘다. 기타는 28세에 '잘하는 일'을 고르면 내려놓는다. '평생 친구'·'취미' 운명 카드가 나오면 밴드 쪽이 더 끌리게 바뀐다.",
+          "note": "스펙을 고르면 상장을 들고 다니고, 밴드를 고르면 기타를 멘다.",
           "options": [
-            {"id": "spec", "gate": "취업 스펙", "title": "취업에 도움 되는 활동", "desc": "공모전·대외활동으로 경력을 쌓는다.", "item": "medal", "effects": {"growth": 3}, "gain": "이력서 한 줄과 상장", "cost": "해 보고 싶던 무대는 미뤘다", "result": "밤새 준비한 공모전에서 상을 받았다. 이력서가 든든해졌다. 축제 무대에 선 밴드를 보며 잠깐 부러웠다.", "memory": "밤새 준비해 받은 상장 한 장.", "show": {"hold": "certificate", "holdUntil": 28}},
-            {"id": "band", "gate": "밴드 동아리", "title": "꼭 해 보고 싶던 밴드", "desc": "공연 연습에 이번 학기를 쏟는다.", "item": "guitar", "effects": {"passion": 2, "connection": 1}, "gain": "무대 위의 떨림과 동아리 친구들", "cost": "스펙 쌓기는 한 학기 늦어졌다", "result": "축제 무대에서 첫 곡을 끝내자 환호가 터졌다. 손가락엔 굳은살이 박였다. 취업 준비하는 동기들 소식에 가끔 조급해진다.", "memory": "축제 무대 위, 떨리던 첫 곡.", "show": {"wear": ["guitar"]}, "ifFlag": [{"when": ["ev-bestfriend"], "desc": "평생 친구가 같이 하자고 한다.", "gain": "평생 친구와 함께 선 무대", "effects": {"passion": 2, "connection": 2}}, {"when": ["ev-hobby"], "desc": "요즘 빠진 기타를 무대에서 쳐 보고 싶다.", "effects": {"passion": 3, "connection": 1}}]}
-          ]
-        },
-        {
-          "id": "gap-year",
-          "title": "휴학하고 떠나 볼까, 계속 다닐까?",
-          "context": "워킹홀리데이 비자가 나왔다. 1년 동안 외국에서 일하며 살아 볼 수 있다. 그사이 동기들은 3학년으로 올라간다.",
-          "reflection": "지금 아니면 못 할 경험과 제때 가는 길, 무엇이 더 소중할까?",
-          "concept": {"kind": "수업", "label": "5주차 · 불확실한 진로 탐색", "text": "5주차 진로 집단상담 칠판에는 진로가 불확실할 때 남과 비교하게 되는 고민, 작은 경험으로 직접 확인해 보자는 의견이 있었다."},
-          "sources": [
-            {"label": "5주차 칠판: 불확실한 진로와 비교"}
-          ],
-          "note": "21세에 무작위로 나옵니다. 떠나면 캐리어를 끌고, 계속 다니면 책을 듭니다. '평생 친구'·'취미' 운명 카드가 나오면 밴드 질문이 대신 나옵니다.",
-          "options": [
-            {"id": "go-abroad", "gate": "워홀 떠나기", "title": "1년 휴학하고 떠난다", "desc": "낯선 나라에서 일하며 살아 본다.", "item": "suitcase", "effects": {"passion": 2, "growth": 1, "ease": -1}, "gain": "넓어진 세상과 낯선 친구들", "cost": "졸업이 1년 늦어졌다", "result": "카페에서 일하며 서툰 말로 친구를 사귄다. 외롭고 힘든 밤도 있었지만 돌아올 땐 조금 단단해졌다. 동기들은 벌써 취업 준비를 하고 있다.", "memory": "낯선 나라에서 보낸 서툴고 반짝이던 1년.", "show": {"hold": "suitcase"}},
-            {"id": "stay-school", "gate": "계속 다니기", "title": "휴학 없이 다닌다", "desc": "동기들과 함께 제때 졸업한다.", "item": "cap", "effects": {"ease": 2, "connection": 1}, "gain": "동기들과 함께 걷는 졸업 길", "cost": "떠나 보지 못한 아쉬움", "result": "동기들과 시험 기간을 함께 버티고 졸업을 준비한다. 해외에서 온 친구의 사진을 보면 가끔 부럽다. 익숙한 곳에서 쌓은 우정도 소중하다.", "memory": "동기들과 밤새우던 시험 기간.", "show": {"hold": "books"}}
+            {"id": "spec", "gate": "취업 스펙", "title": "취업에 도움 되는 활동", "desc": "공모전·대외활동으로 경력을 쌓는다.", "item": "medal", "effects": {"growth": 3}, "gain": "이력서 한 줄과 상장", "cost": "해 보고 싶던 무대는 미뤘다", "result": "밤새 준비한 공모전에서 상을 받았다. 이력서가 든든해졌다. 축제 무대에 선 밴드를 보며 잠깐 부러웠다.", "memory": "밤새 준비해 받은 상장 한 장.", "show": {"hold": "certificate", "holdUntil": 30}},
+            {"id": "band", "gate": "밴드 동아리", "title": "꼭 해 보고 싶던 밴드", "desc": "공연 연습에 이번 학기를 쏟는다.", "item": "guitar", "effects": {"passion": 2, "connection": 1}, "gain": "무대 위의 떨림과 동아리 친구들", "cost": "스펙 쌓기는 한 학기 늦어졌다", "result": "축제 무대에서 첫 곡을 끝내자 환호가 터졌다. 손가락엔 굳은살이 박였다. 취업 준비하는 동기들 소식에 가끔 조급해진다.", "memory": "축제 무대 위, 떨리던 첫 곡.", "show": {"wear": ["guitar"], "wearUntil": 32}}
           ]
         }
       ]
     },
     {
       "id": "twenties",
-      "age": 23,
-      "era": "스물셋의 고민",
+      "age": 26,
+      "era": "마음의 갈림길",
       "scene": "park",
-      "enabled": true,
+      "presentation": true,
       "questions": [
         {
           "id": "who-to-love",
-          "title": "두 사람 사이에서, 누구를 만날까?",
+          "title": "나를 좋아해 주는 사람을 만날 것인가, 내가 좋아하는 사람을 만날 것인가?",
           "context": "오래 나를 챙겨 준 친구가 고백했다. 그런데 내 마음은 요즘 자꾸 다른 사람에게 간다.",
           "reflection": "좋은 관계는 '누구를'보다 '어떻게' 만나느냐에 달려 있을까?",
           "concept": {"kind": "수업", "label": "6주차 · 관계를 쌓는 시간", "text": "6주차 칠판에서는 관계가 함께 보낸 시간의 양뿐 아니라 질, 그리고 서로의 필요를 듣는 태도로 쌓인다는 의견이 나왔다."},
@@ -251,210 +109,65 @@
             {"label": "6주차 칠판: 관계에 관한 질문"},
             {"label": "6주차 칠판: 함께한 시간과 갈등"}
           ],
-          "note": "어느 쪽이든 애인이 생깁니다. 나를 좋아하는 사람이면 애인이 꽃을 건네고, 내가 좋아하는 사람이면 내가 꽃을 건넵니다. 23세에 무작위로 나옵니다.",
+          "note": "어느 쪽이든 연인이 생깁니다. 나를 좋아하는 사람이면 연인이 꽃을 건네고, 내가 좋아하는 사람이면 내가 꽃을 건넵니다. 이 사람은 끝까지 함께 걷습니다.",
           "options": [
             {"id": "loved", "gate": "나를 좋아하는 사람", "title": "나를 좋아해 주는 사람", "desc": "나를 아껴 주는 마음을 믿어 본다.", "item": "letter", "effects": {"connection": 2, "ease": 1}, "gain": "있는 그대로 받아들여지는 편안함", "cost": "설렘이 크지 않아 마음이 복잡하다", "result": "함께 있으면 편하고, 나를 잘 안다. 처음엔 설렘이 부족한 것 같았지만 천천히 정이 깊어진다. 내 마음이 따라가지 못하는 날엔 미안함도 든다.", "memory": "나를 아껴 준 사람의 곁. 사랑은 천천히 자라기도 한다는 걸 배웠다.", "show": {"lover": true, "give": {"item": "flowers", "from": "partner"}}},
-            {"id": "lover", "gate": "내가 좋아하는 사람", "title": "내가 좋아하는 사람", "desc": "용기 내어 내 마음을 따라간다.", "item": "heart", "effects": {"passion": 2, "connection": 1}, "gain": "가슴 뛰는 설렘과 용기", "cost": "마음을 얻을 수 있을지 불안하다", "result": "용기 내어 다가가니 하루하루가 설렌다. 답장 하나에 기분이 오르내리기도 한다. 내 마음을 따라간 경험은 결과와 상관없이 오래 남는다.", "memory": "좋아하는 마음을 따라간 용기. 설렘과 불안이 함께였다.", "show": {"lover": true, "give": {"item": "flowers", "from": "me"}}}
-          ]
-        },
-        {
-          "id": "exam-or-job",
-          "title": "졸업을 앞두고, 무엇을 준비할까?",
-          "context": "몇 년이 걸릴지 모르는 고시에 도전할까, 지금 바로 취업을 준비할까? 친구들은 하나둘 회사에 들어간다.",
-          "reflection": "몇 년 뒤의 내가 어떤 기분일지, 지금의 나는 얼마나 정확히 알 수 있을까?",
-          "concept": {"kind": "수업", "label": "행복 포럼 · 미스터 노바디와 경제학", "text": "포럼에서는 모든 선택에 기회비용이 있고, 미래의 내 감정을 미리 정확히 예측하기 어렵다는 이야기가 오갔다."},
-          "sources": [
-            {"label": "행복 포럼: 미스터 노바디와 경제학"}
-          ],
-          "note": "고시를 고르면 28세 질문의 상황 설명이 바뀝니다. 23세에 무작위로 나옵니다.",
-          "options": [
-            {"id": "exam", "gate": "고시 준비", "title": "고시에 도전한다", "desc": "합격하면 안정적이지만, 기약은 없다.", "item": "scroll", "set": ["exam"], "effects": {"growth": 3, "connection": -1}, "gain": "목표를 향해 몰입하는 힘", "cost": "친구들과의 시간, 그리고 몇 년의 불확실성", "result": "매일 같은 자리에서 같은 책을 편다. 실력이 쌓이는 게 느껴진다. 하지만 합격 발표 전까지 이 시간이 어떤 의미가 될지는 아무도 모른다.", "memory": "목표 하나만 바라봤던 몇 년. 결과와 상관없이 버텨 낸 시간이 남았다.", "show": {"hold": "books"}},
-            {"id": "job", "gate": "취업 준비", "title": "바로 취업을 준비한다", "desc": "일하면서 내 길을 찾아간다.", "item": "briefcase", "effects": {"ease": 2, "connection": 1}, "gain": "일찍 시작한 경제적 독립", "cost": "'그때 도전해 볼걸' 하는 마음", "result": "첫 월급으로 부모님께 선물을 했다. 일하며 생각보다 많은 걸 배운다. 시험 준비를 계속하는 친구 소식에 가끔 마음이 흔들린다.", "memory": "일찍 사회에 나와 부딪치며 배운 시간.", "show": {"hold": "briefcase"}}
-          ]
-        }
-      ]
-    },
-    {
-      "id": "first-job",
-      "age": 28,
-      "era": "첫 직장",
-      "scene": "city",
-      "enabled": true,
-      "questions": [
-        {
-          "id": "love-or-skill",
-          "title": "좋아하는 일과 잘하는 일, 어디서 시작할까?",
-          "context": "두 곳에서 합격 연락이 왔다. 서툴지만 좋아하는 일, 그리고 이미 잘해서 인정받을 수 있는 일.",
-          "contextIf": [
-            {"when": ["exam"], "text": "몇 년의 시험 준비를 마치고, 두 곳에서 연락이 왔다. 서툴지만 좋아하는 일, 그리고 이미 잘하는 일."}
-          ],
-          "reflection": "좋아하는 일이면 행복할까? 수입·근무 시간·자율성·동료 중 내게 중요한 건?",
-          "concept": {"kind": "수업", "label": "5주차 · 진로 집단상담 & 행복 포럼", "text": "'좋아하는 일이 행복한 삶을 보장할까?' 토론에서, 흥미와 능력뿐 아니라 소득·근무 시간·자율성·관계를 함께 살펴야 한다는 의견이 나왔다. 좋아하는 일을 취미로 지키는 방법도 이야기했다."},
-          "sources": [
-            {"label": "5주차 칠판: 진로 선택 질문"},
-            {"label": "5주차 칠판: 진로 선택에 대한 답변"},
-            {"label": "행복 포럼: 좋아하는 일과 행복"}
-          ],
-          "note": "5주차 진로 집단상담 칠판과 포럼을 직접 연결할 수 있는 핵심 질문입니다. 좋아하는 일은 앞치마와 베레모, 잘하는 일은 정장과 사원증. '경기 침체'가 나오면 좋아하는 일 문이 닫히고, '뜻밖의 기회'가 나오면 잘하는 일 쪽이 좋아진다.",
-          "options": [
-            {"id": "love-job", "gate": "좋아하는 일", "title": "좋아하는 일을 택한다", "desc": "서툴러도 마음이 가는 일에서 배운다.", "item": "palette", "effects": {"passion": 3, "ease": -1}, "gain": "스스로 배우고 싶은 이유가 생겼다", "cost": "불규칙한 수입과 서툰 업무", "result": "처음 해낸 작업이 뿌듯하다. 하지만 반복되는 마감 앞에선 좋아하던 일도 지친다. 흥미만큼 생활을 지킬 수입과 쉴 시간도 필요하다는 걸 느낀다.", "memory": "마음이 가는 일로 시작한 첫걸음. 좋아함은 출발의 이유였고, 계속할 조건은 따로 살펴야 했다.", "show": {"outfit": "apron", "wear": ["beret"]}},
-            {"id": "skill-job", "gate": "잘하는 일", "title": "잘하는 일을 택한다", "desc": "강점으로 인정받고 생활을 다진다.", "item": "briefcase", "effects": {"growth": 2, "ease": 2}, "gain": "능력을 인정받고 생활이 안정됐다", "cost": "반복되는 일에 흥미가 줄어든다", "result": "맡은 일을 척척 해내 동료의 신뢰를 얻는다. 그런데 야근이 잦은 주엔 좋아하는 걸 할 기운이 없다. 잘한다는 평가와 내가 버틸 수 있는 일상은 다른 문제다.", "memory": "강점을 발판 삼아 시작한 일. 안정은 도움이 됐지만, 일 밖의 삶에 쓸 여유까지 저절로 생기진 않았다.", "show": {"outfit": "suit", "wear": ["lanyard"], "remove": ["guitar"]}, "ifFlag": [{"when": ["ev-chance"], "gain": "선배 추천으로 얻은 더 좋은 자리", "effects": {"growth": 3, "ease": 2}}]}
-          ],
-          "lock": [
-            {"when": ["ev-recession"], "option": 0, "reason": "경기 침체로 그 회사가 채용을 멈췄다"}
-          ]
-        },
-        {
-          "id": "near-or-far",
-          "title": "덜 받아도 가까운 회사, 많이 주는 먼 회사?",
-          "context": "A회사는 집에서 15분. B회사는 출퇴근만 왕복 3시간이지만 연봉이 훨씬 높다.",
-          "reflection": "늘어난 월급은 매일 사라지는 세 시간을 채워 줄 수 있을까?",
-          "concept": {"kind": "연구", "label": "통근의 역설", "text": "통근 시간이 길수록 삶의 만족도가 낮아지는데, 더 높은 소득이 이를 충분히 보상하지 못한다는 연구가 있다 (Stutzer & Frey, 2008). 5주차 칠판의 '돈과 내 삶의 시간' 질문과도 이어진다."},
-          "note": "28세에 무작위로 나옵니다.",
-          "options": [
-            {"id": "near", "gate": "가까운 회사", "title": "가까운 회사로", "desc": "덜 벌어도 하루 세 시간을 지킨다.", "item": "clock", "effects": {"passion": 1, "connection": 2}, "gain": "저녁이 있는 삶", "cost": "통장 잔고가 천천히 오른다", "result": "퇴근 후 운동도 하고 친구도 만난다. 월급날엔 동기들의 연봉이 조금 부럽다. 매일 아낀 세 시간이 쌓이니 생활의 결이 달라진다.", "memory": "돈 대신 시간을 고른 선택. 저녁의 여유가 하루를 바꿨다.", "show": {"hold": "cup"}},
-            {"id": "far", "gate": "먼 고연봉 회사", "title": "연봉 높은 먼 회사로", "desc": "출퇴근이 힘들어도 더 많이 번다.", "item": "coin", "effects": {"growth": 2, "ease": 1, "passion": -1}, "gain": "빠르게 모이는 저축", "cost": "매일 길 위에서 사라지는 시간", "result": "통장은 빠르게 채워진다. 하지만 지하철에서 보내는 시간이 길어질수록 저녁엔 녹초가 된다. 늘어난 월급이 줄어든 시간을 다 채워 주는지는 모르겠다.", "memory": "더 많이 벌기 위해 길 위에서 보낸 시간들.", "show": {"outfit": "suit"}}
-          ]
-        },
-        {
-          "id": "major-or-money",
-          "title": "전공을 살릴까, 돈을 먼저 벌까?",
-          "context": "전공을 살릴 수 있는 자리는 경쟁이 세고 기다려야 한다. 전공과 상관없는 회사는 당장 오라고 한다.",
-          "reflection": "일에서 얻고 싶은 것은 돈일까, 보람일까, 성장일까?",
-          "concept": {"kind": "수업", "label": "5주차 · 일의 의미", "text": "5주차 칠판에는 일에서 얻는 보람·인정·성장에 관한 학생 의견이 있었다. 돈만으로 일의 만족이 정해지지 않는다는 이야기와 이어진다."},
-          "sources": [
-            {"label": "5주차 칠판: 일의 보람과 진로 기준"}
-          ],
-          "note": "28세에 무작위로 나옵니다.",
-          "options": [
-            {"id": "keep-major", "gate": "전공 살리기", "title": "전공을 살려 기다린다", "desc": "준비가 길어도 배운 것을 살린다.", "item": "flask", "effects": {"growth": 2, "passion": 2, "ease": -1}, "gain": "배운 것을 살리는 보람", "cost": "길어진 취업 준비와 빠듯한 생활", "result": "몇 번의 탈락 끝에 전공 분야에 들어갔다. 배운 것을 써먹을 때마다 뿌듯하다. 그동안 먼저 자리 잡은 친구들이 부럽기도 했다.", "memory": "배운 것을 놓지 않으려 버틴 시간.", "show": {"hold": "flask"}},
-            {"id": "money-first", "gate": "바로 돈 벌기", "title": "바로 일을 시작한다", "desc": "전공과 무관해도 수입이 먼저다.", "item": "coin", "effects": {"ease": 2, "growth": 1}, "gain": "빠르게 자리 잡은 생활", "cost": "전공이 점점 멀어진다", "result": "월급이 들어오니 생활이 안정됐다. 새로운 일에서도 배울 게 있다. 가끔 전공 책을 보면 다른 길을 상상한다.", "memory": "생활을 먼저 세운 선택. 새로운 곳에서도 배움은 있었다.", "show": {"hold": "briefcase"}}
-          ]
-        }
-      ]
-    },
-    {
-      "id": "marriage",
-      "age": 32,
-      "era": "결혼",
-      "scene": "garden",
-      "enabled": true,
-      "questions": [
-        {
-          "id": "who-to-marry",
-          "title": "결혼, 누구와 할까?",
-          "context": "오래 만난 사람이 있다. 함께 있으면 편하지만, 주변에선 조건이 더 좋은 사람을 만나 보라고 한다.",
-          "reflection": "결혼 상대를 고를 때, 마음과 조건은 정말 반대말일까?",
-          "concept": {"kind": "연구", "label": "관계의 질", "text": "80여 년간 같은 사람들을 추적한 하버드 성인발달연구는 노년의 건강과 행복을 가장 잘 예측한 요인으로 따뜻하고 가까운 관계를 꼽는다 (Waldinger & Schulz, 2023)."},
-          "note": "어느 쪽을 골라도 이후 배우자가 함께 걸어갑니다. 오래 만난 사람을 고르면 23세부터 함께한 애인과 결혼하고, 조건을 따지면 애인이 떠나고 새 배우자가 생깁니다. 어느 쪽이든 반지를 건넵니다.",
-          "options": [
-            {"id": "long-partner", "gate": "오래 만난 사람", "title": "오래 만난 사람과", "desc": "함께 쌓은 시간과 마음을 믿는다.", "item": "ring", "set": ["partner"], "effects": {"connection": 2, "passion": 1}, "gain": "서로를 잘 아는 편안함", "cost": "현실적인 걱정은 그대로 남았다", "result": "결혼식 날, 함께 지나온 시간이 떠오른다. 신혼집과 생활비 계산 앞에서 현실이 만만치 않다는 걸 실감한다. 그래도 같이 고민할 사람이 있다.", "memory": "함께 쌓은 시간을 믿었던 선택. 현실의 고민도 둘이 나눴다.", "show": {"partner": "same", "confetti": true, "give": {"item": "ring", "from": "me"}}},
-            {"id": "conditions", "gate": "조건 따져 보기", "title": "조건을 따져 새로운 사람과", "desc": "경제력과 생활 방식이 맞는 사람을 찾는다.", "item": "ring", "set": ["partner"], "effects": {"ease": 2, "connection": 1}, "gain": "든든한 생활의 기반", "cost": "서로를 알아 가는 데 시간이 걸린다", "result": "생활은 안정적으로 시작됐다. 아직 서로의 습관과 마음을 알아 가는 중이다. 좋은 조건 위에서 관계를 키우는 일은 이제부터다.", "memory": "현실을 단단히 하고 시작한 결혼. 마음은 함께 살아가며 자랐다.", "show": {"partner": "new", "confetti": true, "give": {"item": "ring", "from": "me"}}}
-          ]
-        },
-        {
-          "id": "stable-or-romantic",
-          "title": "평생을 함께할 사람, 어떤 사람이 좋을까?",
-          "context": "든든하고 한결같은 사람, 그리고 매일이 이벤트 같은 사람. 두 사람 모두 나를 좋아한다.",
-          "reflection": "처음의 설렘이 사라진 뒤에도 남는 것은 무엇일까?",
-          "concept": {"kind": "연구", "label": "쾌락 적응", "text": "결혼 직후 높아진 삶의 만족감도 몇 년에 걸쳐 원래 수준으로 돌아가는 경향이 보고된다 (Lucas 외, 2003). 오래가는 행복은 함께 만드는 일상에 달려 있을지 모른다."},
-          "note": "32세에 무작위로 나옵니다.",
-          "options": [
-            {"id": "stable", "gate": "안정적인 사람", "title": "한결같고 든든한 사람", "desc": "큰 설렘보다 믿음직함을 고른다.", "item": "ring", "set": ["partner"], "effects": {"ease": 2, "connection": 1}, "gain": "흔들리지 않는 든든함", "cost": "가끔은 밋밋한 일상", "result": "약속을 어기는 법이 없는 사람. 힘든 날엔 말없이 곁을 지켜 준다. 가끔은 깜짝 이벤트가 그립지만, 그 한결같음이 고맙다.", "memory": "한결같은 사람과 쌓은 평온한 날들.", "show": {"partner": "new", "confetti": true, "give": {"item": "ring", "from": "me"}}},
-            {"id": "romantic", "gate": "낭만적인 사람", "title": "낭만적이고 설레는 사람", "desc": "예측은 어렵지만 삶이 다채롭다.", "item": "ring", "set": ["partner"], "effects": {"passion": 2, "connection": 1}, "gain": "매일이 새로운 설렘", "cost": "계획대로 되는 일이 없다", "result": "갑자기 떠나는 여행, 이유 없는 꽃다발. 하루하루가 다채롭다. 다만 생활비와 계획 앞에서는 자주 부딪친다.", "memory": "설렘으로 가득했던 날들. 다름을 맞춰 가는 법도 배웠다.", "show": {"partner": "new2", "confetti": true, "give": {"item": "ring", "from": "me"}}}
-          ]
-        }
-      ]
-    },
-    {
-      "id": "family",
-      "age": 34,
-      "era": "새로운 가족",
-      "scene": "home",
-      "enabled": true,
-      "questions": [
-        {
-          "id": "child",
-          "title": "아이를 가질까?",
-          "context": "아이와 함께하는 삶도, 지금처럼 자유로운 삶도 모두 그려진다. 어느 쪽도 쉽지 않은 결정이다.",
-          "reflection": "아이는 행복의 조건일까, 아니면 다른 모양의 행복일까?",
-          "concept": {"kind": "연구", "label": "부모됨의 역설", "text": "부모가 되면 일상의 만족감은 낮아질 수 있지만 삶의 의미감은 높아진다는 보고가 있고, 연구마다 결과가 엇갈린다 (Nelson, Kushlev & Lyubomirsky, 2014)."},
-          "note": "개인적인 주제라 '어느 쪽이 옳다'가 아니라 '각자 무엇을 중요하게 보는지'로 이끌어 주세요. 이 선택에 따라 45·52세 질문이 달라집니다.",
-          "options": [
-            {"id": "have-child", "gate": "아이와 함께", "title": "아이와 함께하는 삶", "desc": "새로운 가족을 맞이한다.", "item": "baby", "set": ["parent"], "effects": {"connection": 2, "growth": 1, "ease": -1}, "gain": "세상에서 가장 작은 손", "cost": "잠과 여유가 사라졌다", "result": "아이의 첫 웃음에 하루의 피곤이 녹는다. 동시에 잠, 돈, 나만의 시간이 한꺼번에 줄었다. 힘든 것과 소중한 것이 같은 자리에 있다.", "memory": "작은 손을 처음 잡던 날. 피곤함과 벅참이 함께였다.", "show": {}},
-            {"id": "no-child", "gate": "지금의 우리", "title": "아이 없이 꾸리는 삶", "desc": "지금의 가족과 나의 삶에 집중한다.", "item": "suitcase", "effects": {"passion": 2, "ease": 1}, "gain": "함께 떠나는 여행과 자유로운 저녁", "cost": "'아이가 있었다면' 하는 상상", "result": "주말마다 하고 싶던 일을 하고, 여행도 자주 떠난다. 명절마다 듣는 질문이 가끔 불편하다. 가족의 모양은 저마다 다르다는 걸 알아 간다.", "memory": "우리 방식대로 꾸린 가족. 자유로운 날들이 이어졌다.", "show": {"wear": ["camera"]}}
-          ]
-        },
-        {
-          "id": "parental-leave",
-          "title": "아이가 태어났다. 누가 곁을 지킬까?",
-          "context": "아이가 태어났다. 한 사람이 육아휴직을 하면 아이 곁을 지킬 수 있지만, 수입과 경력이 줄어든다.",
-          "reflection": "행복한 가족을 위해 일과 돌봄을 어떻게 나눌까?",
-          "concept": {"kind": "수업", "label": "6주차 · 함께하는 시간의 양과 질", "text": "6주차 칠판과 포럼에서 가족이 함께하는 시간의 양과 질, 돌봄의 부담을 나누는 일, 돈과 관계의 얽힘을 이야기했다."},
-          "sources": [
-            {"label": "행복 포럼: 행복한 가정과 불행한 가족의 차이"},
-            {"label": "6주차 칠판: 함께한 시간과 갈등"}
-          ],
-          "note": "34세에 '아이를 가질까?' 대신 무작위로 나옵니다. 어느 쪽을 골라도 아이가 생깁니다.",
-          "options": [
-            {"id": "take-leave", "gate": "내가 육아휴직", "title": "내가 육아휴직을 한다", "desc": "1년 동안 아이 곁을 지킨다.", "item": "baby", "set": ["parent"], "effects": {"connection": 3, "growth": -1}, "gain": "아이의 첫걸음을 곁에서 본 시간", "cost": "멈춰 선 경력과 줄어든 수입", "result": "밤낮없이 아이를 돌보느라 지친다. 그래도 아이가 처음 나를 부른 순간을 곁에서 들었다. 복직할 자리를 생각하면 조금 불안하다.", "memory": "아이의 첫걸음을 곁에서 지켜본 1년.", "show": {"mood": {"partner": "happy"}}},
-            {"id": "both-work", "gate": "둘 다 일하기", "title": "둘 다 일을 이어 간다", "desc": "어린이집과 가족의 도움을 받는다.", "item": "briefcase", "set": ["parent"], "effects": {"growth": 2, "ease": 1, "connection": -1}, "gain": "지켜 낸 경력과 생활", "cost": "첫걸음은 영상으로 봤다", "result": "퇴근하면 아이가 이미 잠든 날이 많다. 어린이집에서 보낸 첫걸음 영상을 몇 번이고 돌려 본다. 생활은 안정됐지만 마음이 늘 바쁘다.", "memory": "휴대폰으로 몇 번이고 돌려 본 첫걸음 영상.", "show": {"hold": "briefcase"}}
+            {"id": "lover", "gate": "내가 좋아하는 사람", "title": "내가 좋아하는 사람", "desc": "용기 내어 내 마음을 따라간다.", "item": "heart", "effects": {"passion": 2, "growth": 1}, "gain": "가슴 뛰는 설렘과 용기", "cost": "마음을 얻을 수 있을지 불안하다", "result": "용기 내어 다가가니 하루하루가 설렌다. 답장 하나에 기분이 오르내리기도 한다. 내 마음을 따라간 경험은 결과와 상관없이 오래 남는다.", "memory": "좋아하는 마음을 따라간 용기. 설렘과 불안이 함께였다.", "show": {"lover": true, "give": {"item": "flowers", "from": "me"}}}
           ]
         }
       ]
     },
     {
       "id": "career-mid",
-      "age": 38,
+      "age": 33,
       "era": "두 번째 회사",
       "scene": "city",
-      "enabled": true,
+      "presentation": true,
       "questions": [
         {
           "id": "pay-or-balance",
           "title": "연봉이 높은 회사와 워라밸 좋은 회사, 어디로?",
           "context": "이직 제안이 두 곳에서 왔다. 한 곳은 연봉이 훨씬 높지만 야근이 잦고, 다른 곳은 연봉이 아쉬워도 6시에 퇴근한다.",
-          "contextIf": [
-            {"when": ["parent"], "text": "이직 제안이 두 곳에서 왔다. 연봉은 높지만 야근이 잦은 곳, 연봉은 아쉬워도 6시에 퇴근하는 곳. 아이는 요즘 놀이터에 같이 가자고 조른다."}
-          ],
-          "reflection": "더 버는 것과 더 함께하는 것, 지금 우리 집에 필요한 건?",
+          "reflection": "더 버는 것과 더 함께하는 것, 지금 내게 필요한 건?",
           "concept": {"kind": "수업", "label": "5주차 · 돈과 내 삶의 시간", "text": "5주차 칠판에 '돈과 내 삶의 시간을 어떻게 나눌까'라는 질문이 있었고, 6주차에는 가족이 함께하는 시간의 양과 질을 이야기했다."},
           "sources": [
             {"label": "5주차 칠판: 진로 선택 질문"},
             {"label": "행복 포럼: 행복한 가정과 불행한 가족의 차이"}
           ],
-          "note": "높은 연봉: 옷이 고급스러워지고 큰 차가 생기지만 아이(없으면 배우자) 표정이 시무룩해진다. 워라밸: 가족 표정이 밝아지지만 차는 낡은 차. 어느 쪽에도 얻는 것과 잃는 것이 보이게 했다. '경기 침체'가 나오면 고연봉 문이 닫힌다.",
-          "lock": [
-            {"when": ["ev-recession"], "option": 0, "reason": "구조조정으로 고연봉 회사의 제안이 취소됐다"}
-          ],
+          "note": "높은 연봉: 옷이 고급스러워지고 큰 차가 생기지만 곁에 있는 사람의 표정이 시무룩해진다. 워라밸: 곁에 있는 사람의 표정이 밝아지지만 차는 낡은 차. 어느 쪽에도 얻는 것과 잃는 것이 보이게 했다.",
           "options": [
-            {"id": "high-pay", "gate": "높은 연봉", "title": "연봉이 높은 회사로", "desc": "바빠도 더 벌고 더 인정받는다.", "item": "coin", "effects": {"growth": 2, "ease": 1, "connection": -1}, "gain": "넉넉해진 통장과 승진 기회", "cost": "가족과 보내는 저녁이 사라졌다", "result": "옷차림이 달라지고 통장 잔고가 늘었다. 하지만 집에 오면 가족은 이미 잠들어 있다. 주말에도 노트북을 덮지 못하는 날이 많다.", "memory": "바쁘게 달려 얻은 성취, 그리고 비어 있던 저녁 식탁.", "show": {"outfit": "luxury", "prop": "bigcar", "mood": {"kid": "sad", "partner": "neutral"}}, "ifFlag": [{"when": ["ev-chance"], "desc": "스카우트 제안이라 연봉이 더 높다.", "gain": "파격적인 연봉과 새 직함", "effects": {"growth": 2, "ease": 2, "connection": -1}}, {"when": ["ev-illness"], "cost": "몸이 버텨 줄지 걱정이다", "effects": {"growth": 2, "ease": -1, "connection": -1}}]},
-            {"id": "balance", "gate": "워라밸", "title": "워라밸이 좋은 회사로", "desc": "덜 벌어도 저녁 시간을 지킨다.", "item": "clock", "effects": {"connection": 2, "ease": 1}, "gain": "가족과 함께하는 저녁", "cost": "빠듯한 생활비와 미뤄진 승진", "result": "6시에 퇴근해 가족과 저녁을 먹는다. 집에 웃음소리가 부쩍 늘었다. 대신 사고 싶던 것들은 장바구니에만 담아 둔다.", "memory": "6시 퇴근 뒤 함께 먹던 저녁.", "show": {"outfit": "knit", "prop": "oldcar", "mood": {"kid": "happy", "partner": "happy"}}, "ifFlag": [{"when": ["ev-lottery"], "cost": "복권 덕에 생활비 걱정은 덜했다", "effects": {"connection": 2, "passion": 1, "ease": 1}}]}
+            {"id": "high-pay", "gate": "높은 연봉", "title": "연봉이 높은 회사로", "desc": "바빠도 더 벌고 더 인정받는다.", "item": "coin", "effects": {"growth": 2, "ease": 1, "connection": -1}, "gain": "넉넉해진 통장과 승진 기회", "cost": "가족과 보내는 저녁이 사라졌다", "result": "옷차림이 달라지고 통장 잔고가 늘었다. 하지만 집에 오면 가족은 이미 잠들어 있다. 주말에도 노트북을 덮지 못하는 날이 많다.", "memory": "바쁘게 달려 얻은 성취, 그리고 비어 있던 저녁 식탁.", "show": {"outfit": "luxury", "prop": "bigcar", "mood": {"partner": "sad"}}},
+            {"id": "balance", "gate": "워라밸", "title": "워라밸이 좋은 회사로", "desc": "덜 벌어도 저녁 시간을 지킨다.", "item": "clock", "effects": {"connection": 2, "ease": 1}, "gain": "가족과 함께하는 저녁", "cost": "빠듯한 생활비와 미뤄진 승진", "result": "6시에 퇴근해 가족과 저녁을 먹는다. 집에 웃음소리가 부쩍 늘었다. 대신 사고 싶던 것들은 장바구니에만 담아 둔다.", "memory": "6시 퇴근 뒤 함께 먹던 저녁.", "show": {"outfit": "knit", "prop": "oldcar", "mood": {"partner": "happy"}}}
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "vacation",
+      "age": 37,
+      "era": "오랜만의 쉼",
+      "scene": "garden",
+      "presentation": true,
+      "questions": [
         {
-          "id": "buy-or-rent",
-          "title": "대출을 최대로 받아 집을 살까?",
-          "context": "집값이 계속 오른다는 말도, 이제 떨어진다는 말도 있다. 영끌해서 내 집을 살까, 전월세로 살며 그 돈을 투자할까?",
-          "reflection": "같은 돈이라도, 무엇을 위해 쓸 때 더 행복할까?",
-          "concept": {"kind": "수업", "label": "5주차 · 돈과 내 삶의 시간", "text": "5주차 칠판에는 '돈과 내 삶의 시간을 어떻게 나눌까'라는 질문이 있었다. 큰 구매가 주는 기쁨도 시간이 지나면 익숙해진다 (쾌락 적응, Brickman 외, 1978)."},
-          "sources": [
-            {"label": "5주차 칠판: 진로 선택 질문"}
-          ],
-          "note": "38세에 무작위로 나옵니다. '복권' 운명 카드가 나오면 대출 부담이 줄어듭니다.",
+          "id": "week-off",
+          "title": "일주일의 휴가가 생겼다. 어떻게 보낼까?",
+          "context": "몇 년 만에 일주일을 통째로 쉬게 됐다. 가 보지 않은 곳으로 떠나고 싶기도 하고, 아무것도 안 하고 집에서 푹 쉬고 싶기도 하다.",
+          "reflection": "새로운 경험과 충분한 휴식, 지금 내게 더 필요한 쉼은 무엇일까?",
+          "note": "여행을 고르면 캐리어를 끌고 사진기를 메고, 집에서 쉬면 따뜻한 차를 든다.",
           "options": [
-            {"id": "buy", "gate": "영끌 내 집", "title": "대출 받아 내 집 마련", "desc": "이자는 무겁지만 이사 걱정은 끝.", "item": "house", "effects": {"ease": 2, "growth": 1, "passion": -1}, "gain": "'우리 집'이라는 안정감", "cost": "매달 빠져나가는 대출 이자", "result": "현관 비밀번호를 처음 누르는 날, 뭉클하다. 하지만 월급날마다 이자가 먼저 빠져나간다. 몇 달이 지나자 내 집이라는 기쁨도 조금씩 익숙해진다.", "memory": "처음 '우리 집' 문을 열던 날. 기쁨과 무게가 함께 들어왔다.", "show": {"prop": "bighouse"}, "ifFlag": [{"when": ["ev-lottery"], "cost": "복권 덕분에 대출이 조금 줄었다", "effects": {"ease": 2, "growth": 1}}]},
-            {"id": "rent", "gate": "전월세 + 투자", "title": "전월세 살며 투자", "desc": "집 대신 유연함과 투자 기회를 택한다.", "item": "chart", "effects": {"passion": 3, "ease": -1}, "gain": "지금 누릴 수 있는 여유와 자유", "cost": "2년마다 돌아오는 이사 걱정", "result": "아낀 돈으로 투자도 하고 여행도 간다. 시장이 출렁일 때마다 마음도 출렁인다. 계약 만료일이 다가오면 다시 집을 알아본다.", "memory": "가볍게, 유연하게 살아 본 시간.", "show": {"hold": "boxes"}}
+            {"id": "trip", "gate": "낯선 곳으로", "title": "낯선 곳으로 여행을 떠난다", "desc": "가 보지 않은 곳에서 일주일을 보낸다.", "item": "suitcase", "effects": {"passion": 2, "growth": 1, "ease": -1}, "gain": "새로운 풍경과 두고두고 할 이야기", "cost": "돌아오니 몸은 더 피곤하다", "result": "말이 안 통하는 곳에서 길을 잃고, 우연히 들어간 식당에서 인생 음식을 만났다. 돌아오는 비행기에서 벌써 다음 여행을 꿈꾼다. 출근 첫날은 몸이 무겁다.", "memory": "낯선 골목에서 길을 잃었던 일주일.", "show": {"hold": "suitcase", "holdUntil": 41, "wear": ["camera"], "wearUntil": 41}},
+            {"id": "rest", "gate": "집에서 쉬기", "title": "익숙한 집에서 충분히 쉰다", "desc": "알람 없이 자고 내 공간을 돌본다.", "item": "cup", "effects": {"ease": 2, "connection": 1}, "gain": "푹 잔 아침과 가벼워진 몸", "cost": "남는 사진 한 장 없는 휴가", "result": "알람 없이 일어나 차를 내리고, 미뤄 둔 책을 읽었다. 저녁엔 가까운 사람들과 밥을 먹었다. 특별한 일은 없었지만 몸이 한결 가볍다.", "memory": "아무 일도 없어서 좋았던 일주일.", "show": {"hold": "cup", "holdUntil": 41}}
           ]
         }
       ]
     },
     {
       "id": "midlife",
-      "age": 45,
+      "age": 43,
       "era": "가장 바쁜 시기",
       "scene": "home",
-      "enabled": true,
+      "presentation": true,
       "questions": [
         {
           "id": "care-or-work",
@@ -466,125 +179,61 @@
           "sources": [
             {"label": "행복 포럼: 행복한 가정과 불행한 가족의 차이"}
           ],
-          "note": "'부모님이 편찮으시다' 운명 카드가 나오면 원래 45세 질문 대신 나온다. 원하는 대로 흘러가지 않는 삶을 보여 주는 장면.",
+          "note": "운명 카드 \"부모님이 편찮으시다\" 바로 뒤에 나온다. 원하는 대로 흘러가지 않는 삶을 보여 주는 장면.",
           "options": [
             {"id": "care", "gate": "곁을 지키기", "title": "일을 줄이고 곁을 지킨다", "desc": "당분간 휴직하고 간병한다.", "item": "family", "effects": {"connection": 3, "growth": -1}, "gain": "부모님과 다시 나눈 긴 이야기", "cost": "경력과 수입이 멈췄다", "result": "병실에서 부모님과 오래 미뤄 둔 이야기를 나눴다. 몸도 마음도 지치지만 후회는 적다. 복직할 자리가 남아 있을지 걱정된다.", "memory": "병실에서 부모님 손을 잡고 보낸 계절.", "show": {"prop": "hospital", "hold": "flowers"}},
-            {"id": "caregiver", "gate": "도움 받기", "title": "간병인과 함께 일을 이어 간다", "desc": "도움을 받고 주말마다 찾아뵌다.", "item": "briefcase", "effects": {"ease": 2, "growth": 1}, "gain": "지켜 낸 일상과 수입", "cost": "곁에 있어 드리지 못한 미안함", "result": "간병인에게 부모님을 부탁하고 주말마다 병원에 간다. 일은 이어 갈 수 있었지만 병실을 나설 때마다 마음이 무겁다.", "memory": "주말마다 병원으로 향하던 길.", "show": {"prop": "hospital", "hold": "briefcase"}}
+            {"id": "caregiver", "gate": "도움 받기", "title": "간병인과 함께 일을 이어간다", "desc": "도움을 받고 주말마다 찾아뵌다.", "item": "briefcase", "effects": {"ease": 2, "growth": 1}, "gain": "지켜 낸 일상과 수입", "cost": "곁에 있어 드리지 못한 미안함", "result": "간병인에게 부모님을 부탁하고 주말마다 병원에 간다. 일은 이어 갈 수 있었지만 병실을 나설 때마다 마음이 무겁다.", "memory": "주말마다 병원으로 향하던 길.", "show": {"prop": "hospital", "hold": "briefcase"}}
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "after-work",
+      "age": 47,
+      "era": "퇴근 후의 나",
+      "scene": "library",
+      "questions": [
         {
-          "id": "school-district",
-          "when": ["parent"],
-          "title": "아이 교육을 위해 학군지로 이사할까?",
-          "context": "아이가 초등학교 고학년이 됐다. 학군 좋은 동네로 가면 교육 환경은 좋지만, 집은 좁아지고 친한 이웃과 멀어진다.",
-          "reflection": "아이를 위한 선택과 아이가 원하는 것은 같을까?",
-          "concept": {"kind": "수업", "label": "3주차 · 학업 스트레스와 성적", "text": "3주차 토론에서 나온 학업 스트레스와 성적의 양면성은, 부모가 된 뒤에는 다른 얼굴로 돌아온다. 남과 비교하는 기준은 끝이 없다 (사회적 비교)."},
-          "sources": [
-            {"label": "3주차 칠판: 친구·취미·성적"}
-          ],
-          "note": "34세에 아이가 생기면 45세에 무작위로 나옵니다. 학군지는 학원가가 생기고 아이 표정이 지치며, 살던 동네는 놀이터가 생기고 아이가 밝아집니다.",
+          "id": "after-work",
+          "title": "퇴근 후 시간이 생겼다. 새로운 것을 배운다면?",
+          "context": "일이 손에 익고 저녁 시간이 조금씩 비기 시작했다. 일에 도움이 될 기술을 익혀 볼까, 예전부터 궁금했던 춤을 배워 볼까?",
+          "reflection": "배움은 꼭 쓸모가 있어야 할까?",
+          "note": "전문 기술을 고르면 책을 들고 다니고, 춤을 고르면 머리띠를 맨다.",
           "options": [
-            {"id": "move", "gate": "학군지로", "title": "학군지로 이사한다", "desc": "더 좋은 교육 환경을 찾아 옮긴다.", "item": "pencil", "effects": {"growth": 2, "ease": -1}, "gain": "아이를 위한 든든한 교육 환경", "cost": "좁아진 집과 멀어진 이웃", "result": "학원가 불빛이 밤늦게까지 밝다. 아이는 새 친구를 사귀느라 애쓰고, 우리는 대출 이자를 계산한다. 좋은 환경이 아이의 행복까지 보장하는지는 모르겠다.", "memory": "아이를 위해 낯선 동네로 옮겼던 해.", "show": {"prop": "academy", "mood": {"kid": "sad"}}},
-            {"id": "stay", "gate": "살던 동네", "title": "살던 동네에 남는다", "desc": "익숙한 이웃과 넓은 집을 지킨다.", "item": "house", "effects": {"connection": 2, "ease": 1}, "gain": "아이의 오랜 친구와 이웃", "cost": "'다른 집은 다 간다'는 불안", "result": "아이는 동네 놀이터에서 오랜 친구들과 논다. 학부모 모임에서 학원 이야기를 들으면 마음이 조급해진다. 비교를 멈추는 데에도 용기가 필요하다.", "memory": "익숙한 동네에서 아이가 자란 시간.", "show": {"prop": "playground", "mood": {"kid": "happy"}}}
-          ]
-        },
-        {
-          "id": "parents-together",
-          "when": ["!parent"],
-          "title": "나이 드신 부모님, 함께 살까?",
-          "context": "부모님이 부쩍 기운이 없으시다. 같이 살면 곁에서 챙길 수 있지만, 지금의 생활은 많이 달라진다.",
-          "reflection": "부모를 돌보는 일과 내 삶을 지키는 일, 어디쯤에서 균형을 잡을까?",
-          "concept": {"kind": "수업", "label": "6주차 · 행복한 가정과 불행한 가족", "text": "6주차 포럼에서 행복한 가족에 정해진 모양은 없고, 서로의 필요를 듣는 것이 중요하다는 의견이 나왔다."},
-          "sources": [
-            {"label": "행복 포럼: 행복한 가정과 불행한 가족의 차이"}
-          ],
-          "note": "34세에 아이를 고르지 않았을 때 나오는 질문. 38세와 겹치지 않도록 새로 넣었다.",
-          "options": [
-            {"id": "live-together", "gate": "함께 살기", "title": "부모님과 함께 산다", "desc": "곁에서 매일 챙겨 드린다.", "item": "house", "effects": {"connection": 2, "ease": -1}, "gain": "매일 나누는 저녁 인사", "cost": "나만의 시간과 공간이 줄었다", "result": "아침마다 부모님 약을 챙기고 저녁엔 함께 텔레비전을 본다. 사소한 일로 부딪치는 날도 늘었다. 그래도 곁에 있다는 안심이 크다.", "memory": "부모님과 한 지붕 아래 보낸 시간.", "show": {"prop": "parentshome"}},
-            {"id": "live-near", "gate": "가까이 살기", "title": "가까이 살며 자주 찾아뵌다", "desc": "각자의 생활을 지키며 자주 들른다.", "item": "gift", "effects": {"ease": 2, "connection": 1}, "gain": "서로의 생활을 지킨 편안함", "cost": "급할 때 바로 달려가기 어렵다", "result": "주말마다 반찬을 들고 찾아간다. 각자의 생활을 지키니 다툴 일이 적다. 늦은 밤 전화가 울리면 가슴이 철렁한다.", "memory": "주말마다 반찬 들고 오가던 길.", "show": {"hold": "gift"}}
-          ]
-        },
-        {
-          "id": "exercise-or-diet",
-          "title": "건강을 위해, 무엇부터 바꿀까?",
-          "context": "건강검진 결과에 '관리 필요'가 늘었다. 동네 운동 모임에 나갈까, 식단부터 바꿀까?",
-          "reflection": "나이가 들수록, 행복의 조건에서 건강은 얼마나 커질까?",
-          "concept": {"kind": "연구", "label": "몸과 마음", "text": "규칙적인 신체 활동이 기분을 좋게 하고 우울감을 줄이는 것과 관련된다는 연구가 많다. 함께 운동하면 사람과의 연결도 덤으로 생긴다."},
-          "note": "45세에 무작위로 나옵니다. 무거운 질문 사이에 넣기 좋은 가벼운 질문입니다.",
-          "options": [
-            {"id": "exercise", "gate": "운동 모임", "title": "동네 운동 모임에 나간다", "desc": "몸을 움직이며 사람도 만난다.", "item": "shoe", "effects": {"passion": 1, "connection": 2}, "gain": "땀 흘린 뒤의 개운함과 새 친구", "cost": "처음 며칠은 온몸이 쑤신다", "result": "아침마다 공원을 함께 걷는다. 기록이 조금씩 느는 게 재미있다. 몸을 움직이는 습관이 하루의 기분까지 바꿔 놓는다.", "memory": "새벽 공원을 함께 걷던 운동 친구들.", "show": {"wear": ["headband"]}},
-            {"id": "diet", "gate": "식단 바꾸기", "title": "식단부터 바꾼다", "desc": "집밥과 규칙적인 식사로 관리한다.", "item": "bowl", "effects": {"ease": 2, "growth": 1}, "gain": "가벼워진 몸과 규칙적인 하루", "cost": "좋아하던 음식과의 이별", "result": "직접 장을 보고 밥을 짓는다. 처음엔 심심했지만 몸이 가벼워지는 게 느껴진다. 나를 돌보는 일에도 공부가 필요하다는 걸 배운다.", "memory": "나를 위해 정성껏 차린 밥상들.", "show": {"hold": "bowl"}}
+            {"id": "skill", "gate": "전문 기술", "title": "일에 도움이 될 전문 기술", "desc": "퇴근 후 공부해 자격을 딴다.", "item": "book", "effects": {"growth": 2, "ease": 1}, "gain": "든든한 자격증과 넓어진 일", "cost": "쉬는 저녁이 또 사라졌다", "result": "퇴근길에 학원으로 향하는 날이 이어졌다. 합격 문자를 받은 날, 나이가 핑계가 아니라는 걸 알았다. 그래도 저녁이 조금 그립다.", "memory": "퇴근 후 학원에서 다시 펼친 책.", "show": {"hold": "books", "holdUntil": 52}},
+            {"id": "dance", "gate": "궁금했던 춤", "title": "예전부터 궁금했던 춤", "desc": "몸치여도 일단 학원 문을 연다.", "item": "shoe", "effects": {"passion": 2, "connection": 1}, "gain": "땀 흘리며 웃는 저녁과 새 친구들", "cost": "일에 보탬이 되지는 않는다", "result": "박자를 놓칠 때마다 웃음이 터졌다. 나이도 직업도 다른 사람들과 친구가 됐다. 일에는 아무 도움이 안 되지만 저녁이 기다려진다.", "memory": "거울 앞에서 박자를 놓치며 웃던 저녁.", "show": {"wear": ["headband"], "wearUntil": 54}}
           ]
         }
       ]
     },
     {
       "id": "fifties",
-      "age": 52,
-      "era": "두 갈래의 책임",
+      "age": 54,
+      "era": "모아 온 것들",
       "scene": "apartment",
-      "enabled": true,
       "questions": [
         {
-          "id": "retire-or-tuition",
-          "when": ["parent"],
-          "title": "노후 자금과 아이 학원비, 어디에 쓸까?",
-          "context": "아이는 수험생이 됐다. 학원비는 늘어나는데, 은퇴까지 남은 시간은 생각보다 짧다.",
-          "reflection": "부모의 희생은 아이의 행복으로 이어질까?",
-          "concept": {"kind": "수업", "label": "3주차 · 현재의 행복 vs 미래의 행복", "text": "3주차에 다룬 '현재 vs 미래' 질문이 부모의 자리에서 다시 나타난다. 지금 아이에게 쓰는 돈과 미래의 나를 위한 돈 사이의 선택이다."},
+          "id": "savings",
+          "title": "어느 정도 모인 돈, 어떻게 관리할까?",
+          "context": "오래 일해 모은 돈이 제법 쌓였다. 집을 사서 마음을 놓을까, 주식에 넣어 노후 자금을 불려 볼까?",
+          "reflection": "같은 돈이라도, 무엇을 위해 쓸 때 더 행복할까?",
+          "concept": {"kind": "수업", "label": "5주차 · 돈과 내 삶의 시간", "text": "5주차 칠판에는 '돈과 내 삶의 시간을 어떻게 나눌까'라는 질문이 있었다. 큰 구매가 주는 기쁨도 시간이 지나면 익숙해진다 (쾌락 적응, Brickman 외, 1978)."},
           "sources": [
-            {"label": "행복 포럼: 미래와 현재의 행복"}
+            {"label": "5주차 칠판: 진로 선택 질문"}
           ],
-          "note": "34세에 아이를 선택하면 나오는 질문입니다. 아이가 없으면 '오랜 친구의 부탁' 질문이 나옵니다.",
+          "note": "집을 고르면 큰 집이 생기고, 주식을 고르면 노트북을 들고 다닌다.",
           "options": [
-            {"id": "retire", "gate": "노후 준비", "title": "노후 준비를 먼저", "desc": "나중에 아이에게 짐이 되지 않도록.", "item": "piggy", "effects": {"ease": 3}, "gain": "흔들리지 않을 노후의 기반", "cost": "아이에게 미안한 마음", "result": "연금과 저축을 늘렸다. 아이는 괜찮다고 하지만, 친구들 학원 이야기에 마음이 쓰인다. 나중에 서로에게 짐이 되지 않는 것도 사랑의 한 방식일 수 있다.", "memory": "미래의 우리를 위해 지금을 아꼈던 시간.", "show": {"hold": "piggy"}, "ifFlag": [{"when": ["ev-recession"], "result": "경기가 나빠 노후 계획을 다시 짰다. 아이는 괜찮다고 하지만 친구들 학원 이야기에 마음이 쓰인다.", "effects": {"ease": 2}}, {"when": ["ev-reunion"], "gain": "친구들 이야기로 더 단단해진 노후 계획", "effects": {"ease": 3}}]},
-            {"id": "tuition", "gate": "아이 학원비", "title": "아이 학원비에 쓴다", "desc": "지금이 가장 중요한 시기라고 믿는다.", "item": "pencil", "effects": {"connection": 2, "growth": 1, "ease": -1}, "gain": "아이를 끝까지 지원했다는 마음", "cost": "얇아진 노후 통장", "result": "아이는 늦은 밤까지 학원에서 버틴다. 성적이 오르면 같이 웃고, 떨어지면 같이 속상하다. 통장을 볼 때마다 '우리 노후는?' 하는 걱정이 스친다.", "memory": "아이의 가장 바쁜 해를 함께 버틴 시간.", "show": {"kidHold": "books"}, "ifFlag": [{"when": ["ev-lottery"], "cost": "복권 덕에 노후 통장은 지켰다", "effects": {"connection": 2, "growth": 1}}]}
-          ],
-          "contextIf": [
-            {"when": ["ev-reunion"], "text": "아이는 수험생이 됐다. 동창회에서 노후 준비 못 한 친구들 이야기를 듣고 온 뒤로 마음이 더 복잡하다."}
-          ]
-        },
-        {
-          "id": "old-friend",
-          "title": "연락이 끊겼던 친구가 도움을 청한다",
-          "context": "십 년 넘게 연락이 없던 친구가 급하게 돈을 빌려 달라고 한다. 사정이 딱해 보이지만, 확신은 없다.",
-          "reflection": "좋은 관계를 지키려면 어디까지 도와야 할까?",
-          "concept": {"kind": "수업", "label": "6주차 · 관계의 경계와 배려", "text": "6주차 칠판에는 가까운 관계일수록 경계와 배려가 함께 필요하다는 학생 의견이 있었다."},
-          "sources": [
-            {"label": "6주차 칠판: 관계의 경계와 배려"}
-          ],
-          "note": "어느 쪽도 '나쁜 사람'이 아니라는 점을 짚어 주세요. 도와주면 15세의 옛 친구가 다시 함께 걷는다.",
-          "options": [
-            {"id": "help", "gate": "도와준다", "title": "선뜻 도와준다", "desc": "옛정을 믿고 손을 내민다.", "item": "hands", "effects": {"connection": 3, "ease": -1}, "gain": "다시 이어진 오랜 우정", "cost": "돌려받을지 모르는 돈", "result": "친구는 몇 번이고 고맙다고 했다. 다시 연락하며 옛날이야기로 웃는다. 돈을 언제 돌려받을지는 모르지만, 후회는 크지 않다.", "memory": "오랜 친구에게 다시 손을 내밀었던 날.", "show": {"friendBack": true}, "ifFlag": [{"when": ["ev-recession"], "cost": "나도 형편이 빠듯한데 무리했다", "effects": {"connection": 3, "ease": -2}}, {"when": ["ev-lottery"], "cost": "복권 덕에 빌려줄 여유가 있었다", "effects": {"connection": 3}}]},
-            {"id": "decline", "gate": "정중히 거절", "title": "정중히 거절한다", "desc": "내 생활과 마음의 경계를 지킨다.", "item": "shield", "effects": {"ease": 2}, "gain": "흔들리지 않은 생활과 마음", "cost": "마음 한편의 미안함", "result": "솔직하게 사정을 말하고 거절했다. 친구는 서운해했지만 이해한다고 했다. 모든 부탁을 들어주지 않아도 좋은 사람일 수 있다.", "memory": "나를 지키는 것도 관계를 지키는 일임을 배운 날.", "show": {"hold": "cup"}}
-          ],
-          "contextIf": [
-            {"when": ["ev-reunion"], "text": "동창회에서 다시 만난 오랜 친구가 며칠 뒤 급하게 돈을 빌려 달라고 한다. 사정이 딱해 보이지만, 확신은 없다."}
-          ]
-        },
-        {
-          "id": "family-help",
-          "title": "형제가 보증을 서 달라고 한다",
-          "context": "형제의 가게가 어려워졌다. 대출 보증을 서 달라는데, 거절하면 사이가 멀어질 것 같다.",
-          "reflection": "가족이라서 해야 하는 일과, 가족이라도 지켜야 할 선은?",
-          "concept": {"kind": "수업", "label": "6주차 · 돈과 관계", "text": "6주차 토론에서 돈과 관계가 얽힐 때 생기는 갈등, 그리고 갈등 뒤의 회복이 이야기됐다."},
-          "sources": [
-            {"label": "행복 포럼: 행복한 가정과 불행한 가족의 차이"}
-          ],
-          "note": "52세에 무작위로 나옵니다.",
-          "options": [
-            {"id": "guarantee", "gate": "보증 서기", "title": "가족이니까 돕는다", "desc": "형제의 어려움을 함께 짊어진다.", "item": "hands", "effects": {"connection": 2, "ease": -1}, "gain": "형제와의 두터운 믿음", "cost": "언제 돌아올지 모를 위험", "result": "형제는 눈물을 글썽이며 고마워했다. 가게가 다시 일어서길 함께 바란다. 통장 잔고와 마음이 동시에 무거운 밤도 있다.", "memory": "가족의 짐을 나눠 졌던 시간.", "show": {"hold": "gift"}},
-            {"id": "other-way", "gate": "다른 방법 찾기", "title": "보증 대신 다른 도움을", "desc": "보증은 거절하고 할 수 있는 만큼 돕는다.", "item": "shield", "effects": {"ease": 2}, "gain": "지켜 낸 생활과 지켜 낸 관계", "cost": "서운함이 풀리기까지의 시간", "result": "보증은 어렵다고 말하고, 대신 가게 일을 함께 알아봤다. 처음엔 서운해하던 형제도 점점 마음을 연다. 거절에도 방식이 있다.", "memory": "선을 지키면서도 곁에 남았던 방법.", "show": {"hold": "cup"}}
+            {"id": "house", "gate": "집 사기", "title": "집 사기", "desc": "이사 걱정 없는 내 집을 마련한다.", "item": "house", "effects": {"ease": 2, "connection": 1}, "gain": "이사 걱정 없는 편안함", "cost": "돈이 집에 묶여 여유가 줄었다", "result": "처음 현관문을 연 날, 오래 달려온 시간이 떠올랐다. 이제 이사 걱정은 없다. 몇 달이 지나자 내 집이라는 기쁨도 조금씩 익숙해진다.", "memory": "처음 내 집 문을 열던 날.", "show": {"prop": "bighouse"}},
+            {"id": "stock", "gate": "주식 투자", "title": "주식 투자하기", "desc": "돈을 불려 노후를 준비한다.", "item": "chart", "effects": {"growth": 1, "passion": 2, "ease": -1}, "gain": "늘어날지 모르는 노후 자금", "cost": "오르내리는 숫자에 마음도 출렁인다", "result": "아침마다 시세부터 확인한다. 오르는 날엔 여행 계획을 세우고, 내리는 날엔 잠이 안 온다. 돈을 불리는 재미와 불안이 함께 왔다.", "memory": "오르내리는 숫자를 보며 마음도 오르내리던 날들.", "show": {"hold": "laptop", "holdUntil": 60}}
           ]
         }
       ]
     },
     {
       "id": "sixties",
-      "age": 60,
+      "age": 62,
       "era": "인생 2막",
       "scene": "town",
-      "enabled": true,
       "questions": [
         {
           "id": "retire-or-retry",
@@ -596,45 +245,29 @@
             {"label": "5주차 칠판: 일의 보람과 진로 기준"},
             {"label": "행복 포럼: 미스터 노바디와 경제학"}
           ],
-          "note": "다시 도전하면 노트북을 들고 작은 가게를 열고, 정리하면 밀짚모자를 쓰고 꽃다발을 받으며 텃밭이 생긴다. '몸이 보낸 신호'가 나오면 도전 문이 닫히고, '늦깎이 학생'·'취미'·'재회' 카드는 각 선택을 바꾼다.",
-          "lock": [
-            {"when": ["ev-illness"], "option": 0, "reason": "의사가 일을 줄이라고 권했다"}
-          ],
+          "note": "다시 도전하면 노트북을 들고 작은 가게를 열고, 정리하면 밀짚모자를 쓰고 꽃다발을 받으며 텃밭이 생긴다.",
           "options": [
-            {"id": "retry", "gate": "다시 도전", "title": "방식을 바꿔 다시 도전", "desc": "새로 배우며 일을 이어 간다.", "item": "laptop", "effects": {"growth": 2, "passion": 2, "ease": -1}, "gain": "다시 배우는 설렘과 새 명함", "cost": "몸이 고되고 쉴 틈이 없다", "result": "온라인으로 새 기술을 배우고 작은 가게를 열었다. 젊은 동료들에게 배우는 것도 즐겁다. 다만 저녁이면 어깨가 뻐근하다.", "memory": "예순에 다시 연 작은 가게의 문.", "show": {"hold": "laptop", "prop": "shop"}, "ifFlag": [{"when": ["ev-learning"], "gain": "새로 배운 기술로 연 두 번째 일터", "effects": {"growth": 3, "passion": 1}}]},
-            {"id": "retire", "gate": "정리하기", "title": "이쯤에서 일을 정리한다", "desc": "수고한 나에게 쉼을 준다.", "item": "flower", "effects": {"ease": 2, "connection": 1}, "gain": "느긋한 아침과 텃밭", "cost": "'이제 뭘 하지' 하는 허전함", "result": "동료들이 꽃다발을 건네며 박수를 쳤다. 아침마다 텃밭에 물을 준다. 가끔 일하던 시절의 바쁨이 그립다.", "memory": "꽃다발과 박수 속에 내려놓은 일.", "show": {"wear": ["strawhat"], "hold": "flowers", "prop": "garden"}, "ifFlag": [{"when": ["ev-hobby"], "gain": "마음껏 몰두하는 취미 생활", "effects": {"ease": 2, "passion": 2}}, {"when": ["ev-reunion"], "gain": "동창들과 함께하는 두 번째 청춘", "effects": {"ease": 2, "connection": 2}}]}
-          ]
-        },
-        {
-          "id": "ceremony",
-          "title": "얼굴만 아는 지인의 경조사, 갈까?",
-          "context": "주말에 옛 동료의 자녀 결혼식이 있다. 몇 년 동안 연락 한 번 없던 사이. 마침 그날은 오랜만에 쉬는 날이다.",
-          "reflection": "느슨한 인연은 행복에 얼마나 중요할까?",
-          "concept": {"kind": "연구", "label": "약한 유대의 힘", "text": "가깝지 않은 지인과의 가벼운 교류도 그날의 기분과 소속감을 높인다는 연구가 있다 (Sandstrom & Dunn, 2014)."},
-          "note": "",
-          "options": [
-            {"id": "attend", "gate": "참석한다", "title": "직접 가서 축하한다", "desc": "얼굴 보고 마음을 전한다.", "item": "flower", "effects": {"connection": 2}, "gain": "오랜만에 만난 반가운 얼굴들", "cost": "쉬려던 주말과 축의금", "result": "식장에서 옛 동료들을 만나 한참 이야기했다. 피곤했지만 와 줘서 고맙다는 말이 오래 남는다. 느슨한 인연도 삶을 받쳐 주는 그물이 된다.", "memory": "옛 동료들과 웃으며 이야기했던 결혼식장.", "show": {"hold": "flowers"}},
-            {"id": "skip", "gate": "마음만 전한다", "title": "축하 메시지만 보낸다", "desc": "마음을 전하고 나의 휴식을 지킨다.", "item": "cup", "effects": {"ease": 2}, "gain": "온전히 나를 위한 휴일", "cost": "'그때 갈걸' 하는 아쉬움", "result": "축하 메시지를 보내고 오랜만에 늦잠을 잤다. 푹 쉬고 나니 한 주를 버틸 힘이 생긴다. 모든 관계를 같은 무게로 챙길 수는 없다.", "memory": "나를 위해 비워 둔 조용한 주말.", "show": {"hold": "cup"}}
+            {"id": "retry", "gate": "다시 도전", "title": "방식을 바꿔 다시 도전", "desc": "새로 배우며 일을 이어 간다.", "item": "laptop", "effects": {"growth": 2, "passion": 2, "ease": -1}, "gain": "다시 배우는 설렘과 새 명함", "cost": "몸이 고되고 쉴 틈이 없다", "result": "온라인으로 새 기술을 배우고 작은 가게를 열었다. 젊은 동료들에게 배우는 것도 즐겁다. 다만 저녁이면 어깨가 뻐근하다.", "memory": "예순에 다시 연 작은 가게의 문.", "show": {"hold": "laptop", "prop": "shop"}},
+            {"id": "retire", "gate": "정리하기", "title": "이쯤에서 일을 정리한다", "desc": "수고한 나에게 쉼을 준다.", "item": "flower", "effects": {"ease": 2, "connection": 1}, "gain": "느긋한 아침과 텃밭", "cost": "'이제 뭘 하지' 하는 허전함", "result": "동료들이 꽃다발을 건네며 박수를 쳤다. 아침마다 텃밭에 물을 준다. 가끔 일하던 시절의 바쁨이 그립다.", "memory": "꽃다발과 박수 속에 내려놓은 일.", "show": {"wear": ["strawhat"], "hold": "flowers", "prop": "garden"}}
           ]
         }
       ]
     },
     {
       "id": "last",
-      "age": 77,
+      "age": 75,
       "era": "마지막 선택",
       "scene": "park",
-      "enabled": false,
       "questions": [
         {
           "id": "last-choice",
-          "title": "남은 시간을 어떻게 보낼까?",
-          "context": "큰 병을 진단받았다. 할 수 있는 모든 치료를 받으며 시간을 늘릴 수도, 치료를 줄이고 익숙한 일상에서 지낼 수도 있다.",
+          "title": "불치병에 걸렸다. 남은 시간을 어떻게 보낼까?",
+          "context": "큰 병을 진단받았다. 완치는 어렵다고 한다. 연명치료로 시간을 늘릴 수도, 치료를 줄이고 익숙한 일상에서 지낼 수도 있다.",
           "reflection": "오래 사는 것과 잘 사는 것, 행복의 조건은 어느 쪽에 있을까?",
           "concept": {"kind": "제도", "label": "연명의료결정제도", "text": "우리나라는 2018년부터 연명의료결정제도를 시행하고 있다. 19세 이상이면 사전연명의료의향서로 연명치료에 대한 뜻을 미리 밝혀 둘 수 있다."},
-          "note": "녹음(10/15) 팀 논의에서 '맨 마지막에 넣어 보자'고 나온 연명치료 질문. 무거운 주제라 기본은 꺼 두었습니다. 켠다면 시작 전에 미리 안내해 주세요.",
+          "note": "무거운 주제입니다. 어느 쪽도 옳고 그름이 없다는 점을 먼저 짚어 주세요.",
           "options": [
-            {"id": "treat", "gate": "끝까지 치료", "title": "모든 치료를 받는다", "desc": "하루라도 더, 가능성을 붙잡는다.", "item": "pill", "effects": {"growth": 1, "connection": 1}, "gain": "포기하지 않았다는 마음", "cost": "병원에서 보내는 긴 시간", "result": "힘든 치료를 견디며 하루하루를 더 얻는다. 가족은 곁에서 함께 버틴다. 더 사는 것과 잘 사는 것 사이에서 매일 다시 선택한다.", "memory": "끝까지 삶을 붙잡았던 시간. 곁에는 가족이 있었다.", "show": {"hold": "flowers"}},
+            {"id": "treat", "gate": "연명치료", "title": "연명치료를 한다", "desc": "하루라도 더, 가능성을 붙잡는다.", "item": "pill", "effects": {"growth": 2}, "gain": "포기하지 않았다는 마음", "cost": "병원에서 보내는 긴 시간", "result": "힘든 치료를 견디며 하루하루를 더 얻는다. 가족은 곁에서 함께 버틴다. 더 사는 것과 잘 사는 것 사이에서 매일 다시 선택한다.", "memory": "끝까지 삶을 붙잡았던 시간. 곁에는 가족이 있었다.", "show": {"hold": "flowers"}},
             {"id": "daily", "gate": "일상 속에서", "title": "일상 속에서 지낸다", "desc": "치료를 줄이고 소중한 사람들 곁에.", "item": "house", "effects": {"ease": 1, "connection": 1}, "gain": "좋아하는 사람들과 보내는 평범한 날들", "cost": "'더 해 볼걸' 하는 가족의 마음", "result": "익숙한 집에서 좋아하는 음식을 먹고, 보고 싶던 사람들을 만난다. 시간은 짧아질 수 있지만 하루의 결은 깊어진다. 마지막을 스스로 정하는 것도 삶의 일부다.", "memory": "익숙한 집에서 보낸 평범하고 소중한 날들.", "show": {"prop": "garden"}}
           ]
         }
@@ -645,11 +278,31 @@
     "intro": "노을 진 공원 벤치에 앉아, 지나온 길을 돌아본다.",
     "lowest": "가장 덜 채운 것은 '{label}'. 다른 갈림길에서 다른 길을 골랐다면 무엇이 달라졌을까?",
     "profiles": {
-      "growth": {"persona": "끝없이 자라는 탐험가", "title": "배우고 해내며 행복했던 삶", "body": "당신의 길에는 배우고, 도전하고, 해내는 순간이 가득했다. 성취는 당신을 계속 앞으로 나아가게 했다. 그 사이 잠시 미뤄 둔 쉼과 사람들도 있지 않았을까?"},
-      "passion": {"persona": "좋아하는 것을 끝까지 좋아한 사람", "title": "설렘을 따라 걸었던 삶", "body": "당신은 마음이 움직이는 쪽으로 걸었다. 몰입의 기쁨이 컸던 만큼, 서툰 시작과 흔들리는 생활도 함께였다. 좋아하는 마음을 오래 지킬 수 있었던 비결은 무엇이었을까?"},
-      "ease": {"persona": "자기 속도를 지킨 사람", "title": "단단한 일상 위에서 행복했던 삶", "body": "당신은 흔들리지 않는 생활의 기반을 차곡차곡 쌓았다. 평온한 일상은 큰 힘이 되었다. 그 안정 덕분에 할 수 있었던 일, 그리고 미뤄 둔 모험은 무엇이었을까?"},
-      "connection": {"persona": "곁에 사람이 많은 사람", "title": "함께여서 행복했던 삶", "body": "당신의 선택은 늘 사람을 향했다. 함께한 시간만큼 서로 맞춰 가야 할 순간도 많았다. 다른 사람을 챙기는 동안, 나 자신도 잘 챙겼을까?"},
-      "balance": {"persona": "여러 소중함 사이를 걸은 사람", "title": "이것저것 다 소중했던 삶", "body": "당신의 삶에는 여러 가치가 고르게 섞여 있었다. 모든 걸 다 얻었다는 뜻은 아니다. 그때그때 무엇을 지키고 무엇을 내려놓았는지 돌아보자."}
+      "growth": {
+        "persona": "끝없이 자라는 탐험가",
+        "title": "배우고 해내며 행복했던 삶",
+        "body": "당신의 길에는 배우고, 도전하고, 해내는 순간이 가득했다. 성취는 당신을 계속 앞으로 나아가게 했다. 그 사이 잠시 미뤄 둔 쉼과 사람들도 있지 않았을까?"
+      },
+      "passion": {
+        "persona": "좋아하는 것을 끝까지 좋아한 사람",
+        "title": "설렘을 따라 걸었던 삶",
+        "body": "당신은 마음이 움직이는 쪽으로 걸었다. 몰입의 기쁨이 컸던 만큼, 서툰 시작과 흔들리는 생활도 함께였다. 좋아하는 마음을 오래 지킬 수 있었던 비결은 무엇이었을까?"
+      },
+      "ease": {
+        "persona": "자기 속도를 지킨 사람",
+        "title": "단단한 일상 위에서 행복했던 삶",
+        "body": "당신은 흔들리지 않는 생활의 기반을 차곡차곡 쌓았다. 평온한 일상은 큰 힘이 되었다. 그 안정 덕분에 할 수 있었던 일, 그리고 미뤄 둔 모험은 무엇이었을까?"
+      },
+      "connection": {
+        "persona": "곁에 사람이 많은 사람",
+        "title": "함께여서 행복했던 삶",
+        "body": "당신의 선택은 늘 사람을 향했다. 함께한 시간만큼 서로 맞춰 가야 할 순간도 많았다. 다른 사람을 챙기는 동안, 나 자신도 잘 챙겼을까?"
+      },
+      "balance": {
+        "persona": "여러 소중함 사이를 걸은 사람",
+        "title": "이것저것 다 소중했던 삶",
+        "body": "당신의 삶에는 여러 가치가 고르게 섞여 있었다. 모든 걸 다 얻었다는 뜻은 아니다. 그때그때 무엇을 지키고 무엇을 내려놓았는지 돌아보자."
+      }
     },
     "roadNotTaken": {
       "title": "걸어온 길, 가지 않은 길",
@@ -663,7 +316,11 @@
     "closing": {
       "title": "정답 없는 선택, 저마다의 행복",
       "text": "어느 길도 행복을 보장하지 않았지만, 어느 길에서도 행복은 자랄 수 있었다. 선택만큼 중요한 건, 선택한 길 위에서 무엇을 소중히 하느냐일지도 모른다.",
-      "discussion": ["오늘 고른 길 중, 실제 내 삶이라면 다르게 고를 선택은?", "선택 자체보다 선택 이후의 행동이 더 중요했던 순간이 있었나?", "나에게 행복의 '조건'은 주어지는 것일까, 만들어 가는 것일까?"],
+      "discussion": [
+        "오늘 고른 길 중, 실제 내 삶이라면 다르게 고를 선택은?",
+        "선택 자체보다 선택 이후의 행동이 더 중요했던 순간이 있었나?",
+        "나에게 행복의 '조건'은 주어지는 것일까, 만들어 가는 것일까?"
+      ],
       "source": "행복 포럼 「미스터 노바디와 경제학」의 기회비용·우연·선택 이후의 행동에 관한 토론을 바탕으로 구성했습니다.",
       "credits": "행복의 조건 · 4조"
     },
@@ -685,5 +342,10 @@
       "caption": "원의 크기는 모두 같습니다. 무엇으로 채웠는지만 다를 뿐이에요.",
       "note": "각 엔딩에 도착한 모든 경로의 평균 비율입니다. 앞서 각자 플레이한 사람들에게 엔딩별로 손을 들게 해 보세요."
     }
+  },
+  "presentation": {
+    "hero": "행복이",
+    "title": "행복이의 인생 갈림길",
+    "qrCaption": "각자 플레이는 이 QR이나 LMS 링크로"
   }
 }

@@ -59,7 +59,7 @@
       for (const q of s.questions) {
         const wq = `${w} 질문 '${q.id}'`;
         if (qids.has(q.id)) fail(wq, '질문 id가 중복됩니다.'); qids.add(q.id);
-        str(q.title, `${wq} 제목`, 40); str(q.context, `${wq} 상황`, 130); str(q.reflection, `${wq} 생각해 볼 질문`, 70);
+        str(q.title, `${wq} 제목`, 44); str(q.context, `${wq} 상황`, 130); str(q.reflection, `${wq} 생각해 볼 질문`, 70);
         flagList(q.when, wq);
         (q.contextIf || []).forEach(ci => { flagList(ci.when, wq); str(ci.text, `${wq} contextIf`, 130); });
         (q.lock || []).forEach(l => { flagList(l.when, `${wq} lock`); if (l.option !== 0 && l.option !== 1) fail(`${wq} lock`, 'option은 0(위) 또는 1(아래)이어야 합니다.'); str(l.reason, `${wq} lock 이유`, 40); });
@@ -96,7 +96,7 @@
   function defaultSettings(c) {
     return {
       stages: Object.fromEntries(c.stages.map(s => [s.id, s.enabled !== false])),
-      present: false, startCards: true, events: true, gauges: true, votes: true, sound: true, fast: false,
+      startCards: true, events: true, gauges: true, votes: true, sound: true, fast: false,
     };
   }
   function activeStages(c, settings) { return c.stages.filter(s => settings.stages?.[s.id] ?? s.enabled !== false); }
@@ -143,7 +143,7 @@
     return state;
   }
   function newGame(c, settings, seed = Date.now() % 2147483647) {
-    // 나이대는 고정, 질문은 그 나이대의 2~3개 중 무작위 (같은 seed면 같은 질문).
+    // 시기마다 질문이 여럿이면 seed로 고른다. 지금은 시기마다 하나뿐이라 모두가 같은 질문을 만난다.
     return fromRun(c, planRun(c, settings, seed), seed, { randomQuestions: settings.randomQuestions !== false });
   }
 

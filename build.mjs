@@ -1,6 +1,6 @@
 // src/ + content.json + fonts/ → 더블클릭으로 열리는 HTML 한 파일.
-// 사용: node build.mjs   (content.json을 고친 뒤 다시 실행)
-//       node build.mjs --out dist/index.html   (웹 배포용)
+// 사용: node build.mjs   (content.json을 고친 뒤 다시 실행, 오프라인용 한 파일)
+//       node build.mjs --site dist   (웹 배포용: 각자 플레이, /presentation/, /results/)
 import { readFileSync, writeFileSync, existsSync, statSync, readdirSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, resolve } from 'node:path';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const outFlag = process.argv.indexOf('--out');
-const OUT = outFlag > 0 ? resolve(process.argv[outFlag + 1]) : join(root, '..', '인생갈림길_행복의조건_4조.html');
+const flag = name => { const i = process.argv.indexOf(name); return i > 0 ? resolve(process.argv[i + 1]) : null; };
+const SITE = flag('--site'), OFFLINE = join(root, '..', '인생갈림길_행복의조건_4조.html');
 const read = p => readFileSync(join(root, p), 'utf8');
 const require = createRequire(import.meta.url);
 
@@ -24,7 +24,7 @@ const FONT_FILES = ['pretendard-500.woff', 'pretendard-700.woff', 'pretendard-80
 function fontsReady() {
   if (!FONT_FILES.every(f => existsSync(join(root, 'fonts', f))) || !existsSync(join(root, 'fonts', 'chars.txt'))) return false;
   const have = new Set(read('fonts/chars.txt'));
-  const used = [rawContent, ...['template.html', 'app.js', 'art.js', 'engine.js'].map(f => read(`src/${f}`))].join('');
+  const used = [rawContent, ...['template.html', 'results.html', 'app.js', 'art.js', 'engine.js'].map(f => read(`src/${f}`))].join('');
   return [...used].every(ch => have.has(ch) || ch.charCodeAt(0) < 0x20 || /\s/.test(ch));
 }
 let fonts = '';
@@ -46,7 +46,12 @@ if (existsSync(join(root, 'sounds'))) for (const f of readdirSync(join(root, 'so
 }
 if (Object.keys(sounds).length) console.log(`  효과음 파일: ${Object.keys(sounds).join(', ')}`);
 
-// 4) 한 파일로 합치기
+// 4) 기록 저장소 설정과 QR
+const safe = v => JSON.stringify(v).replace(/</g, '\\u003c');
+const config = JSON.parse(readFileSync(flag('--config') || join(root, 'config.json'), 'utf8'));
+const gameConfig = `<script type="application/json" id="game-config">${safe({ ...config, qr: read('src/qr.svg') })}</script>`;
+
+// 5) 한 파일로 합치기
 const scripts = ['engine.js', 'art.js', 'app.js'].map(f => read(`src/${f}`)).join('\n;\n');
 const json = JSON.stringify(content, null, 1).replace(/</g, '\\u003c');
 const html = read('src/template.html')
@@ -54,7 +59,24 @@ const html = read('src/template.html')
   .replace('/*__STYLE__*/', () => read('src/style.css'))
   .replace('<!--__CONTENT__-->', () => `<script type="application/json" id="game-content">\n${json}\n</script>`)
   .replace('<!--__SOUNDS__-->', () => `<script type="application/json" id="game-sounds">${JSON.stringify(sounds)}</script>`)
+  .replace('<!--__CONFIG__-->', () => gameConfig)
   .replace('/*__SCRIPTS__*/', () => scripts.replace(/<\/script/gi, '<\\/script'));
-mkdirSync(dirname(OUT), { recursive: true });
-writeFileSync(OUT, html);
-console.log(`✓ ${relative(process.cwd(), OUT)} (${(statSync(OUT).size / 1024).toFixed(0)} KB)`);
+
+// 6) 전후 그래프 페이지
+const dimColor = Object.fromEntries(content.dimensions.map(d => [d.key, d.color]));
+const endings = ['growth', 'ease', 'passion', 'connection', 'balance'].map(key => ({ key, name: content.ending.profiles[key].persona, color: dimColor[key] || '#7b5fc9' }));
+const results = read('src/results.html')
+  .replace('/*__FONTS__*/', () => fonts)
+  .replace('<!--__CONFIG__-->', () => `<script type="application/json" id="game-config">${safe(config)}</script>`)
+  .replace('/*__DATA__*/', () => safe({ endings }));
+
+function write(path, text) {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, text);
+  console.log(`✓ ${relative(process.cwd(), path)} (${(statSync(path).size / 1024).toFixed(0)} KB)`);
+}
+if (SITE) {
+  write(join(SITE, 'index.html'), html);
+  write(join(SITE, 'presentation', 'index.html'), html.replace('<html lang="ko">', '<html lang="ko" data-mode="presentation">'));
+  write(join(SITE, 'results', 'index.html'), results);
+} else write(OFFLINE, html);

@@ -28,7 +28,7 @@ jobs:
         run: node --test tests/engine.test.mjs
       # The build validates content.json. Invalid content stops here and the live site is left as it was.
       - name: Build site
-        run: node build.mjs --out dist/index.html
+        run: node build.mjs --site dist
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
