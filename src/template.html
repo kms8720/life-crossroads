@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인생 갈림길 — 행복의 조건 4조</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f5d4a'/%3E%3Cpath d='M32 54V34M32 34 18 16M32 34l14-18' stroke='%23f6e7c1' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<style>
+/*__FONTS__*/
+/*__STYLE__*/
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage" aria-live="polite">
+    <svg id="world" viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky-grad" x1="0" y1="0" x2="0" y2="1"><stop id="sky-top" offset="0" stop-color="#a9dcef"/><stop id="sky-bottom" offset="1" stop-color="#fff4d6"/></linearGradient>
+        <linearGradient id="meadow-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fcd88"/><stop offset=".45" stop-color="#8fc27b"/><stop offset="1" stop-color="#7cb26c"/></linearGradient>
+        <radialGradient id="portal-a" cx=".5" cy=".75" r=".8"><stop offset="0" stop-color="#fff6d8" stop-opacity=".95"/><stop offset=".6" stop-color="#ffd3b8" stop-opacity=".55"/><stop offset="1" stop-color="#ef6a4c" stop-opacity=".25"/></radialGradient>
+        <radialGradient id="portal-b" cx=".5" cy=".75" r=".8"><stop offset="0" stop-color="#f3f0ff" stop-opacity=".95"/><stop offset=".6" stop-color="#cfc6ff" stop-opacity=".55"/><stop offset="1" stop-color="#6f5bd6" stop-opacity=".25"/></radialGradient>
+        <radialGradient id="sun-halo"><stop offset="0" stop-color="#fff3c4" stop-opacity=".75"/><stop offset="1" stop-color="#fff3c4" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="1920" height="1080" fill="url(#sky-grad)"/>
+      <g id="stars"></g>
+      <g id="sun"><circle id="sun-halo-c" r="150" fill="url(#sun-halo)"/><circle id="sun-core" r="62" fill="#fff1b0"/></g>
+      <g id="clouds"></g>
+      <g id="far"></g>
+      <g id="mid"></g>
+      <g id="main">
+        <g id="ground"></g>
+        <g id="props"></g>
+        <g id="roads"></g>
+        <g id="gates"></g>
+        <g id="decor"></g>
+        <g id="people" class="idle"><g id="friends"></g><g id="partner"></g><g id="me"></g><g id="kid"></g></g>
+        <g id="bubble"></g>
+        <g id="fly"></g>
+        <g id="memories"></g>
+      </g>
+      <g id="fg"></g>
+      <rect id="tint" width="1920" height="1080" fill="#ff8a4c" opacity="0" pointer-events="none"/>
+    </svg>
+    <div id="hud" hidden>
+      <div id="gauges"></div>
+      <div id="timeline"></div>
+      <div id="agebadge"></div>
+    </div>
+    <div id="caption"></div>
+    <div id="fx"></div>
+    <section id="panel" hidden></section>
+    <section id="card" hidden></section>
+    <section id="title" hidden></section>
+    <section id="ending" hidden></section>
+    <aside id="notes" hidden></aside>
+    <nav id="toolbar"></nav>
+    <div id="modal" hidden></div>
+    <div id="toast" role="status"></div>
+  </div>
+</div>
+<noscript>이 게임은 JavaScript가 필요합니다. 브라우저에서 JavaScript를 켜 주세요.</noscript>
+<!--__CONTENT__-->
+<!--__SOUNDS__-->
+<script>
+/*__SCRIPTS__*/
+</script>
+</body>
+</html>
