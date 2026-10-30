@@ -13,6 +13,10 @@ create table if not exists public.plays (
 
 alter table public.plays enable row level security;
 
+-- The public key gets one table permission only, whatever the project's defaults are.
+revoke all on public.plays from anon, authenticated;
+grant insert on public.plays to anon;
+
 drop policy if exists "anyone can add a play" on public.plays;
 create policy "anyone can add a play" on public.plays
   for insert to anon with check (true);
