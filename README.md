@@ -22,6 +22,50 @@ The game is in Korean. It was made for a class presentation in "Conditions of Ha
 
 The game works with a mouse, a keyboard, or a touch screen. It is designed for laptops and tablets in landscape.
 
+## Running the class
+
+The site has three pages.
+
+| Page | Use |
+| --- | --- |
+| [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop or tablet. Post this link on the LMS. |
+| [Presentation](https://kms8720.github.io/life-crossroads/presentation/) | The shared screen. Five questions, decided by a show of hands. |
+| [Results](https://kms8720.github.io/life-crossroads/results/) | Compares each student's first and latest ending. Updates every five seconds. |
+
+### Before the class
+
+1. **Clear the saved playthroughs right before the class starts.** Open the [SQL Editor](https://supabase.com/dashboard/project/epulzaewtbvonoestnxm/sql/new) and run:
+
+   ```sql
+   truncate table plays;
+   ```
+
+   Every finished playthrough counts, including tests, rehearsals, a preview for the professor, and students who open the link early. Any of them would be compared as someone's first play. The public key cannot delete data, so this has to be done from the dashboard.
+2. **Check that the database is awake.** After clearing, the results page should say that nobody has finished a second playthrough yet. If it stays blank, open the Supabase dashboard and restore the project if it is paused.
+3. Open the presentation page and the results page in two tabs on the classroom computer. Press `F` for full screen.
+
+### During the class
+
+- **Students must use the same name for both plays.** On the same device the name is filled in automatically. On a different device they have to type it again exactly.
+- **Ask for a name nobody else in the class uses.** Plays with the same name count as one person, ignoring capital letters and spaces at either end. If someone plays three or more times, the first and the latest are compared.
+- **A play is saved only when the ending screen appears.** Students who stop partway are not counted.
+- **Team members should not finish a game on the student page during the class**, because it would be counted too. The presentation page never saves anything.
+- If the database is unreachable, the game still plays normally but nothing is saved, and the results page stays blank.
+
+On the presentation page:
+
+| Action | Key |
+| --- | --- |
+| Enter the number of raised hands | `V` |
+| Go with the option that got more hands | `Space` |
+| Pick an option directly | `1`, `2` |
+| Speaker notes | `N` |
+| Skip this fork | `X` |
+
+### If there is no internet
+
+Run `npm run build`. It writes a single HTML file that runs offline to the folder containing this repository. Add `#presentation` to the end of its address for the shared screen. Without internet nothing is saved, so the results page will not work.
+
 ## Editing the game
 
 Almost everything players read lives in [`content.json`](content.json): questions, options, cards, and endings.
