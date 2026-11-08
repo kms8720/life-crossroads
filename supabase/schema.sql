@@ -5,11 +5,16 @@ create table if not exists public.plays (
   id bigint generated always as identity primary key,
   run_id text not null unique check (char_length(run_id) <= 40),
   nickname text not null check (char_length(nickname) between 1 and 20),
-  ending text not null check (ending in ('growth', 'passion', 'ease', 'connection', 'balance')),
+  ending text not null,
   gauges jsonb not null,
   picks jsonb not null,
   created_at timestamptz not null default now()
 );
+
+-- Endings are the gauge keys in content.json plus 'balance'. Older rows are left as they are.
+alter table public.plays drop constraint if exists plays_ending_check;
+alter table public.plays add constraint plays_ending_check
+  check (ending in ('money', 'fame', 'health', 'connection', 'balance')) not valid;
 
 alter table public.plays enable row level security;
 

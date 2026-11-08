@@ -72,7 +72,8 @@ const goalOf = option => {
 const famRank = f => ({ extrinsic: 0, intrinsic: 1 })[f] ?? 2;
 const resultsData = {
   dims: content.dimensions.map(d => ({ key: d.key, label: d.label, family: d.family || null })),
-  stages: content.stages.filter(s => s.enabled !== false).map(s => ({ id: s.id, age: s.age, goals: s.questions[0].options.map(goalOf) })),
+  // 두 선택지가 같은 쪽(둘 다 내적 등)인 질문은 외적·내적 사이의 선택이 아니므로 비율에서 뺀다.
+  stages: content.stages.filter(s => s.enabled !== false).map(s => { const g = s.questions[0].options.map(goalOf); return { id: s.id, age: s.age, goals: g[0] && g[1] && g[0] !== g[1] ? g : [null, null] }; }),
   endings: [...[...content.dimensions].sort((a, b) => famRank(a.family) - famRank(b.family)).map(d => ({ key: d.key, label: d.label, family: d.family || null })), { key: 'balance', label: '균형', family: null }],
 };
 const results = read('src/results.html')

@@ -37,7 +37,10 @@
     str(c.title, '게임 제목', 30);
     if (!Array.isArray(c.dimensions) || c.dimensions.length !== 4) fail('dimensions', '게이지는 정확히 4개여야 합니다.');
     const keys = c.dimensions.map(d => d.key);
-    c.dimensions.forEach((d, i) => { str(d.key, `게이지 ${i + 1} key`, 20); str(d.label, `게이지 ${i + 1} 이름`, 8); });
+    c.dimensions.forEach((d, i) => {
+      str(d.key, `게이지 ${i + 1} key`, 20); str(d.label, `게이지 ${i + 1} 이름`, 8);
+      if (d.family !== undefined && !['intrinsic', 'extrinsic'].includes(d.family)) fail(`게이지 ${d.key}`, 'family는 "intrinsic"(내적) 또는 "extrinsic"(외적)이어야 합니다.');
+    });
     if (!Number.isInteger(c.startAge) || !Number.isInteger(c.endingAge)) fail('나이', 'startAge, endingAge는 정수여야 합니다.');
     for (const card of c.starts?.cards || []) { str(card.title, `출발 카드 ${card.id}`, 30); str(card.text, `출발 카드 ${card.id} 설명`, 160); effects(card.effects, keys, `출발 카드 ${card.id}`); }
     const stageIds = new Set(c.stages.map(s => s.id));

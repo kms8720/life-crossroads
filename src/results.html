@@ -108,7 +108,8 @@ body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: anti
 #nav button { border: none; border-radius: 999px; padding: 9px 16px; background: rgba(255, 251, 242, .95); color: #333; font: 600 15px var(--sans); cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
 #nav button.on { background: #4E342E; color: #fff; }
 #nav .state { color: #ddd; font-size: 13px; margin-right: 6px; }
-body.clean #nav, body.clean #hands { opacity: 0; pointer-events: none; }
+body.idle #nav { opacity: .15; }
+body.clean #nav, body.clean #hands { display: none !important; }
 #hands { position: fixed; right: 18px; bottom: 70px; z-index: 5; background: #fffbf2; border-radius: 14px; padding: 14px 18px; box-shadow: 0 6px 22px rgba(0, 0, 0, .3); font: 500 15px var(--sans); color: #333; }
 #hands label { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
 #hands input { width: 64px; font: 600 18px var(--sans); padding: 4px 6px; border: 1px solid #ccc; border-radius: 6px; }
@@ -308,7 +309,7 @@ body.clean #nav, body.clean #hands { opacity: 0; pointer-events: none; }
     render();
     setTimeout(refresh, 5000);
   }
-  let idle; addEventListener('mousemove', () => { $('#nav').style.opacity = 1; clearTimeout(idle); idle = setTimeout(() => { $('#nav').style.opacity = .15; }, 2500); });
+  let idle; addEventListener('mousemove', () => { document.body.classList.remove('idle'); clearTimeout(idle); idle = setTimeout(() => document.body.classList.add('idle'), 2500); });
   (document.fonts?.ready || Promise.resolve()).then(() => { render(); refresh(); }, refresh);
 })();
 </script>

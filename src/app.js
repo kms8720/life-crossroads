@@ -28,6 +28,11 @@
   let peopleKey = '', lastLook = null;
   const present = () => MODE === 'presentation';      // 발표 화면: 수업 연결 · 반 투표
   const votesOn = () => present() && settings.votes;
+  // 게이지는 숨긴다 (PPT에서 '보이지 않는 게이지'로 공개). 발표 화면에서만 팀이 G로 켤 수 있다.
+  const gaugesOn = () => present() && !!settings.showGauges;
+  const DONE_KEY = 'insaeng-galimgil.done';
+  // 각자 플레이 엔딩의 원(도넛)은 두 번째 판부터 보여 준다. 첫 판에서 게이지 이름이 드러나지 않게.
+  const showDonut = () => present() ? gaugesOn() : (store.get(DONE_KEY) || []).length >= 2;
 
   // ---------- 저장 (막혀 있어도 게임은 돌아간다) ----------
   const store = {
@@ -457,7 +462,7 @@
     $('#fx').appendChild(el); setTimeout(() => el.remove(), 2200);
   }
   function afterArrive(prev, next) {
-    if (next.last?.effects && next !== prev) showDeltas(next.last.effects, next.phase === 'result');
+    if (gaugesOn() && next.last?.effects && next !== prev) showDeltas(next.last.effects, next.phase === 'result');
   }
   function showDeltas(effects, overHead) {
     let k = 0;
@@ -492,7 +497,10 @@
       if (next.phase === 'result') { const p = next.picks.at(-1); showBubble(E.question(C, next).options[p.opt].item, p.opt); } else showBubble(null);
       renderUI(); afterArrive(prev, next);
     }
-    if (next.phase === 'ending' && prev.phase !== 'ending') recordPlay(next);
+    if (next.phase === 'ending' && prev.phase !== 'ending') {
+      recordPlay(next);
+      if (!present()) { const done = store.get(DONE_KEY) || []; if (!done.includes(next.seed)) store.set(DONE_KEY, [...done, next.seed].slice(-20)); }
+    }
     saveGame();
   }
   function transition(prev, next) {
@@ -561,7 +569,7 @@
     const ph = state.phase;
     $('#title').hidden = ph !== 'title';
     $('#hud').hidden = ph === 'title' || (ph === 'ending' && !ui.moving);
-    $('#gauges').hidden = !settings.gauges;
+    $('#gauges').hidden = !gaugesOn();
     if (ph === 'title') renderTitle();
     renderHud(); renderPanel(); renderCard(); renderEnding(); renderGates(state); renderProps(state); renderNotes(); renderToolbar();
   }
@@ -600,6 +608,7 @@
     if (html !== ageHtml) $('#agebadge').innerHTML = ageHtml = html;
   }
   function effectChips(eff) {
+    if (!gaugesOn()) return '';
     return C.dimensions.filter(d => eff?.[d.key]).map(d => { const v = eff[d.key]; return `<span class="chip ${v < 0 ? 'neg' : ''}" style="--dc:${d.color}">${A.icon(d.icon)}${esc(d.label)} ${v > 0 ? '+' : '−'}${Math.abs(v)}</span>`; }).join('');
   }
   function renderPanel() {
@@ -662,7 +671,7 @@
   }
   // 엔딩 도넛: 누구의 원이든 크기는 같고, 무엇으로 채웠는지 비율만 다르다.
   // 순서는 고정(성장→안정→즐거움→관계). 이웃한 색이 색각 이상에서도 구분되도록 검증한 순서다.
-  const DONUT_ORDER = ['growth', 'ease', 'passion', 'connection'];
+  const DONUT_ORDER = ['money', 'fame', 'health', 'connection'];
   function percents(values) {
     const total = values.reduce((a, b) => a + b, 0) || 1, raw = values.map(v => v / total * 100), out = raw.map(Math.floor);
     raw.map((v, k) => [v - out[k], k]).sort((a, b) => b[0] - a[0]).slice(0, 100 - out.reduce((a, b) => a + b, 0)).forEach(([, k]) => out[k]++);
@@ -715,8 +724,8 @@
         <div class="e-types">${order.map(k => { const a = avg[k], prof = C.ending.profiles[k], g = a ? Object.fromEntries(Object.entries(a.g).map(([x, v]) => [x, v / a.n])) : {}; return `<div class="${k === sum.type ? 'mine' : ''} ${a ? '' : 'none'}">${a ? ring(g, { R: 70, w: 34 }).svg : '<svg class="ring" viewBox="-108 -108 216 216"><circle r="70" fill="none" stroke="#efe8d8" stroke-width="34"/></svg>'}<b>${esc(prof.persona || prof.title)}</b><small>${a ? `${Math.round(a.n / Object.values(avg).reduce((x, y) => x + y.n, 0) * 100)}%의 삶` : '이번 판엔 없음'}${k === sum.type ? ' · 나의 엔딩' : ''}</small></div>`; }).join('')}</div>`;
     } else if (page === 'result') {
       html = `<div class="e-kicker">${present() ? `${esc(C.presentation.hero)} · ` : ''}${C.endingAge}세 · ${esc(C.ending.intro)}</div><div class="e-persona">${esc(sum.profile.persona || '')}</div><h2 class="e-title">${esc(sum.profile.title)}</h2><p class="e-body">${esc(sum.profile.body)}</p>
-        ${donut(sum)}
-        ${present() ? `<p class="e-low">${esc(C.ending.lowest.replace('{label}', sum.low.label))}</p>` : ''}`;
+        ${showDonut() ? donut(sum) : ''}
+        ${present() && showDonut() ? `<p class="e-low">${esc(C.ending.lowest.replace('{label}', sum.low.label))}</p>` : ''}`;
     } else if (page === 'path') {
       const rn = C.ending.roadNotTaken;
       html = `<div class="e-kicker">${esc(rn.source)}</div><h2 class="e-h2">${esc(rn.title)}</h2><p class="e-cap">${esc(rn.caption)}</p>
@@ -811,7 +820,7 @@
     const m = $('#modal'); m.hidden = false;
     if (kind === 'help') m.innerHTML = `<div class="m-box"><h2>조작법</h2><p>키보드나 마우스로 진행할 수 있어요.</p><div class="keys">${[
       ['다음 / 결정', 'Space', 'Enter', '→'], ['위 길 고르기', '1', '↑'], ['아래 길 고르기', '2', '↓'], ...(present() ? [['리모컨으로 고르기', '◀ 두 번 = 위', '▶ 두 번 = 아래']] : []),
-      ['되돌리기', 'Backspace', '←'], ...(present() ? [['투표 수 입력', 'V'], ['이 갈림길 건너뛰기', 'X'], ['발표자 메모', 'N']] : []), ['게이지 보이기/숨기기', 'G'], ['전체 화면', 'F'],
+      ['되돌리기', 'Backspace', '←'], ...(present() ? [['투표 수 입력', 'V'], ['이 갈림길 건너뛰기', 'X'], ['발표자 메모', 'N'], ['게이지 보이기/숨기기', 'G']] : []), ['전체 화면', 'F'],
       ['처음 화면으로', 'R'], ['소리 켜기/끄기', 'M'], ['걷는 중 빨리 감기', 'Space'], ['창 닫기', 'Esc']].map(([l, ...ks]) => `<div><span>${l}</span><span>${ks.map(k => `<span class="kbd">${k}</span>`).join(' ')}</span></div>`).join('')}</div>
       <p style="margin-top:20px">갈림길 화면에서 ← →는 길을 먼저 표시하고, 같은 쪽을 한 번 더 누르면 결정해요. 다른 화면에서 ←는 되돌리기예요.</p><div class="m-actions"><button class="btn primary" data-act="close">닫기 <span class="kbd">Esc</span></button></div></div>`;
     else if (kind === 'name') {
@@ -906,7 +915,7 @@
       Backspace: back, ArrowUp: () => onRewindList() ? rewindMove(-1) : pickOption(0), ArrowDown: () => onRewindList() ? rewindMove(1) : pickOption(1), 1: () => pickOption(0), 2: () => pickOption(1),
       v: () => { if (state.phase !== 'fork' || !votesOn()) return; if (openOnly() != null) return toast('이번 갈림길은 한 길만 열려 있어요.'); openModal('vote'); },
       m: () => act('sound'), x: () => { if (present() && state.phase === 'fork' && !anim) { go(E.skip(C, state)); toast('이 갈림길은 건너뛰었어요.'); } },
-      n: () => present() && act('notes'), g: () => { settings.gauges = !settings.gauges; saveSettings(); $('#gauges').hidden = !settings.gauges || state.phase === 'title'; },
+      n: () => present() && act('notes'), g: () => { if (!present()) return; settings.showGauges = !settings.showGauges; saveSettings(); renderUI(); toast(settings.showGauges ? '게이지를 보여 줘요 (발표자용).' : '게이지를 숨겼어요.'); },
       f: fullscreen, h: () => openModal('help'), '?': () => openModal('help'),
       r: () => state.phase === 'title' ? null : act('restart'), c: () => state.phase === 'title' && resume(),
     };

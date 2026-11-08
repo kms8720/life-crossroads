@@ -72,7 +72,7 @@ test('10문항: 모든 결말이 엔딩에 도착하고 다섯 엔딩이 고르�
   for (const s of ends) { assert.equal(s.picks.length, 10); assert.ok(E.summary(c, s).profile.title); }
   const share = endingShare(c, settings);
   console.log('  10문항 엔딩 분포:', Object.fromEntries(Object.entries(share).map(([k, v]) => [k, `${Math.round(v * 100)}%`])));
-  for (const k of ['growth', 'passion', 'ease', 'connection', 'balance']) assert.ok(share[k] >= 0.12, `${k} 엔딩이 12% 미만`);
+  for (const k of ['money', 'fame', 'health', 'connection', 'balance']) assert.ok(share[k] >= 0.12, `${k} 엔딩이 12% 미만`);
   assert.ok(Math.max(...Object.values(share)) <= 0.32, '한 엔딩이 32%를 넘음');
 });
 
@@ -85,13 +85,13 @@ test('발표 화면은 표시된 5문항만, 나이 순서대로 나오고 끝�
   for (const s of ends) assert.equal(s.phase, 'ending');
 });
 
-test('양쪽 선택지에 같은 게이지가 붙어 쏠리는 질문이 없다', () => {
-  const c = content();
-  for (const s of c.stages) for (const q of s.questions) {
-    const [a, b] = q.options.map(o => Object.entries(o.effects).filter(([, v]) => v > 0).map(([k]) => k));
-    const both = a.filter(k => b.includes(k));
-    assert.ok(both.length <= (q.id === 'pay-or-balance' ? 1 : 0), `${q.id}: 양쪽 모두 ${both}`);
-  }
+test('게이지는 외적(돈·인정) 2개와 내적(건강·관계) 2개이고, 선택지 하나는 한쪽 목표에만 점수를 준다', () => {
+  const c = content(), fam = Object.fromEntries(c.dimensions.map(d => [d.key, d.family]));
+  assert.deepEqual(c.dimensions.map(d => d.family).sort(), ['extrinsic', 'extrinsic', 'intrinsic', 'intrinsic']);
+  const goal = o => { const f = new Set(Object.entries(o.effects).filter(([, v]) => v > 0).map(([k]) => fam[k])); assert.equal(f.size, 1, `한 선택지가 두 목표에 걸침: ${o.id}`); return [...f][0]; };
+  const mixed = c.stages.filter(s => { const [a, b] = s.questions[0].options.map(goal); return a !== b; }).map(s => s.id);
+  // 연애·휴가·70대는 둘 다 내적이라 그래프 비율에서 빠진다.
+  assert.deepEqual(mixed, ['middle-school', 'university', 'career-mid', 'midlife', 'after-work', 'fifties', 'sixties']);
 });
 
 test('한 갈림길만 바꿔도 다시 계산되고, 원의 대부분은 그대로', () => {
