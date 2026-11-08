@@ -1,7 +1,7 @@
 // src/ + content.json + fonts/ → 더블클릭으로 열리는 HTML 한 파일.
 // 사용: node build.mjs   (content.json을 고친 뒤 다시 실행, 오프라인용 한 파일)
 //       node build.mjs --site dist   (웹 배포용: 각자 플레이, /presentation/, /results/, /admin/)
-import { readFileSync, writeFileSync, existsSync, statSync, readdirSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, statSync, readdirSync, mkdirSync, copyFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -85,9 +85,19 @@ function write(path, text) {
   writeFileSync(path, text);
   console.log(`✓ ${relative(process.cwd(), path)} (${(statSync(path).size / 1024).toFixed(0)} KB)`);
 }
+// 7) 홈 화면에 추가하면 주소창 없이 열리는 앱 설정 (웹 배포의 각자 플레이 화면만).
+//    아이폰은 웹페이지가 스스로 전체 화면이 될 수 없어서, 홈 화면 앱으로 여는 것이 유일한 전체 화면 방법이다.
+const PWA = ['<link rel="manifest" href="manifest.webmanifest">', '<link rel="apple-touch-icon" href="apple-touch-icon.png">',
+  '<meta name="mobile-web-app-capable" content="yes">', '<meta name="apple-mobile-web-app-capable" content="yes">',
+  '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">', '<meta name="apple-mobile-web-app-title" content="인생 갈림길">',
+  '<meta name="theme-color" content="#16201c">'].join('\n');
+const manifest = { name: '인생 갈림길 — 행복의 조건 4조', short_name: '인생 갈림길', lang: 'ko', start_url: './', scope: './', display: 'fullscreen', orientation: 'landscape',
+  background_color: '#16201c', theme_color: '#16201c', icons: [192, 512].map(n => ({ src: `icon-${n}.png`, sizes: `${n}x${n}`, type: 'image/png', purpose: 'any maskable' })) };
 if (SITE) {
-  write(join(SITE, 'index.html'), html);
-  write(join(SITE, 'presentation', 'index.html'), html.replace('<html lang="ko">', '<html lang="ko" data-mode="presentation">'));
+  write(join(SITE, 'index.html'), html.replace('<!--__PWA__-->', () => PWA));
+  write(join(SITE, 'manifest.webmanifest'), JSON.stringify(manifest, null, 1));
+  for (const f of ['apple-touch-icon.png', 'icon-192.png', 'icon-512.png']) copyFileSync(join(root, 'src', 'icons', f), join(SITE, f));
+  write(join(SITE, 'presentation', 'index.html'), html.replace('<!--__PWA__-->', '').replace('<html lang="ko">', '<html lang="ko" data-mode="presentation">'));
   write(join(SITE, 'results', 'index.html'), results);
   write(join(SITE, 'admin', 'index.html'), read('src/admin.html').replace('<!--__CONFIG__-->', () => `<script type="application/json" id="game-config">${safe(config)}</script>`));
-} else write(OFFLINE, html);
+} else write(OFFLINE, html.replace('<!--__PWA__-->', ''));

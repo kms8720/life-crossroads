@@ -20,7 +20,12 @@ The game is in Korean. It was made for a class presentation in "Conditions of Ha
 | Show/hide gauges | `G` |
 | Help | `H` |
 
-The game works with a mouse, a keyboard, or a touch screen. It is designed for landscape screens: laptops, tablets, and phones turned sideways. On a phone held upright, it asks the player to turn the phone. On Android it switches to full screen when the game starts. iPhone Safari does not allow that, so the address bar stays.
+The game works with a mouse, a keyboard, or a touch screen. It is designed for landscape screens: laptops, tablets, and phones turned sideways. On a phone held upright, it asks the player to turn the phone.
+
+On phones, the first screen shows how to make the game bigger:
+
+- **Android (Chrome, Samsung Internet):** a hint points to the full-screen button at the top right, and the game also switches to full screen when it starts.
+- **iPhone (Safari, and every other iPhone browser):** iOS does not let a web page go full screen. The hint asks the player to swipe up, which shrinks the address bar. For true full screen, add the game to the home screen (Share → Add to Home Screen) and open it from there. A game opened from the home screen keeps its own storage, so the player has to type their name again, exactly as before.
 
 ## Running the class
 

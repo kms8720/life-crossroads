@@ -119,25 +119,64 @@
   const PHONE_UI = .46;
   let layout = 'desk';
   const isPhone = () => !present() && Math.min(screen.width, screen.height) <= 540;
+  // 아이폰(과 아이폰의 모든 브라우저)은 웹페이지가 스스로 전체 화면이 될 수 없다. 대신 문서를 조금 스크롤되게 해 두면
+  // 위로 쓸어 올릴 때 Safari가 주소창을 줄이고, 홈 화면에 추가해 열면(STANDALONE) 주소창 없이 열린다.
+  const IOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const STANDALONE = navigator.standalone === true || matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
+  const fsRequest = () => { const el = document.documentElement; return el.requestFullscreen || el.webkitRequestFullscreen || null; };
+  const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+  let safeProbe = null, swipeDone = false;
+  function safeInsets() {
+    if (!safeProbe) {
+      safeProbe = document.createElement('div');
+      safeProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+      document.body.appendChild(safeProbe);
+    }
+    const cs = getComputedStyle(safeProbe), px = v => parseFloat(v) || 0;
+    return { l: px(cs.paddingLeft), r: px(cs.paddingRight), b: px(cs.paddingBottom) };
+  }
   function fit() {
     const st = $('#stage'), w = innerWidth, h = innerHeight;
     // 이름을 적는 동안 키보드 때문에 창 높이가 바뀌어도 배치를 그대로 둔다.
     if (layout === 'phone' && document.activeElement?.matches?.('input, textarea')) return;
     layout = !isPhone() ? 'desk' : h > w ? 'rotate' : 'phone';
     document.body.dataset.layout = layout;
+    document.documentElement.classList.toggle('scrollfs', layout === 'phone' && IOS && !STANDALONE);
     let s = Math.min(w / 1920, h / 1080), sw = 1920;
     if (layout === 'phone' && w / h > 1920 / 1080) { s = h / 1080; sw = w / s; }
     st.style.width = `${sw}px`;
     st.style.setProperty('--ox', `${((sw - 1920) / 2).toFixed(1)}px`);
     st.style.setProperty('--uiz', layout === 'phone' ? (PHONE_UI / s).toFixed(3) : '1');
+    // 노치·둥근 모서리 쪽 안전 영역: 장면은 끝까지 채우고, 버튼·창만 안쪽으로 들인다 (zoom 전 단위로 넘긴다).
+    const safe = layout === 'phone' ? safeInsets() : { l: 0, r: 0, b: 0 };
+    for (const [k, v] of Object.entries(safe)) st.style.setProperty(`--safe-${k}`, `${(v / PHONE_UI).toFixed(1)}px`);
     st.style.transform = `scale(${s})`;
     st.style.left = `${(w - sw * s) / 2}px`;
     st.style.top = `${(h - 1080 * s) / 2}px`;
+    updateSwipe();
   }
-  // 안드로이드 폰은 시작할 때 전체 화면 + 가로 고정으로 주소창만큼 자리를 더 쓴다 (아이폰 Safari는 지원하지 않아 그냥 넘어간다).
+  // 첫 화면에서 더 크게 보는 방법을 알려 준다.
+  //  - 아이폰 Safari(주소창이 크게 떠 있을 때): 위로 쓸어 올리기
+  //  - 전체 화면이 되는 폰 브라우저(삼성 인터넷·Chrome 등): 오른쪽 위 전체 화면 버튼 (버튼도 반짝인다)
+  function updateSwipe() {
+    const el = $('#swipe');
+    if (!el) return;
+    const iosBars = document.documentElement.classList.contains('scrollfs') && innerHeight < Math.min(screen.width, screen.height) * .86 && !swipeDone;
+    const fsHint = layout === 'phone' && !STANDALONE && !!fsRequest() && !fsElement();
+    const mode = state?.phase === 'title' && !ui.modal ? (iosBars ? 'swipe' : fsHint ? 'fs' : '') : '';
+    if (el.dataset.mode !== mode) {
+      el.dataset.mode = mode;
+      el.querySelector('span').textContent = mode === 'fs' ? '오른쪽 위 전체 화면 버튼을 누르면 더 크게 보여요' : '화면을 위로 쓸어 올리면 주소창이 줄어들어 더 크게 보여요';
+    }
+    el.hidden = !mode;
+    document.body.dataset.hint = mode;
+  }
+  const lockLandscape = () => { if (layout === 'phone') screen.orientation?.lock?.('landscape').catch(() => {}); };
+  // 안드로이드 폰(Chrome·삼성 인터넷 등)은 시작할 때 전체 화면 + 가로 고정으로 주소창만큼 자리를 더 쓴다.
   function phoneFullscreen() {
-    if (layout !== 'phone' || document.fullscreenElement || !document.documentElement.requestFullscreen) return;
-    try { document.documentElement.requestFullscreen().then(() => screen.orientation?.lock?.('landscape').catch(() => {}), () => {}); } catch { /* 무시 */ }
+    const req = fsRequest();
+    if (layout !== 'phone' || fsElement() || !req) return;
+    try { Promise.resolve(req.call(document.documentElement)).then(lockLandscape, () => {}); } catch { /* 무시 */ }
   }
 
   // ---------- 월드 만들기 ----------
@@ -595,7 +634,7 @@
     $('#hud').hidden = ph === 'title' || (ph === 'ending' && !ui.moving);
     $('#gauges').hidden = !gaugesOn();
     if (ph === 'title') renderTitle();
-    renderHud(); renderPanel(); renderCard(); renderEnding(); renderGates(state); renderProps(state); renderNotes(); renderToolbar();
+    renderHud(); renderPanel(); renderCard(); renderEnding(); renderGates(state); renderProps(state); renderNotes(); renderToolbar(); updateSwipe();
   }
   function renderTitle() {
     const n = E.activeStages(C, settings).length;
@@ -647,8 +686,8 @@
       const evCtx = !evQ && (q.contextIf || []).some(ci => (ci.when || []).some(f => f.startsWith('ev-')) && E.matches(ci.when, state.flags));
       const hint = only != null ? `${A.icon('lock')}${present() ? '운명 카드 때문에 ' : '이번엔 '}한 길만 열려 있어요 · <span class="kbd">Space</span>로 계속`
         : votesOn() ? `${A.icon('vote')}다 같이 손을 들어 골라 주세요 · <span class="kbd">V</span> 손 든 사람 수 입력` : `<span class="kbd">1</span> <span class="kbd">2</span> <span class="keys-only">또는 </span>문을 눌러 고르기`;
-      p.innerHTML = `<div><span class="tag">${A.icon('clock')} ${decade(s.age)} · ${esc(s.era)}</span>${present() && (evQ || evCtx) ? `<span class="tag ev">${A.icon('dice')} ${evQ ? '운명 카드로 바뀐 질문' : '운명 카드로 달라진 상황'}</span>` : ''}<h2 class="q-title">${esc(q.title)}</h2><p class="q-context">${esc(E.contextOf(q, state.flags))}</p>
-        <div class="hint">${hint}</div></div>
+      p.innerHTML = `<div><span class="tag">${A.icon('clock')} ${decade(s.age)} · ${esc(s.era)}<span class="tag-n">${state.i + 1}/${state.run.stageIds.length}</span></span>${present() && (evQ || evCtx) ? `<span class="tag ev">${A.icon('dice')} ${evQ ? '운명 카드로 바뀐 질문' : '운명 카드로 달라진 상황'}</span>` : ''}<h2 class="q-title">${esc(q.title)}</h2><p class="q-context">${esc(E.contextOf(q, state.flags))}</p>
+        <div class="hint ${only != null || votesOn() ? 'lock' : ''}">${hint}</div></div>
         <div class="options">${opts.map((o, k) => `<button class="opt ${hl === k ? 'hl' : ''} ${o.locked ? 'locked' : ''}" data-opt="${k}" style="--c:${OPT[k].c};--cs:${OPT[k].cs};--cg:${OPT[k].cg}"><span class="key">${o.locked ? A.icon('lock') : `${k + 1}<small>${OPT[k].arrow}</small>`}</span><span><strong>${esc(o.title)}</strong><span class="d">${o.locked ? `닫힌 길 · ${esc(o.locked)}` : esc(o.desc)}</span></span>${present() && o.changed && !o.locked ? `<span class="ev-chip">${A.icon('dice')} 운명 카드로 달라짐</span>` : ''}${total && !o.locked ? `<span class="vote">${v[k]}명 · ${Math.round(v[k] / total * 100)}%</span><span class="vote-bar" style="width:${v[k] / total * 100}%"></span>` : ''}</button>`).join('')}</div>
         ${votesOn() && only == null ? `<button class="pill-btn vote-btn" data-act="vote">${A.icon('vote')} 투표 수 입력 <span class="kbd">V</span></button>` : ''}
         ${history.length ? `<button class="pill-btn minor" data-act="back">${A.icon('back')} 되돌리기</button>` : ''}`;
@@ -834,7 +873,7 @@
     const tb = $('#toolbar');
     tb.className = state.phase === 'title' || state.phase === 'ending' ? 'top' : '';
     tb.hidden = state.phase === 'ending';
-    const fsOk = layout !== 'phone' || !!document.documentElement.requestFullscreen;
+    const fsOk = !(layout === 'phone' && STANDALONE);
     tb.innerHTML = [...(present() ? [['notes', 'notes', '발표자 메모 (N)', ui.notes]] : []), [settings.sound ? 'sound' : 'mute', 'sound', settings.sound ? '소리 끄기 (M)' : '소리 켜기 (M)'], ['help', 'help', '조작법 (H)'], ...(fsOk ? [['expand', 'fullscreen', '전체 화면 (F)']] : [])]
       .map(([ic, act, label, on]) => `<button data-act="${act}" class="${on ? 'on' : ''}" title="${label}" aria-label="${label}">${A.icon(ic)}</button>`).join('');
   }
@@ -842,7 +881,7 @@
   // ---------- 모달 ----------
   function openModal(kind) {
     finish(); ui.modal = kind;
-    const m = $('#modal'); m.hidden = false;
+    const m = $('#modal'); m.hidden = false; updateSwipe();
     if (kind === 'help' && !present() && matchMedia('(pointer: coarse)').matches) m.innerHTML = `<div class="m-box"><h2>조작법</h2><p>손가락으로 눌러서 진행해요.</p><div class="keys touch">${[
       ['길 고르기', '아래 선택지나 문을 누르기'], ['다음으로', '‘다음’ 버튼 누르기'], ['걷는 중 빨리 감기', '화면 아무 곳이나 누르기'],
       ['한 단계 되돌리기', '‘되돌리기’ 버튼 누르기'], ['소리 켜기/끄기', '오른쪽 위 스피커 버튼']].map(([l, t]) => `<div><span>${l}</span><span>${t}</span></div>`).join('')}</div>
@@ -852,8 +891,12 @@
       ['되돌리기', 'Backspace', '←'], ...(present() ? [['투표 수 입력', 'V'], ['이 갈림길 건너뛰기', 'X'], ['발표자 메모', 'N'], ['게이지 보이기/숨기기', 'G']] : []), ['전체 화면', 'F'],
       ['처음 화면으로', 'R'], ['소리 켜기/끄기', 'M'], ['걷는 중 빨리 감기', 'Space'], ['창 닫기', 'Esc']].map(([l, ...ks]) => `<div><span>${l}</span><span>${ks.map(k => `<span class="kbd">${k}</span>`).join(' ')}</span></div>`).join('')}</div>
       <p style="margin-top:20px">갈림길 화면에서 ← →는 길을 먼저 표시하고, 같은 쪽을 한 번 더 누르면 결정해요. 다른 화면에서 ←는 되돌리기예요.</p><div class="m-actions"><button class="btn primary" data-act="close">닫기 <span class="kbd">Esc</span></button></div></div>`;
+    else if (kind === 'fullscreen') m.innerHTML = `<div class="m-box"><h2>전체 화면으로 하기</h2><p>${IOS ? '아이폰은 웹페이지가 스스로 전체 화면이 될 수 없어요. 대신 이렇게 해 보세요.' : '이 브라우저는 전체 화면을 막아 두었어요. 대신 이렇게 해 보세요.'}</p><div class="keys touch">${(IOS
+      ? [['주소창 줄이기', '화면을 위로 쓸어 올리기'], ['완전한 전체 화면', '공유 버튼 → 홈 화면에 추가 → 홈 화면의 ‘인생 갈림길’로 열기']]
+      : [['완전한 전체 화면', '브라우저 메뉴 → 홈 화면에 추가 → 홈 화면의 ‘인생 갈림길’로 열기']]).map(([l, t]) => `<div><span>${l}</span><span>${t}</span></div>`).join('')}</div>
+      <p class="m-note">홈 화면에서 열면 이름을 한 번 더 적어야 해요. 1차 때와 똑같이 적어 주세요.</p><div class="m-actions"><button class="btn primary" data-act="close">닫기</button></div></div>`;
     else if (kind === 'name') {
-      m.innerHTML = `<div class="m-box small"><h2>이름을 적어 주세요</h2><p>본인의 이름, 또는 기억할 수 있는 닉네임으로 진행해주세요.</p><form id="name-form"><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="이름 또는 닉네임" value="${esc(store.get(NAME_KEY) || '')}"><div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div></form></div>`;
+      m.innerHTML = `<div class="m-box small name-box"><h2>이름을 적어 주세요</h2><p>본인의 이름, 또는 기억할 수 있는 닉네임으로 진행해주세요.</p><form id="name-form"><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="이름 또는 닉네임" value="${esc(store.get(NAME_KEY) || '')}"><div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div></form></div>`;
       const f = $('#name-form'); f.nick.focus(); f.nick.select();
       f.addEventListener('submit', e => { e.preventDefault(); const nick = f.nick.value.trim(); if (!nick) return; store.set(NAME_KEY, nick); closeModal(); newGame(); });
     }
@@ -865,13 +908,16 @@
       f.addEventListener('submit', e => { e.preventDefault(); const a = Math.max(0, parseInt(f.v0.value, 10) || 0), b = Math.max(0, parseInt(f.v1.value, 10) || 0); closeModal(); state = E.setVotes(state, s.id, a, b); ui.highlight = a === b ? null : a > b ? 0 : 1; renderPanel(); renderGates(state); saveGame(); toast(a === b ? '동점이에요. 1 또는 2로 골라 주세요.' : `${a > b ? 1 : 2}번이 더 많아요. Space로 결정!`); });
     } else if (kind === 'confirm') m.innerHTML = `<div class="m-box small"><h2>처음 화면으로 갈까요?</h2><p>지금 진행 중인 이야기는 끝나요. (이어하기로 다시 불러올 수 있어요)</p><div class="m-actions"><button class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" data-act="restart-yes">처음으로 <span class="kbd">Enter</span></button></div></div>`;
   }
-  function closeModal() { ui.modal = null; $('#modal').hidden = true; $('#modal').innerHTML = ''; }
+  function closeModal() { ui.modal = null; $('#modal').hidden = true; $('#modal').innerHTML = ''; updateSwipe(); }
 
   // ---------- 기타 ----------
   let toastTimer;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); }
   function fullscreen() {
-    try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); } catch { toast('이 브라우저에서는 전체 화면을 쓸 수 없어요.'); }
+    const req = fsRequest(), fail = () => layout === 'phone' ? openModal('fullscreen') : toast('이 브라우저에서는 전체 화면을 쓸 수 없어요.');
+    if (fsElement()) { try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch { /* 무시 */ } return; }
+    if (!req) return fail();
+    try { Promise.resolve(req.call(document.documentElement)).then(lockLandscape, fail); } catch { fail(); }
   }
   function rewindMove(d) {
     const rows = E.summary(C, state).path.filter(p => !p.forced).map(p => p.stage.id);
@@ -955,6 +1001,8 @@
   // ---------- 시작 ----------
   function boot() {
     fit(); addEventListener('resize', fit); addEventListener('focusout', () => setTimeout(fit, 350));
+    addEventListener('scroll', () => { if (scrollY > 30 && !swipeDone) { swipeDone = true; updateSwipe(); } }, { passive: true });
+    for (const ev of ['fullscreenchange', 'webkitfullscreenchange']) document.addEventListener(ev, () => { fit(); updateSwipe(); });
     const raw = $('#game-content').textContent;
     try { C = E.validate(JSON.parse(raw)); }
     catch (err) {

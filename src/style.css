@@ -371,21 +371,21 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
    화면에서 0.46배(노트북 1920 화면의 약 절반 크기)로 보이게 한다. 여기 숫자는 모두 zoom 전 기준이다. */
 [data-layout=phone] :is(#hud, #panel, #card, #title, #ending, #toolbar, #modal, #toast) { zoom: var(--uiz); }
 [data-layout=phone] #agebadge { display: none; }
-[data-layout=phone] #timeline { left: 24px; top: 14px; width: 980px; height: 90px; padding: 0 12px; border-radius: 20px; }
-[data-layout=phone] .t-dot { width: 44px; height: 44px; font-size: 23px; }
-[data-layout=phone] .t-node::before { top: 22px; }
-[data-layout=phone] .t-node.current .t-dot { font-size: 18px; }
-[data-layout=phone] .t-age { font-size: 20px; }
-[data-layout=phone] #toolbar, [data-layout=phone] #toolbar.top { top: 14px; right: 24px; gap: 12px; }
+/* 위쪽 진행 막대는 문 이름표를 가려서 숨기고, 몇 번째 갈림길인지는 질문 창 태그에 적는다 */
+[data-layout=phone] #timeline { display: none; }
+.tag-n { display: none; }
+[data-layout=phone] .tag-n { display: inline; margin-left: 10px; padding-left: 10px; border-left: 2px solid rgba(47, 93, 74, .25); }
+[data-layout=phone] #toolbar, [data-layout=phone] #toolbar.top { top: 14px; right: max(24px, calc(var(--safe-r, 0px) + 10px)); gap: 12px; }
 [data-layout=phone] #toolbar button { width: 74px; height: 74px; font-size: 34px; opacity: .85; }
 [data-layout=phone] #caption { top: 150px; }
 
 /* 질문·결과 창: 화면 아래쪽, 높이는 내용만큼 */
-[data-layout=phone] #panel { left: 24px; right: 24px; bottom: 14px; height: auto; padding: 26px 34px 24px; gap: 32px; grid-template-columns: 1.12fr 1fr; border-radius: 30px; }
+[data-layout=phone] #panel { left: max(24px, calc(var(--safe-l, 0px) + 10px)); right: max(24px, calc(var(--safe-r, 0px) + 10px)); bottom: max(14px, var(--safe-b, 0px)); height: auto; padding: 22px 32px 20px; gap: 32px; grid-template-columns: 1.12fr 1fr; border-radius: 30px; }
 [data-layout=phone] .tag { font-size: 22px; padding: 6px 16px; }
 [data-layout=phone] .q-title { font-size: 42px; margin: 12px 0 8px; }
 [data-layout=phone] .q-context { font-size: 27px; line-height: 1.48; }
 [data-layout=phone] .hint { position: static; margin-top: 10px; font-size: 21px; }
+[data-layout=phone] .hint:not(.lock) { display: none; }
 [data-layout=phone] .options { gap: 14px; }
 [data-layout=phone] .opt { height: auto; min-height: 116px; padding: 14px 22px 14px 16px; gap: 16px; grid-template-columns: 64px 1fr; }
 [data-layout=phone] .opt .key { width: 62px; height: 62px; font-size: 31px; border-radius: 19px; }
@@ -404,7 +404,7 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 [data-layout=phone] .pill-btn.minor { height: 66px; top: -34px; font-size: 25px; }
 
 /* 출발·운명 카드, 첫 화면: 오른쪽에 */
-[data-layout=phone] #card { right: 60px; top: 122px; width: 860px; }
+[data-layout=phone] #card { right: calc(60px + var(--safe-r, 0px)); top: 122px; width: 860px; }
 [data-layout=phone] .card-inner { padding: 32px 44px 30px; border-radius: 34px; }
 [data-layout=phone] .c-label { font-size: 24px; }
 [data-layout=phone] .c-icon { width: 104px; height: 104px; right: 40px; top: 30px; font-size: 58px; border-radius: 32px; }
@@ -414,16 +414,16 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 [data-layout=phone] .c-actions { margin-top: 18px; }
 [data-layout=phone] .btn { height: 68px; font-size: 25px; }
 [data-layout=phone] .btn.primary { height: 80px; font-size: 29px; }
-[data-layout=phone] #title { right: 60px; top: 112px; width: 920px; padding: 38px 50px 36px; border-radius: 38px; }
+[data-layout=phone] #title { right: calc(60px + var(--safe-r, 0px)); top: 108px; width: 920px; padding: 30px 50px 28px; border-radius: 38px; }
 [data-layout=phone] .t-sub { font-size: 25px; }
-[data-layout=phone] .t-title { font-size: 116px; margin: 6px 0 10px; }
+[data-layout=phone] .t-title { font-size: 104px; margin: 4px 0 8px; }
 [data-layout=phone] .t-tag { font-size: 27px; }
-[data-layout=phone] .t-rules { margin: 20px 0 26px; gap: 10px; }
+[data-layout=phone] .t-rules { margin: 16px 0 20px; gap: 8px; }
 [data-layout=phone] .t-rules li { font-size: 25px; }
 [data-layout=phone] .t-rules li i { width: 46px; height: 46px; font-size: 25px; }
 
 /* 엔딩: 오른쪽 창. 원 그래프가 있으면 두 단 */
-[data-layout=phone] #ending { right: 30px; top: 16px; bottom: 16px; width: 1010px; padding: 32px 44px 24px; border-radius: 36px; }
+[data-layout=phone] #ending { right: max(30px, calc(var(--safe-r, 0px) + 10px)); top: 16px; bottom: max(16px, var(--safe-b, 0px)); width: 1010px; padding: 32px 44px 24px; border-radius: 36px; }
 [data-layout=phone] .e-kicker { font-size: 22px; word-break: keep-all; }
 [data-layout=phone] .e-persona { font-size: 23px; margin-top: 12px; padding: 6px 18px; }
 [data-layout=phone] .e-title { font-size: 62px; margin: 10px 0 12px; }
@@ -452,6 +452,16 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 [data-layout=phone] .m-box > p { font-size: 24px; }
 [data-layout=phone] .name-input { height: 84px; font-size: 36px; }
 [data-layout=phone] #toast { font-size: 26px; }
+/* 이름 창: 가로 화면에서 키보드가 올라오면 위쪽 한 줄만 보인다. 입력칸과 버튼을 맨 위 한 줄에 둔다. */
+[data-layout=phone] #modal:has(.name-box) { padding-top: 0; }
+[data-layout=phone] .name-box { width: 1120px; display: flex; flex-direction: column; padding: 12px 24px 18px; border-radius: 0 0 30px 30px; }
+[data-layout=phone] .name-box h2 { display: none; }
+[data-layout=phone] .name-box form { order: -1; display: flex; align-items: center; gap: 14px; }
+[data-layout=phone] .name-box .name-input { margin: 0; flex: 1; min-width: 0; height: 78px; }
+[data-layout=phone] .name-box .m-actions { margin: 0; flex: none; }
+[data-layout=phone] .name-box .m-actions .btn { height: 78px; }
+[data-layout=phone] .name-box > p { margin: 12px 6px 0; font-size: 22px; }
+.m-note { margin: 16px 0 0; font-size: 20px; color: var(--muted); }
 .keys.touch { grid-template-columns: 1fr; font-size: 24px; }
 
 /* 폰을 세로로 들었을 때 */
@@ -464,3 +474,16 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 .turn-phone i { width: 40px; height: 70px; border: 4px solid #f6e7c1; border-radius: 10px; position: relative; animation: turn 2.4s ease-in-out infinite; }
 .turn-phone i::after { content: ''; position: absolute; left: 50%; bottom: 5px; width: 10px; height: 3px; margin-left: -5px; border-radius: 2px; background: #f6e7c1; }
 @keyframes turn { 0%, 20% { transform: rotate(0); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+
+/* 아이폰: 문서를 조금 스크롤되게 해 두면 위로 쓸어 올릴 때 Safari가 주소창을 줄인다. 게임 화면(#viewport)은 고정이라 움직이지 않는다. */
+html.scrollfs { height: auto; overflow-x: hidden; overflow-y: auto; }
+html.scrollfs body { height: calc(100vh + 160px); overflow: visible; }
+#swipe { position: fixed; z-index: 35; top: calc(env(safe-area-inset-top) + 10px); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 10px; border-radius: 999px; background: rgba(22, 32, 28, .86); color: #f6e7c1; font-size: 13px; font-weight: 700; white-space: nowrap; pointer-events: none; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+#swipe i { width: 18px; height: 18px; position: relative; animation: swipe 1.6s ease-in-out infinite; }
+#swipe i::before { content: ''; position: absolute; left: 4px; top: 2px; width: 8px; height: 8px; border-left: 2.5px solid currentColor; border-top: 2.5px solid currentColor; transform: rotate(45deg); }
+#swipe i::after { content: ''; position: absolute; left: 7.5px; top: 4px; width: 2.5px; height: 12px; background: currentColor; border-radius: 2px; }
+@keyframes swipe { 0%, 100% { transform: translateY(3px); opacity: .6; } 50% { transform: translateY(-3px); opacity: 1; } }
+/* 전체 화면 버튼 안내: 화살표가 오른쪽 위(버튼 쪽)를 가리키고, 버튼이 반짝인다 */
+#swipe[data-mode=fs] i { rotate: 45deg; }
+[data-hint=fs] #toolbar [data-act=fullscreen] { opacity: 1; background: var(--gold); color: #3d2c06; animation: fs-pulse 1.4s ease-in-out infinite; }
+@keyframes fs-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(226, 172, 58, .55); } 50% { box-shadow: 0 0 0 16px rgba(226, 172, 58, 0); } }
