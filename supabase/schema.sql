@@ -205,7 +205,8 @@ as $$
 declare r text := admin_check(pin); n int;
 begin
   if r <> 'ok' then return json_build_object('ok', false, 'error', r); end if;
-  with moved as (delete from plays returning run_id, nickname, ending, gauges, picks, created_at)
+  -- Supabase blocks DELETE without a WHERE clause on API calls (pg-safeupdate). Clearing every row is the point here.
+  with moved as (delete from plays where true returning run_id, nickname, ending, gauges, picks, created_at)
   insert into plays_archive (run_id, nickname, ending, gauges, picks, created_at)
   select run_id, nickname, ending, gauges, picks, created_at from moved;
   get diagnostics n = row_count;
