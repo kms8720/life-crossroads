@@ -120,7 +120,7 @@ body.clean #nav, body.clean #hands { display: none !important; }
 </head>
 <body>
 <div id="stage"><h1 id="title"></h1><p id="sub"></p><main id="view"></main></div>
-<div id="hands" hidden><b>12번 슬라이드 손들기</b><br><label>외적이 더 크다 <input id="h-ext" type="number" min="0"></label><label>내적이 더 크다 <input id="h-int" type="number" min="0"></label></div>
+<div id="hands" hidden><b>13번 슬라이드 손들기</b><br><label>외적이 더 크다 <input id="h-ext" type="number" min="0"></label><label>내적이 더 크다 <input id="h-int" type="number" min="0"></label></div>
 <nav id="nav"></nav>
 <div id="table" hidden></div>
 <!--__CONFIG__-->
@@ -253,10 +253,10 @@ body.clean #nav, body.clean #hands { display: none !important; }
   }
 
   const VIEWS = [
-    { slide: 13, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare },
-    { slide: 14, title: '게임의 게이지 그래프', sub: '나이대에 따른 변화 그래프', draw: viewAge },
-    { slide: 25, title: '결과 그래프', sub: '토론 전/후 엔딩의 차이', draw: viewEndings },
-    { slide: 26, title: '결과 그래프', sub: '토론 전/후 내적/외적 목표 비율 변화', draw: viewShift },
+    { slide: 14, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare },
+    { slide: 15, title: '게임의 게이지 그래프', sub: '나이대에 따른 내적/외적 목표 변화 그래프', draw: viewAge },
+    { slide: 26, title: '결과 그래프', sub: '토론 전/후 엔딩의 차이', draw: viewEndings },
+    { slide: 27, title: '결과 그래프', sub: '토론 전/후 내적/외적 목표 비율 변화', draw: viewShift },
   ];
   let cur = Math.max(0, VIEWS.findIndex(v => location.hash.includes(String(v.slide)))), last = null, status = '';
 
