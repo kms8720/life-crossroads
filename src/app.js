@@ -815,7 +815,7 @@
       ['처음 화면으로', 'R'], ['소리 켜기/끄기', 'M'], ['걷는 중 빨리 감기', 'Space'], ['창 닫기', 'Esc']].map(([l, ...ks]) => `<div><span>${l}</span><span>${ks.map(k => `<span class="kbd">${k}</span>`).join(' ')}</span></div>`).join('')}</div>
       <p style="margin-top:20px">갈림길 화면에서 ← →는 길을 먼저 표시하고, 같은 쪽을 한 번 더 누르면 결정해요. 다른 화면에서 ←는 되돌리기예요.</p><div class="m-actions"><button class="btn primary" data-act="close">닫기 <span class="kbd">Esc</span></button></div></div>`;
     else if (kind === 'name') {
-      m.innerHTML = `<div class="m-box small"><h2>이름을 적어 주세요</h2><p>두 번 플레이할 때 같은 이름을 쓰면 엔딩이 어떻게 달라졌는지 비교할 수 있어요. 발표 화면에 이름은 나오지 않아요.</p><form id="name-form"><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="이름 또는 닉네임" value="${esc(store.get(NAME_KEY) || '')}"><div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div></form></div>`;
+      m.innerHTML = `<div class="m-box small"><h2>이름을 적어 주세요</h2><p>본인의 이름, 또는 기억할 수 있는 닉네임으로 진행해주세요.</p><form id="name-form"><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="이름 또는 닉네임" value="${esc(store.get(NAME_KEY) || '')}"><div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div></form></div>`;
       const f = $('#name-form'); f.nick.focus(); f.nick.select();
       f.addEventListener('submit', e => { e.preventDefault(); const nick = f.nick.value.trim(); if (!nick) return; store.set(NAME_KEY, nick); closeModal(); newGame(); });
     }
