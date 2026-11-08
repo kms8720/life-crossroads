@@ -3,45 +3,125 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>두 번의 삶 — 인생 갈림길</title>
+<title>결과 그래프 — 인생 갈림길</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f5d4a'/%3E%3Cpath d='M32 54V34M32 34 18 16M32 34l14-18' stroke='%23f6e7c1' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@300;400;500;700;800&display=block" rel="stylesheet">
 <style>
-/*__FONTS__*/
-:root { --ink: #1f2d27; --ink-2: #44544b; --muted: #77847b; --paper: #fffaf0; --line: #e2dac8; --track: #efe8d8; --green: #2f5d4a; --changed: #6f5bd6; --same: #d9d2c2; color-scheme: light; }
+/* 발표 PPT(행조 4조 발표 ppt)와 같은 배경·글꼴·색. 외적·내적 색은 PPT 9번 표의 계열에서 색각 검사를 통과하도록 고른 값. */
+:root {
+  --bg: #FFFBF2; --card: #FDFAF1; --title: #000; --sub: #595959; --ink: #23313A; --ink-2: #4E5357; --muted: #8C8F8E; --line: #E6E0D4; --track: #EBE7DE;
+  --ext: #D46A45; --int: #00897B; --ext-ink: #824E3C; --int-ink: #315C50; --ext-soft: #FAEDE7; --int-soft: #E9F2EF;
+  --first: #C8A182; --second: #6D4C41; --same: #B9B0A3;
+  --sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; --display: 'Jua', 'Noto Sans KR', sans-serif;
+  color-scheme: light;
+}
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #16201c; overflow: hidden; }
-body { font-family: 'PretendardLG', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
-#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--paper); padding: 64px 84px 48px; display: flex; flex-direction: column; }
-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; }
-h1 { margin: 0; font-family: 'YacheLG', 'PretendardLG', sans-serif; font-size: 76px; font-weight: 400; line-height: 1.1; color: var(--green); }
-#count { font-size: 24px; font-weight: 700; color: var(--muted); white-space: nowrap; padding-bottom: 10px; }
-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 560px 1fr; gap: 64px; align-items: center; }
-h2 { margin: 0 0 26px; font-size: 32px; font-weight: 800; }
-.changed-box { text-align: center; }
-.changed-box svg { display: block; width: 420px; height: 420px; margin: 0 auto 26px; }
-.legend { display: flex; justify-content: center; gap: 32px; font-size: 26px; font-weight: 700; color: var(--ink-2); }
-.legend i { display: inline-block; width: 22px; height: 22px; border-radius: 7px; margin-right: 10px; vertical-align: -3px; }
-.endings { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
-.ending { text-align: center; }
-.ending svg { display: block; width: 100%; aspect-ratio: 1; }
-.ending b { display: block; margin-top: 14px; min-height: 92px; font-size: 25px; line-height: 1.3; font-weight: 800; word-break: keep-all; }
-.ending span { display: inline-block; margin-top: 4px; padding: 6px 16px; border-radius: 999px; background: var(--track); font-size: 22px; font-weight: 800; color: var(--ink-2); }
-.key { display: flex; gap: 36px; margin-top: 30px; justify-content: center; font-size: 22px; font-weight: 700; color: var(--ink-2); }
-.key i { display: inline-block; width: 44px; height: 12px; border-radius: 6px; background: var(--ink-2); margin-right: 10px; vertical-align: 2px; }
-.key i.first { opacity: .32; }
-details { font-size: 20px; color: var(--ink-2); }
-summary { cursor: pointer; font-weight: 700; }
-table { margin-top: 10px; border-collapse: collapse; }
-th, td { padding: 4px 22px 4px 0; text-align: left; font-weight: 600; }
-#empty { grid-column: 1 / -1; text-align: center; font-size: 38px; font-weight: 700; color: var(--ink-2); }
+body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--bg); overflow: hidden; }
+#title { position: absolute; left: 83px; top: 122px; margin: 0; font-family: var(--display); font-weight: 400; font-size: 68px; line-height: 1; color: var(--title); letter-spacing: -.5px; }
+#sub { position: absolute; left: 85px; top: 265px; margin: 0; font-weight: 300; font-size: 44px; line-height: 1; color: var(--sub); letter-spacing: 5.5px; }
+#view { position: absolute; left: 86px; right: 86px; top: 380px; bottom: 60px; }
+.empty { height: 100%; display: grid; place-items: center; text-align: center; font-size: 34px; font-weight: 500; color: var(--ink-2); line-height: 1.6; }
+.empty small { display: block; font-size: 24px; color: var(--muted); font-weight: 400; }
+
+/* 범례 */
+.legend { display: flex; gap: 36px; align-items: center; font-size: 26px; font-weight: 700; color: var(--ink-2); }
+.legend i { display: inline-block; width: 26px; height: 26px; border-radius: 7px; margin-right: 10px; vertical-align: -4px; }
+.legend i.light { box-shadow: inset 0 0 0 2px #CFC6B8; }
+.legend small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+.foot { position: absolute; left: 0; bottom: 0; font-size: 22px; color: var(--muted); }
+
+/* 100% 누적 가로 막대 */
+.hrows { display: flex; flex-direction: column; gap: 46px; margin-top: 56px; }
+.hrow { display: grid; grid-template-columns: 330px 1fr; align-items: center; gap: 30px; }
+.hrow .who b { display: block; font-family: var(--display); font-weight: 400; font-size: 40px; color: var(--ink); }
+.hrow .who span { display: block; margin-top: 6px; font-size: 23px; color: var(--muted); }
+.stack { display: flex; gap: 4px; height: var(--h, 150px); }
+.seg { position: relative; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; padding: 0 28px; color: #fff; min-width: 0; overflow: visible; }
+.seg.ext { background: var(--ext); } .seg.int { background: var(--int); align-items: flex-end; text-align: right; }
+.seg b { font-family: var(--display); font-weight: 400; font-size: 52px; line-height: 1.05; white-space: nowrap; }
+.seg span { font-size: 22px; font-weight: 500; opacity: .95; white-space: nowrap; }
+.seg.narrow b, .seg.narrow span { position: absolute; top: 100%; margin-top: 8px; color: var(--ink); font-size: 26px; }
+.seg.narrow span { display: none; }
+
+/* 나이대 */
+.age { display: grid; grid-template-columns: 1fr 470px; gap: 60px; height: 100%; }
+.cols { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 70px; align-items: end; height: 100%; padding-bottom: 96px; }
+.col { position: relative; display: flex; flex-direction: column; gap: 4px; height: 100%; justify-content: flex-end; }
+.col .vseg { border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; min-height: 0; }
+.col .vseg.ext { background: var(--ext); } .col .vseg.int { background: var(--int); }
+.col .vseg b { font-family: var(--display); font-weight: 400; font-size: 46px; line-height: 1.1; }
+.col .vseg span { font-size: 21px; font-weight: 500; }
+.col .vseg.thin b { font-size: 30px; } .col .vseg.thin span { display: none; }
+.col .cap { position: absolute; left: 0; right: 0; bottom: -92px; text-align: center; }
+.col .cap b { display: block; font-family: var(--display); font-weight: 400; font-size: 36px; }
+.col .cap span { font-size: 22px; color: var(--muted); }
+.trend { position: absolute; inset: 0 0 96px 0; pointer-events: none; overflow: visible; }
+.callout { align-self: center; background: var(--ext-soft); border-radius: 26px; padding: 44px 46px; }
+.callout p { margin: 0; font-size: 28px; font-weight: 700; color: var(--ext-ink); line-height: 1.4; }
+.callout .big { font-family: var(--display); font-size: 120px; line-height: 1.1; color: var(--ink); margin: 14px 0 6px; }
+.callout .big small { font-size: 52px; margin-left: 4px; }
+.callout span { font-size: 23px; color: var(--muted); }
+
+/* 엔딩 */
+.two { display: grid; grid-template-columns: 560px 1fr; gap: 70px; height: 100%; }
+.ring { text-align: center; }
+.ring svg { display: block; width: 420px; height: 420px; margin: 0 auto; }
+.ring .center-big { font-family: var(--display); font-size: 96px; fill: var(--ink); }
+.ring .center-small { font-size: 26px; font-weight: 700; fill: var(--ink-2); }
+.ring .center-count { font-size: 23px; fill: var(--muted); }
+.ring .legend { justify-content: center; margin-top: 26px; font-size: 24px; }
+.bars { position: relative; display: flex; flex-direction: column; height: 100%; }
+.bars .legend { justify-content: flex-end; }
+.groups { flex: 1; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 34px; align-items: end; border-bottom: 3px solid var(--line); margin-top: 24px; }
+.group { display: flex; gap: 6px; align-items: flex-end; justify-content: center; height: 100%; }
+.vbar { width: 62px; border-radius: 10px 10px 0 0; position: relative; min-height: 4px; }
+.vbar.first { background: var(--first); } .vbar.second { background: var(--second); }
+.vbar em { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: 6px; font-style: normal; font-family: var(--display); font-size: 32px; color: var(--ink); }
+.xlabels { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 34px; margin-top: 14px; }
+.xlabels div { text-align: center; font-size: 26px; font-weight: 700; color: var(--ink); }
+.xlabels i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: 3px; }
+.note { margin-top: 26px; font-size: 26px; color: var(--ink-2); }
+.note b { color: var(--ink); }
+
+/* 이동 */
+.shift .hrows { margin-top: 40px; gap: 34px; }
+.shift .hrow { grid-template-columns: 110px 1fr; }
+.shift .stack { --h: 120px; }
+.shift .seg b { font-size: 44px; }
+.delta { display: inline-block; margin: 26px 0 0 140px; padding: 10px 24px; border-radius: 999px; background: var(--int-soft); color: var(--int-ink); font-size: 26px; font-weight: 700; }
+.delta.ext { background: var(--ext-soft); color: var(--ext-ink); }
+.movers { display: flex; flex-direction: column; gap: 26px; margin-top: 40px; }
+.mover { display: grid; grid-template-columns: 250px 1fr; align-items: center; gap: 20px; }
+.mover > b { font-size: 27px; font-weight: 700; color: var(--ink); }
+.mover .hb { display: flex; align-items: center; gap: 16px; }
+.mover .hb i { height: 70px; border-radius: 0 12px 12px 0; min-width: 6px; }
+.mover .hb em { font-style: normal; font-family: var(--display); font-size: 40px; color: var(--ink); white-space: nowrap; }
+.mover .hb em small { font-family: var(--sans); font-size: 22px; color: var(--muted); margin-left: 8px; }
+.h3 { margin: 0; font-size: 28px; font-weight: 700; color: var(--ink-2); }
+
+/* 조작 (H로 숨김) */
+#nav { position: fixed; right: 18px; bottom: 16px; display: flex; gap: 8px; align-items: center; z-index: 5; transition: opacity .3s; font-family: var(--sans); }
+#nav button { border: none; border-radius: 999px; padding: 9px 16px; background: rgba(255, 251, 242, .95); color: #333; font: 600 15px var(--sans); cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+#nav button.on { background: #4E342E; color: #fff; }
+#nav .state { color: #ddd; font-size: 13px; margin-right: 6px; }
+body.clean #nav, body.clean #hands { opacity: 0; pointer-events: none; }
+#hands { position: fixed; right: 18px; bottom: 70px; z-index: 5; background: #fffbf2; border-radius: 14px; padding: 14px 18px; box-shadow: 0 6px 22px rgba(0, 0, 0, .3); font: 500 15px var(--sans); color: #333; }
+#hands label { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
+#hands input { width: 64px; font: 600 18px var(--sans); padding: 4px 6px; border: 1px solid #ccc; border-radius: 6px; }
+#table { position: fixed; inset: 40px; z-index: 6; background: #fffbf2; border-radius: 16px; padding: 24px 30px; overflow: auto; font: 16px var(--sans); box-shadow: 0 10px 40px rgba(0, 0, 0, .4); }
+#table table { border-collapse: collapse; margin: 8px 0 22px; }
+#table th, #table td { border-bottom: 1px solid #e4dccb; padding: 6px 18px 6px 0; text-align: left; }
 </style>
 </head>
 <body>
-<div id="stage">
-  <header><h1>두 번의 삶, 무엇이 달라졌을까?</h1><div id="count"></div></header>
-  <main id="view"></main>
-  <details id="table" hidden><summary>표로 보기</summary><div id="table-body"></div></details>
-</div>
+<div id="stage"><h1 id="title"></h1><p id="sub"></p><main id="view"></main></div>
+<div id="hands" hidden><b>12번 슬라이드 손들기</b><br><label>외적이 더 크다 <input id="h-ext" type="number" min="0"></label><label>내적이 더 크다 <input id="h-int" type="number" min="0"></label></div>
+<nav id="nav"></nav>
+<div id="table" hidden></div>
 <!--__CONFIG__-->
 <script type="application/json" id="game-data">/*__DATA__*/</script>
 <script>
@@ -50,52 +130,186 @@ th, td { padding: 4px 22px 4px 0; text-align: left; font-weight: 600; }
   const $ = s => document.querySelector(s);
   const CONFIG = JSON.parse($('#game-config').textContent), DATA = JSON.parse($('#game-data').textContent);
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 저장 불가 */ } } };
+  const DEMO = /demo/.test(location.search + location.hash);
+
   function fit() {
     const s = Math.min(innerWidth / 1920, innerHeight / 1080), st = $('#stage');
-    st.style.transform = `scale(${s})`;
-    st.style.left = `${(innerWidth - 1920 * s) / 2}px`;
-    st.style.top = `${(innerHeight - 1080 * s) / 2}px`;
+    st.style.transform = `scale(${s})`; st.style.left = `${(innerWidth - 1920 * s) / 2}px`; st.style.top = `${(innerHeight - 1080 * s) / 2}px`;
   }
   addEventListener('resize', fit); fit();
 
-  const arc = (r, pct, color, width, extra = '') => pct > 0 ? `<circle r="${r}" pathLength="100" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="${pct < 100 ? 'round' : 'butt'}" stroke-dasharray="${pct.toFixed(2)} ${(100 - pct).toFixed(2)}" transform="rotate(-90)" ${extra}/>` : '';
-  const share = (n, total) => total ? n / total * 100 : 0;
+  // ---------- 질문 분류 (content.json의 게이지 family에서 build가 계산) ----------
+  const PERIODS = [{ key: 'young', name: '청년기', range: '10·20대', max: 30 }, { key: 'middle', name: '중년기', range: '30·40대', max: 50 }, { key: 'old', name: '노년기', range: '50대 이상', max: 200 }];
+  // 미리보기: 게이지가 아직 내적·외적으로 나뉘지 않았을 때도 디자인을 볼 수 있게 가상 구성을 쓴다.
+  const DEMO_STAGES = [15, 21, 26, 33, 37, 43, 47, 54, 62, 75].map((age, k) => ({ id: `s${k}`, age, goals: k % 3 === 1 ? ['intrinsic', 'extrinsic'] : ['extrinsic', 'intrinsic'] }));
+  const DEMO_ENDINGS = [['money', '돈', 'extrinsic'], ['fame', '인정', 'extrinsic'], ['bond', '관계', 'intrinsic'], ['health', '건강', 'intrinsic'], ['balance', '균형', null]].map(([key, label, family]) => ({ key, label, family }));
+  const ready = DATA.stages.some(s => s.goals.some(Boolean));
+  const STAGES = DEMO && !ready ? DEMO_STAGES : DATA.stages, ENDINGS = DEMO && !ready ? DEMO_ENDINGS : DATA.endings;
+  const goalOf = Object.fromEntries(STAGES.map(s => [s.id, s.goals]));
+  const periodOf = Object.fromEntries(STAGES.map(s => [s.id, PERIODS.find(p => s.age < p.max).key]));
+  const famLabels = f => DATA.dims.filter(d => d.family === f).map(d => d.label).join(' · ') || (f === 'extrinsic' ? '돈 · 인정' : '관계 · 건강');
 
-  function render(r) {
-    const pairs = r.pairs || 0;
-    $('#count').textContent = `두 번 플레이한 사람 ${pairs}명`;
-    if (!pairs) { $('#view').innerHTML = `<div id="empty">두 번째 플레이가 끝나면 여기에 나타나요.</div>`; $('#table').hidden = true; return; }
-    const changed = r.changed || 0, same = pairs - changed;
-    const donut = `<svg viewBox="-110 -110 220 220" role="img" aria-label="엔딩이 바뀐 사람과 그대로인 사람의 비율">
-      <circle r="84" fill="none" stroke="var(--same)" stroke-width="36"><title>엔딩이 그대로인 사람</title></circle>
-      ${arc(84, share(changed, pairs), 'var(--changed)', 36).replace('/>', '><title>엔딩이 바뀐 사람</title></circle>')}</svg>`;
-    const rings = DATA.endings.map(e => {
-      const a = r.before?.[e.key] || 0, b = r.after?.[e.key] || 0, pa = share(a, pairs), pb = share(b, pairs);
-      const word = b > a ? '▲ 늘었어요' : b < a ? '▼ 줄었어요' : '그대로예요';
-      return `<div class="ending"><svg viewBox="-100 -100 200 200" role="img" aria-label="${esc(e.name)}: 1회차와 2회차 비교, ${word}">
-        <circle r="84" fill="none" stroke="var(--track)" stroke-width="20"/>${arc(84, pa, e.color, 20, 'opacity=".32"')}
-        <circle r="54" fill="none" stroke="var(--track)" stroke-width="20"/>${arc(54, pb, e.color, 20)}<title>${esc(e.name)}: ${word}</title></svg>
-        <b>${esc(e.name)}</b><span>${word}</span></div>`;
-    }).join('');
-    $('#view').innerHTML = `<section class="changed-box"><h2>엔딩이 달라진 사람</h2>${donut}
-        <div class="legend"><span><i style="background:var(--changed)"></i>바뀌었어요</span><span><i style="background:var(--same)"></i>그대로예요</span></div></section>
-      <section><h2>엔딩별로 보면</h2><div class="endings">${rings}</div>
-        <div class="key"><span><i class="first"></i>바깥 연한 원: 1회차</span><span><i></i>안쪽 진한 원: 2회차</span></div></section>`;
-    $('#table').hidden = false;
-    $('#table-body').innerHTML = `<table><tr><th>엔딩</th><th>1회차</th><th>2회차</th></tr>${DATA.endings.map(e => `<tr><td>${esc(e.name)}</td><td>${r.before?.[e.key] || 0}명</td><td>${r.after?.[e.key] || 0}명</td></tr>`).join('')}</table>`;
+  function demoPlays() {
+    let a = 20261112;
+    const r = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const play = (lean, old) => {
+      const picks = STAGES.map(s => { const p = lean + (periodOf[s.id] === 'old' ? old : 0), wantInt = r() < p; return { stage: s.id, opt: s.goals[0] === (wantInt ? 'intrinsic' : 'extrinsic') ? 0 : 1 }; });
+      const ints = picks.filter(p => goalOf[p.stage][p.opt] === 'intrinsic').length, fam = ints > 5 ? 'intrinsic' : ints < 5 ? 'extrinsic' : null;
+      const pool = ENDINGS.filter(e => e.family === fam);
+      return { ending: (pool.length ? pool[Math.floor(r() * pool.length)] : ENDINGS.at(-1)).key, picks };
+    };
+    return Array.from({ length: 38 }, (_, i) => { const lean = .3 + r() * .35; return { first: play(lean, .1), last: i < 34 ? play(lean + .13 * r(), .12) : null }; });
   }
 
+  // ---------- 집계 ----------
+  function goalCount(play, period) {
+    const c = { intrinsic: 0, extrinsic: 0 };
+    for (const p of play.picks || []) { const g = goalOf[p.stage]?.[p.opt]; if (g && (!period || periodOf[p.stage] === period)) c[g]++; }
+    return c;
+  }
+  const sum = (plays, period) => plays.reduce((t, pl) => { const c = goalCount(pl, period); t.intrinsic += c.intrinsic; t.extrinsic += c.extrinsic; return t; }, { intrinsic: 0, extrinsic: 0 });
+  function stats(people) {
+    const first = people.map(p => p.first), pairs = people.filter(p => p.last);
+    const by = (list, key) => Object.fromEntries(ENDINGS.map(e => [e.key, list.filter(x => x[key].ending === e.key).length]));
+    const moves = {}; for (const p of pairs) if (p.first.ending !== p.last.ending) { const k = `${p.first.ending}>${p.last.ending}`; moves[k] = (moves[k] || 0) + 1; }
+    const top = Object.entries(moves).sort((a, b) => b[1] - a[1])[0];
+    const shift = { toInt: 0, same: 0, toExt: 0 };
+    for (const p of pairs) { const d = goalCount(p.last).intrinsic - goalCount(p.first).intrinsic; shift[d > 0 ? 'toInt' : d < 0 ? 'toExt' : 'same']++; }
+    return {
+      people: people.length, pairs: pairs.length, first: sum(first), second: sum(pairs.map(p => p.last)), firstOfPairs: sum(pairs.map(p => p.first)),
+      periods: PERIODS.map(p => ({ ...p, ...sum(first, p.key) })),
+      oldExt: first.filter(pl => goalCount(pl, 'old').extrinsic > 0).length,
+      changed: pairs.filter(p => p.first.ending !== p.last.ending).length,
+      before: by(pairs, 'first'), after: by(pairs, 'last'), top: top && { from: top[0].split('>')[0], to: top[0].split('>')[1], n: top[1] }, shift,
+    };
+  }
+
+  // ---------- 그리기 ----------
+  const endingLabel = k => ENDINGS.find(e => e.key === k)?.label || k;
+  const legendGoals = () => `<div class="legend"><span><i style="background:var(--ext)"></i>외적 목표<small>${esc(famLabels('extrinsic'))}</small></span><span><i style="background:var(--int)"></i>내적 목표<small>${esc(famLabels('intrinsic'))}</small></span></div>`;
+  function stack(ext, int, unit) {
+    const t = ext + int, pe = pct(ext, t), pi = 100 - pe;
+    const seg = (cls, p, n, name) => `<div class="seg ${cls} ${p < 14 ? 'narrow' : ''}" style="flex:${Math.max(p, .001)}" title="${name} ${p}% (${n}${unit})"><b>${name} ${p}%</b><span>${n}${unit}</span></div>`;
+    return `<div class="stack">${seg('ext', pe, ext, '외적')}${seg('int', pi, int, '내적')}</div>`;
+  }
+  const empty = (msg, sub = '') => `<div class="empty"><div>${msg}${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+
+  function viewShare(s) {
+    if (!s.people) return empty('1차 플레이가 끝나면 여기에 나타나요.');
+    const hands = store.get('results.hands') || {}, he = +hands.ext || 0, hi = +hands.int || 0, rows = [];
+    if (he + hi) rows.push(`<div class="hrow"><div class="who"><b>손들기로 본 우리 반</b><span>스스로 생각한 비중 · ${he + hi}명</span></div>${stack(he, hi, '명')}</div>`);
+    rows.push(`<div class="hrow"><div class="who"><b>게임 속 선택</b><span>1차 플레이 ${s.people}명 · 선택 ${s.first.intrinsic + s.first.extrinsic}개</span></div>${stack(s.first.extrinsic, s.first.intrinsic, '개')}</div>`);
+    return `${legendGoals()}<div class="hrows" style="--h:${rows.length > 1 ? 130 : 170}px">${rows.join('')}</div><div class="foot">1차 플레이에서 고른 모든 선택을 외적·내적 목표로 나눠 센 비율입니다.</div>`;
+  }
+
+  function viewAge(s) {
+    if (!s.people) return empty('1차 플레이가 끝나면 여기에 나타나요.');
+    const cols = s.periods.map(p => {
+      const t = p.intrinsic + p.extrinsic, pe = pct(p.extrinsic, t), pi = 100 - pe;
+      const v = (cls, q, n, name) => `<div class="vseg ${cls} ${q < 12 ? 'thin' : ''}" style="flex:${Math.max(q, .001)}" title="${p.name} ${name} ${q}% (${n}개)"><b>${name} ${q}%</b><span>${n}개</span></div>`;
+      return `<div class="col">${t ? v('int', pi, p.intrinsic, '내적') + v('ext', pe, p.extrinsic, '외적') : ''}<div class="cap"><b>${p.name}</b><span>${p.range} · 선택 ${t}개</span></div></div>`;
+    }).join('');
+    const hasOld = STAGES.some(st => periodOf[st.id] === 'old' && st.goals.includes('extrinsic'));
+    return `<div class="age"><div style="display:flex;flex-direction:column;height:100%">${legendGoals()}<div class="cols" style="margin-top:40px;flex:1">${cols}<svg class="trend"></svg></div></div>
+      ${hasOld ? `<div class="callout"><p>노년기에도<br>외적 목표를 고른 사람</p><div class="big">${s.oldExt}<small>명</small></div><span>1차 플레이 ${s.people}명 중</span></div>` : '<div></div>'}</div>`;
+  }
+  // 외적 막대의 꼭대기를 점선으로 이어 나이대 흐름을 보여 준다.
+  function drawTrend() {
+    const svg = $('.trend'); if (!svg) return;
+    const box = svg.getBoundingClientRect(), k = 1920 / $('#stage').getBoundingClientRect().width;
+    const pts = [...document.querySelectorAll('.col')].map(c => { const e = c.querySelector('.vseg.ext'); if (!e) return null; const r = e.getBoundingClientRect(); return [(r.left + r.width / 2 - box.left) * k, (r.top - box.top) * k]; }).filter(Boolean);
+    svg.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--ext-ink)" stroke-width="3" stroke-dasharray="10 10" opacity=".6"/>${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="var(--bg)" stroke="var(--ext-ink)" stroke-width="3"/>`).join('')}` : '';
+  }
+
+  function viewEndings(s) {
+    if (!s.pairs) return empty('2차 플레이가 끝나면 여기에 나타나요.', s.people ? `지금까지 1차 플레이 ${s.people}명` : '');
+    const p = pct(s.changed, s.pairs), R = 160, C = 2 * Math.PI * R;
+    const ring = `<svg viewBox="-210 -210 420 420" role="img" aria-label="엔딩이 바뀐 사람 ${s.changed}명, 그대로인 사람 ${s.pairs - s.changed}명">
+      <circle r="${R}" fill="none" stroke="var(--track)" stroke-width="58"><title>그대로예요 ${s.pairs - s.changed}명</title></circle>
+      ${s.changed ? `<circle r="${R}" fill="none" stroke="var(--second)" stroke-width="58" stroke-dasharray="${(C * p / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90)"><title>바뀌었어요 ${s.changed}명</title></circle>` : ''}
+      <text class="center-small" text-anchor="middle" y="-62">엔딩이 바뀐 사람</text><text class="center-big" text-anchor="middle" y="34">${p}%</text><text class="center-count" text-anchor="middle" y="78">${s.pairs}명 중 ${s.changed}명</text></svg>`;
+    const max = Math.max(1, ...ENDINGS.map(e => Math.max(s.before[e.key], s.after[e.key])));
+    const bar = (cls, n, name, e) => `<div class="vbar ${cls}" style="height:${n / max * 82}%" title="${esc(e.label)} ${name} ${n}명"><em>${n}</em></div>`;
+    const dot = f => f ? `<i style="background:var(--${f === 'extrinsic' ? 'ext' : 'int'})"></i>` : '<i style="background:var(--same)"></i>';
+    return `<div class="two"><div class="ring">${ring}<div class="legend"><span><i style="background:var(--second)"></i>바뀌었어요 ${s.changed}명</span><span><i class="light" style="background:var(--track)"></i>그대로예요 ${s.pairs - s.changed}명</span></div></div>
+      <div class="bars"><div class="legend"><span><i style="background:var(--first)"></i>1차</span><span><i style="background:var(--second)"></i>2차</span></div>
+        <div class="groups" style="--n:${ENDINGS.length}">${ENDINGS.map(e => `<div class="group">${bar('first', s.before[e.key], '1차', e)}${bar('second', s.after[e.key], '2차', e)}</div>`).join('')}</div>
+        <div class="xlabels" style="--n:${ENDINGS.length}">${ENDINGS.map(e => `<div>${dot(e.family)}${esc(e.label)}</div>`).join('')}</div>
+        <div class="note">${s.top ? `가장 많이 옮겨 간 길: <b>${esc(endingLabel(s.top.from))} → ${esc(endingLabel(s.top.to))}</b> (${s.top.n}명)` : '엔딩이 바뀐 사람이 아직 없어요.'}</div></div></div>`;
+  }
+
+  function viewShift(s) {
+    if (!s.pairs) return empty('2차 플레이가 끝나면 여기에 나타나요.', s.people ? `지금까지 1차 플레이 ${s.people}명` : '');
+    const a = s.firstOfPairs, b = s.second, pa = pct(a.intrinsic, a.intrinsic + a.extrinsic), pb = pct(b.intrinsic, b.intrinsic + b.extrinsic), d = pb - pa;
+    const n = s.pairs, max = Math.max(1, s.shift.toInt, s.shift.same, s.shift.toExt);
+    const mover = (name, v, color) => `<div class="mover"><b>${name}</b><div class="hb"><i style="width:${v / max * 82}%;background:${color}" title="${name} ${v}명"></i><em>${v}명<small>${pct(v, n)}%</small></em></div></div>`;
+    return `<div class="two shift" style="grid-template-columns:1fr 760px"><div>${legendGoals()}
+        <div class="hrows"><div class="hrow"><div class="who"><b>1차</b></div>${stack(a.extrinsic, a.intrinsic, '개')}</div><div class="hrow"><div class="who"><b>2차</b></div>${stack(b.extrinsic, b.intrinsic, '개')}</div></div>
+        <div class="delta ${d < 0 ? 'ext' : ''}">${d > 0 ? `내적 목표 선택 ${d}%p 늘었어요` : d < 0 ? `외적 목표 선택 ${-d}%p 늘었어요` : '내적·외적 비율이 그대로예요'}</div></div>
+      <div><p class="h3">한 사람씩 보면 · 두 번 플레이한 ${n}명</p><div class="movers">${mover('내적 쪽으로 이동', s.shift.toInt, 'var(--int)')}${mover('그대로', s.shift.same, 'var(--same)')}${mover('외적 쪽으로 이동', s.shift.toExt, 'var(--ext)')}</div></div></div>`;
+  }
+
+  const VIEWS = [
+    { slide: 13, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare },
+    { slide: 14, title: '게임의 게이지 그래프', sub: '나이대에 따른 변화 그래프', draw: viewAge },
+    { slide: 25, title: '결과 그래프', sub: '토론 전/후 엔딩의 차이', draw: viewEndings },
+    { slide: 26, title: '결과 그래프', sub: '토론 전/후 내적/외적 목표 비율 변화', draw: viewShift },
+  ];
+  let cur = Math.max(0, VIEWS.findIndex(v => location.hash.includes(String(v.slide)))), last = null, status = '';
+
+  function table(s) {
+    const row = (...c) => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
+    return `<b>표로 보기</b> (T로 닫기)<table><tr><th></th><th>외적</th><th>내적</th></tr>${row('1차 전체', s.first.extrinsic, s.first.intrinsic)}${s.periods.map(p => row(p.name, p.extrinsic, p.intrinsic)).join('')}${row('2차 (두 번 한 사람)', s.second.extrinsic, s.second.intrinsic)}</table>
+      <table><tr><th>엔딩</th><th>1차</th><th>2차</th></tr>${ENDINGS.map(e => row(esc(e.label), s.before[e.key], s.after[e.key])).join('')}</table>
+      <table>${row('1차 플레이', `${s.people}명`)}${row('두 번 플레이', `${s.pairs}명`)}${row('엔딩 바뀜', `${s.changed}명`)}${row('내적 쪽 / 그대로 / 외적 쪽', `${s.shift.toInt} / ${s.shift.same} / ${s.shift.toExt}`)}${row('노년기 외적 선택', `${s.oldExt}명`)}</table>`;
+  }
+  function render() {
+    const v = VIEWS[cur];
+    $('#title').textContent = v.title; $('#sub').textContent = v.sub;
+    if (!ready && !DEMO) $('#view').innerHTML = empty('게이지가 아직 외적·내적 목표로 나뉘지 않았어요.', 'content.json 게이지에 family를 넣으면 나타나요.');
+    else if (last) { const s = stats(last); $('#view').innerHTML = v.draw(s); if ($('#table').hidden === false) $('#table').innerHTML = table(s); requestAnimationFrame(drawTrend); }
+    $('#hands').hidden = cur !== 0 || document.body.classList.contains('clean') ? true : $('#hands').hidden;
+    $('#nav').innerHTML = `<span class="state">${esc(status)}</span>${VIEWS.map((x, k) => `<button class="${k === cur ? 'on' : ''}" data-v="${k}">${x.slide}번</button>`).join('')}<button data-act="hands">손들기 입력</button><button data-act="table">표</button><button data-act="clean">숨기기 H</button>`;
+    history.replaceState(null, '', `${location.pathname}${location.search}#${v.slide}`);
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('#nav button'); if (!b) return;
+    if (b.dataset.v) { cur = +b.dataset.v; render(); }
+    else if (b.dataset.act === 'hands') { $('#hands').hidden = !$('#hands').hidden; if (cur !== 0) { cur = 0; render(); $('#hands').hidden = false; } }
+    else if (b.dataset.act === 'table') { $('#table').hidden = !$('#table').hidden; render(); }
+    else if (b.dataset.act === 'clean') document.body.classList.add('clean');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    const k = e.key;
+    if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') { cur = Math.min(VIEWS.length - 1, cur + 1); render(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { cur = Math.max(0, cur - 1); render(); }
+    else if (/^[1-4]$/.test(k)) { cur = +k - 1; render(); }
+    else if (k === 'h' || k === 'H') document.body.classList.toggle('clean');
+    else if (k === 't' || k === 'T') { $('#table').hidden = !$('#table').hidden; render(); }
+    else if (k === 'f' || k === 'F') { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch { /* 무시 */ } }
+  });
+  const hands = store.get('results.hands') || {};
+  $('#h-ext').value = hands.ext ?? ''; $('#h-int').value = hands.int ?? '';
+  $('#hands').addEventListener('input', () => { store.set('results.hands', { ext: $('#h-ext').value, int: $('#h-int').value }); render(); });
+
   async function refresh() {
-    if (!CONFIG.supabaseUrl || !CONFIG.supabaseKey) { $('#view').innerHTML = `<div id="empty">아직 기록 저장소가 연결되지 않았어요.</div>`; return; }
+    if (DEMO) { last = demoPlays(); status = '미리보기 (가상 데이터 38명)'; render(); return; }
+    if (!CONFIG.supabaseUrl || !CONFIG.supabaseKey) { status = '저장소 연결 안 됨'; $('#view').innerHTML = empty('아직 기록 저장소가 연결되지 않았어요.'); render(); return; }
     const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json' };
     if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
     try {
-      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/results_summary`, { method: 'POST', headers, body: '{}' });
-      if (res.ok) render(await res.json());
-    } catch { /* 다음 주기에 다시 시도 */ }
+      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/results_plays`, { method: 'POST', headers, body: '{}' });
+      if (res.ok) { last = await res.json(); status = `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신`; }
+      else status = res.status === 404 ? 'Supabase에서 schema.sql을 다시 실행해 주세요' : `불러오기 실패 (${res.status})`;
+    } catch { status = '연결 끊김, 다시 시도 중'; }
+    render();
     setTimeout(refresh, 5000);
   }
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh, refresh); else refresh();
+  let idle; addEventListener('mousemove', () => { $('#nav').style.opacity = 1; clearTimeout(idle); idle = setTimeout(() => { $('#nav').style.opacity = .15; }, 2500); });
+  (document.fonts?.ready || Promise.resolve()).then(() => { render(); refresh(); }, refresh);
 })();
 </script>
 </body>

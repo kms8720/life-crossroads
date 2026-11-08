@@ -62,13 +62,22 @@ const html = read('src/template.html')
   .replace('<!--__CONFIG__-->', () => gameConfig)
   .replace('/*__SCRIPTS__*/', () => scripts.replace(/<\/script/gi, '<\\/script'));
 
-// 6) 전후 그래프 페이지
-const dimColor = Object.fromEntries(content.dimensions.map(d => [d.key, d.color]));
-const endings = ['growth', 'ease', 'passion', 'connection', 'balance'].map(key => ({ key, name: content.ending.profiles[key].persona, color: dimColor[key] || '#7b5fc9' }));
+// 6) 결과 그래프 페이지: 선택지마다 외적·내적 목표 중 어느 쪽인지 게이지 family로 계산해 넘긴다.
+const family = Object.fromEntries(content.dimensions.map(d => [d.key, d.family || null]));
+const goalOf = option => {
+  const t = { intrinsic: 0, extrinsic: 0 };
+  for (const [k, v] of Object.entries(option.effects)) if (v > 0 && family[k]) t[family[k]] += v;
+  return t.intrinsic > t.extrinsic ? 'intrinsic' : t.extrinsic > t.intrinsic ? 'extrinsic' : null;
+};
+const famRank = f => ({ extrinsic: 0, intrinsic: 1 })[f] ?? 2;
+const resultsData = {
+  dims: content.dimensions.map(d => ({ key: d.key, label: d.label, family: d.family || null })),
+  stages: content.stages.filter(s => s.enabled !== false).map(s => ({ id: s.id, age: s.age, goals: s.questions[0].options.map(goalOf) })),
+  endings: [...[...content.dimensions].sort((a, b) => famRank(a.family) - famRank(b.family)).map(d => ({ key: d.key, label: d.label, family: d.family || null })), { key: 'balance', label: '균형', family: null }],
+};
 const results = read('src/results.html')
-  .replace('/*__FONTS__*/', () => fonts)
   .replace('<!--__CONFIG__-->', () => `<script type="application/json" id="game-config">${safe(config)}</script>`)
-  .replace('/*__DATA__*/', () => safe({ endings }));
+  .replace('/*__DATA__*/', () => safe(resultsData));
 
 function write(path, text) {
   mkdirSync(dirname(path), { recursive: true });

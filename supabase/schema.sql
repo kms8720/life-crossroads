@@ -55,3 +55,34 @@ $$;
 
 revoke all on function public.results_summary() from public;
 grant execute on function public.results_summary() to anon;
+
+-- Each person's first and latest playthrough with their choices, for the goal charts.
+-- Names are used only to pair the two plays and are never returned.
+create or replace function public.results_plays()
+returns json
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with ranked as (
+    select
+      lower(trim(nickname)) as who,
+      ending,
+      picks,
+      row_number() over (partition by lower(trim(nickname)) order by created_at asc, id asc) as first_rank,
+      row_number() over (partition by lower(trim(nickname)) order by created_at desc, id desc) as last_rank,
+      count(*) over (partition by lower(trim(nickname))) as total
+    from plays
+  )
+  select coalesce(json_agg(json_build_object(
+    'first', json_build_object('ending', f.ending, 'picks', f.picks),
+    'last', case when f.total >= 2 then json_build_object('ending', l.ending, 'picks', l.picks) end
+  ) order by random()), '[]'::json)
+  from ranked f
+  join ranked l on l.who = f.who and l.last_rank = 1
+  where f.first_rank = 1;
+$$;
+
+revoke all on function public.results_plays() from public;
+grant execute on function public.results_plays() to anon;
