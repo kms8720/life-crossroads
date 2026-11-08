@@ -112,12 +112,32 @@
   })();
 
   // ---------- 무대 크기 맞추기 ----------
+  // 노트북·태블릿(desk): 1920×1080 무대를 통째로 줄인다.
+  // 폰(phone): 가로 전용. 무대 높이를 화면에 맞추고 너비를 화면 비율만큼 늘려 양옆 빈 띠를 없앤다.
+  //   질문 창·카드·엔딩은 zoom(--uiz)으로 키워 화면에서 PHONE_UI배 크기로 보이게 한다.
+  // 폰을 세로로 들면(rotate) 가로로 돌려 달라는 화면만 보여 준다.
+  const PHONE_UI = .46;
+  let layout = 'desk';
+  const isPhone = () => !present() && Math.min(screen.width, screen.height) <= 540;
   function fit() {
-    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
-    const st = $('#stage');
+    const st = $('#stage'), w = innerWidth, h = innerHeight;
+    // 이름을 적는 동안 키보드 때문에 창 높이가 바뀌어도 배치를 그대로 둔다.
+    if (layout === 'phone' && document.activeElement?.matches?.('input, textarea')) return;
+    layout = !isPhone() ? 'desk' : h > w ? 'rotate' : 'phone';
+    document.body.dataset.layout = layout;
+    let s = Math.min(w / 1920, h / 1080), sw = 1920;
+    if (layout === 'phone' && w / h > 1920 / 1080) { s = h / 1080; sw = w / s; }
+    st.style.width = `${sw}px`;
+    st.style.setProperty('--ox', `${((sw - 1920) / 2).toFixed(1)}px`);
+    st.style.setProperty('--uiz', layout === 'phone' ? (PHONE_UI / s).toFixed(3) : '1');
     st.style.transform = `scale(${s})`;
-    st.style.left = `${(innerWidth - 1920 * s) / 2}px`;
-    st.style.top = `${(innerHeight - 1080 * s) / 2}px`;
+    st.style.left = `${(w - sw * s) / 2}px`;
+    st.style.top = `${(h - 1080 * s) / 2}px`;
+  }
+  // 안드로이드 폰은 시작할 때 전체 화면 + 가로 고정으로 주소창만큼 자리를 더 쓴다 (아이폰 Safari는 지원하지 않아 그냥 넘어간다).
+  function phoneFullscreen() {
+    if (layout !== 'phone' || document.fullscreenElement || !document.documentElement.requestFullscreen) return;
+    try { document.documentElement.requestFullscreen().then(() => screen.orientation?.lock?.('landscape').catch(() => {}), () => {}); } catch { /* 무시 */ }
   }
 
   // ---------- 월드 만들기 ----------
@@ -148,14 +168,18 @@
     // 하늘·먼 산·가까운 언덕
     $('#clouds').innerHTML = `<g>${Array.from({ length: 7 }, (_, k) => A.cloud(140 + k * 300 + r() * 120, 110 + r() * 130, .7 + r() * .5)).join('')}</g>`;
     $('#stars').innerHTML = Array.from({ length: 40 }, () => `<circle cx="${r() * 1920}" cy="${r() * 380}" r="${1 + r() * 2}" fill="#fff"/>`).join('');
-    $('#far').innerHTML = hills(width * .12 + W, 400, 120, 360, 3, '#b7d6cd') + hills(width * .12 + W, 450, 70, 240, 4, '#a9cdb9');
-    let mid = hills(width * .35 + W, 478, 60, 300, 5, '#9cc993');
+    // 폰 가로 화면은 무대가 1920보다 넓어 양옆(0보다 왼쪽, 1920보다 오른쪽)도 보인다. 그 부분 하늘·언덕을 따로 이어 그린다 (기존 모양은 그대로).
+    const r2 = rand(7);
+    $('#stars').innerHTML += Array.from({ length: 16 }, (_, k) => `<circle cx="${k % 2 ? 1940 + r2() * 560 : -520 + r2() * 500}" cy="${r2() * 380}" r="${1 + r2() * 2}" fill="#fff"/>`).join('');
+    const left = (base, amp, step, seed, color) => `<g transform="translate(-1000 0)">${hills(1000 + step, base, amp, step, seed + 100, color)}</g>`;
+    $('#far').innerHTML = left(400, 120, 360, 3, '#b7d6cd') + hills(width * .12 + W + 600, 400, 120, 360, 3, '#b7d6cd') + left(450, 70, 240, 4, '#a9cdb9') + hills(width * .12 + W + 600, 450, 70, 240, 4, '#a9cdb9');
+    let mid = left(478, 60, 300, 5, '#9cc993') + hills(width * .35 + W + 600, 478, 60, 300, 5, '#9cc993');
     for (let x = 80; x < width * .35 + W; x += 140 + r() * 160) mid += A.tree(x, 470 + r() * 10, .32 + r() * .14, r() < .3 ? 1 : 0, Math.floor(r() * 3));
     $('#mid').innerHTML = mid;
     // 땅·건물·나무
     const busy = [[-400, 900], ...xs.flatMap(X => [[X - 1240, X - 360], [X + SPLIT0 - 120, X + TAIL_END + 700]]), [xEnd - 520, xEnd + 520]];
     const free = x => !busy.some(([a, b]) => x > a && x < b);
-    let g = `<rect x="-200" y="470" width="${width + 400}" height="700" fill="url(#meadow-grad)"/>`;
+    let g = `<rect x="-1200" y="470" width="${width + 1400}" height="700" fill="url(#meadow-grad)"/>`;
     g += A.landmark('home', 330, BASE) + `<g transform="translate(860 ${BASE})"><path d="M0 0v-120" stroke="#8a6a4f" stroke-width="6"/><path d="M-6 -118h120l22 22-22 22H-6Z" fill="#fffaf0" stroke="#2f5d4a" stroke-width="4"/><text x="58" y="-87" text-anchor="middle" font-size="24" font-weight="800" fill="#2f5d4a" font-family="PretendardLG, sans-serif">출발 →</text></g>`.replace('translate(860 ', 'translate(720 ');
     stages.forEach((s, i) => { g += A.landmark(s.scene, xs[i] - 800, BASE); });
     for (let x = 60; x < width; x += 210 + r() * 260) if (free(x)) g += A.tree(x, BASE - 2 + r() * 8, .62 + r() * .35, r() < .25 ? 1 : 0, Math.floor(r() * 3));
@@ -164,7 +188,7 @@
     $('#ground').innerHTML = g;
     // 고르지 않은 길 끝은 마스크 대신 선 색 그라데이션으로 흐리게 한다 (마스크·필터는 움직일 때마다 다시 그려져 느리다).
     const tailDefs = xs.map((X, i) => ROAD_PAL.map((pal, pi) => pal.map((col, ci) => `<linearGradient id="tail-${i}-${pi}-${ci}" gradientUnits="userSpaceOnUse" x1="${X + FLAT - 60}" y1="0" x2="${X + TAIL_END}" y2="0"><stop offset="0" stop-color="${col}"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient>`).join('')).join('')).join('');
-    const straight = []; let from = -200;
+    const straight = []; let from = -1200;
     xs.forEach(X => { straight.push([from, X + SPLIT0]); from = X + MERGE1; });
     straight.push([from, width + 200]);
     $('#roads').innerHTML = `<defs>${tailDefs}</defs>${xs.map((_, i) => `<g id="mound-${i}"></g>`).join('')}${roadSvg(straight.map(([a, b]) => `M${a} ${ROAD}H${b}`).join(''), ROAD_PAL[0])}${xs.map((_, i) => `<g id="fork-${i}"></g>`).join('')}`;
@@ -523,7 +547,7 @@
     renderUI(); saveGame(); toast('한 단계 되돌렸어요.');
   }
   // 이름은 1·2회차 기록을 잇는 데만 쓴다. 기록을 안 할 때는 묻지 않는다.
-  function begin() { if (dbOn()) openModal('name'); else newGame(); }
+  function begin() { phoneFullscreen(); if (dbOn()) openModal('name'); else newGame(); }
   function newGame() {
     const seed = (Date.now() ^ (Math.random() * 1e9)) % 2147483647;
     let s;
@@ -810,7 +834,8 @@
     const tb = $('#toolbar');
     tb.className = state.phase === 'title' || state.phase === 'ending' ? 'top' : '';
     tb.hidden = state.phase === 'ending';
-    tb.innerHTML = [...(present() ? [['notes', 'notes', '발표자 메모 (N)', ui.notes]] : []), [settings.sound ? 'sound' : 'mute', 'sound', settings.sound ? '소리 끄기 (M)' : '소리 켜기 (M)'], ['help', 'help', '조작법 (H)'], ['expand', 'fullscreen', '전체 화면 (F)']]
+    const fsOk = layout !== 'phone' || !!document.documentElement.requestFullscreen;
+    tb.innerHTML = [...(present() ? [['notes', 'notes', '발표자 메모 (N)', ui.notes]] : []), [settings.sound ? 'sound' : 'mute', 'sound', settings.sound ? '소리 끄기 (M)' : '소리 켜기 (M)'], ['help', 'help', '조작법 (H)'], ...(fsOk ? [['expand', 'fullscreen', '전체 화면 (F)']] : [])]
       .map(([ic, act, label, on]) => `<button data-act="${act}" class="${on ? 'on' : ''}" title="${label}" aria-label="${label}">${A.icon(ic)}</button>`).join('');
   }
 
@@ -818,7 +843,11 @@
   function openModal(kind) {
     finish(); ui.modal = kind;
     const m = $('#modal'); m.hidden = false;
-    if (kind === 'help') m.innerHTML = `<div class="m-box"><h2>조작법</h2><p>키보드나 마우스로 진행할 수 있어요.</p><div class="keys">${[
+    if (kind === 'help' && !present() && matchMedia('(pointer: coarse)').matches) m.innerHTML = `<div class="m-box"><h2>조작법</h2><p>손가락으로 눌러서 진행해요.</p><div class="keys touch">${[
+      ['길 고르기', '아래 선택지나 문을 누르기'], ['다음으로', '‘다음’ 버튼 누르기'], ['걷는 중 빨리 감기', '화면 아무 곳이나 누르기'],
+      ['한 단계 되돌리기', '‘되돌리기’ 버튼 누르기'], ['소리 켜기/끄기', '오른쪽 위 스피커 버튼']].map(([l, t]) => `<div><span>${l}</span><span>${t}</span></div>`).join('')}</div>
+      <div class="m-actions"><button class="btn primary" data-act="close">닫기</button></div></div>`;
+    else if (kind === 'help') m.innerHTML = `<div class="m-box"><h2>조작법</h2><p>키보드나 마우스로 진행할 수 있어요.</p><div class="keys">${[
       ['다음 / 결정', 'Space', 'Enter', '→'], ['위 길 고르기', '1', '↑'], ['아래 길 고르기', '2', '↓'], ...(present() ? [['리모컨으로 고르기', '◀ 두 번 = 위', '▶ 두 번 = 아래']] : []),
       ['되돌리기', 'Backspace', '←'], ...(present() ? [['투표 수 입력', 'V'], ['이 갈림길 건너뛰기', 'X'], ['발표자 메모', 'N'], ['게이지 보이기/숨기기', 'G']] : []), ['전체 화면', 'F'],
       ['처음 화면으로', 'R'], ['소리 켜기/끄기', 'M'], ['걷는 중 빨리 감기', 'Space'], ['창 닫기', 'Esc']].map(([l, ...ks]) => `<div><span>${l}</span><span>${ks.map(k => `<span class="kbd">${k}</span>`).join(' ')}</span></div>`).join('')}</div>
@@ -925,7 +954,7 @@
 
   // ---------- 시작 ----------
   function boot() {
-    fit(); addEventListener('resize', fit);
+    fit(); addEventListener('resize', fit); addEventListener('focusout', () => setTimeout(fit, 350));
     const raw = $('#game-content').textContent;
     try { C = E.validate(JSON.parse(raw)); }
     catch (err) {

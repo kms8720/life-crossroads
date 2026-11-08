@@ -20,7 +20,7 @@ The game is in Korean. It was made for a class presentation in "Conditions of Ha
 | Show/hide gauges | `G` |
 | Help | `H` |
 
-The game works with a mouse, a keyboard, or a touch screen. It is designed for laptops and tablets in landscape.
+The game works with a mouse, a keyboard, or a touch screen. It is designed for landscape screens: laptops, tablets, and phones turned sideways. On a phone held upright, it asks the player to turn the phone. On Android it switches to full screen when the game starts. iPhone Safari does not allow that, so the address bar stays.
 
 ## Running the class
 
@@ -28,7 +28,7 @@ The site has three pages.
 
 | Page | Use |
 | --- | --- |
-| [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop or tablet. Post this link on the LMS. |
+| [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop, tablet, or phone. Post this link on the LMS. |
 | [Presentation](https://kms8720.github.io/life-crossroads/presentation/) | The shared screen. Five questions, decided by a show of hands. |
 | [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 14, 15, 26 and 27. Updates every five seconds. Add `?demo` to preview with sample data. |
 | [Presenter](https://kms8720.github.io/life-crossroads/admin/) | Clears the saved plays, records the hand count, and exports the charts as images. Needs the team passphrase. |

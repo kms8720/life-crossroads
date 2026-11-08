@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>인생 갈림길 — 행복의 조건 4조</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f5d4a'/%3E%3Cpath d='M32 54V34M32 34 18 16M32 34l14-18' stroke='%23f6e7c1' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <style>
@@ -21,7 +21,7 @@
         <radialGradient id="portal-b" cx=".5" cy=".75" r=".8"><stop offset="0" stop-color="#f3f0ff" stop-opacity=".95"/><stop offset=".6" stop-color="#cfc6ff" stop-opacity=".55"/><stop offset="1" stop-color="#6f5bd6" stop-opacity=".25"/></radialGradient>
         <radialGradient id="sun-halo"><stop offset="0" stop-color="#fff3c4" stop-opacity=".75"/><stop offset="1" stop-color="#fff3c4" stop-opacity="0"/></radialGradient>
       </defs>
-      <rect width="1920" height="1080" fill="url(#sky-grad)"/>
+      <rect x="-1000" width="3920" height="1080" fill="url(#sky-grad)"/>
       <g id="stars"></g>
       <g id="sun"><circle id="sun-halo-c" r="150" fill="url(#sun-halo)"/><circle id="sun-core" r="62" fill="#fff1b0"/></g>
       <g id="clouds"></g>
@@ -39,7 +39,7 @@
         <g id="memories"></g>
       </g>
       <g id="fg"></g>
-      <rect id="tint" width="1920" height="1080" fill="#ff8a4c" opacity="0" pointer-events="none"/>
+      <rect id="tint" x="-1000" width="3920" height="1080" fill="#ff8a4c" opacity="0" pointer-events="none"/>
     </svg>
     <div id="hud" hidden>
       <div id="gauges"></div>
@@ -59,6 +59,7 @@
   </div>
 </div>
 <div id="rotate">화면을 가로로 돌리면 더 크게 보여요</div>
+<div id="turn" role="alert"><div class="turn-phone" aria-hidden="true"><i></i></div><b>휴대폰을 가로로 돌려 주세요</b><span>가로 화면에서 플레이할 수 있어요.<br>돌려도 그대로라면 화면 회전 잠금을 꺼 주세요.</span></div>
 <noscript>이 게임은 JavaScript가 필요합니다. 브라우저에서 JavaScript를 켜 주세요.</noscript>
 <!--__CONTENT__-->
 <!--__SOUNDS__-->
