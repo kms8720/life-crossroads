@@ -157,7 +157,8 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
     if (!confirm('마지막으로 초기화한 기록을 되돌릴까요? 그 뒤에 새로 쌓인 기록은 그대로 남아요.')) return;
     const r = await rpc('admin_restore_plays', { pin }).catch(e => ({ ok: false, error: e.message }));
     if (!r.ok) return say('#reset-msg', ERR[r.error] || r.error, false);
-    say('#reset-msg', r.restored ? `기록 ${r.restored}판을 되돌렸어요.` : '되돌릴 기록이 없어요.'); refreshStats(); reloadFrame();
+    const old = r.skipped ? ` 예전 버전 게임의 기록 ${r.skipped}판은 지금 게임과 맞지 않아 뺐어요.` : '';
+    say('#reset-msg', r.restored ? `기록 ${r.restored}판을 되돌렸어요.${old}` : r.skipped ? old.trim() : '되돌릴 기록이 없어요.'); refreshStats(); reloadFrame();
   });
   $('#hands-form').addEventListener('submit', async e => {
     e.preventDefault();

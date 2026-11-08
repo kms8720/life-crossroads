@@ -220,17 +220,25 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare r text := admin_check(pin); latest timestamptz; n int;
+declare r text := admin_check(pin); latest timestamptz; a plays_archive; n int := 0; skipped int := 0;
 begin
   if r <> 'ok' then return json_build_object('ok', false, 'error', r); end if;
   select max(archived_at) into latest from plays_archive;
-  if latest is null then return json_build_object('ok', true, 'restored', 0); end if;
-  insert into plays (run_id, nickname, ending, gauges, picks, created_at)
-  select run_id, nickname, ending, gauges, picks, created_at from plays_archive where archived_at = latest
-  on conflict (run_id) do nothing;
-  get diagnostics n = row_count;
+  if latest is null then return json_build_object('ok', true, 'restored', 0, 'skipped', 0); end if;
+  -- A play saved by an older version of the game can break today's rules,
+  -- for example with an ending that no longer exists. Skip it instead of failing the whole batch.
+  for a in select * from plays_archive where archived_at = latest loop
+    begin
+      insert into plays (run_id, nickname, ending, gauges, picks, created_at)
+      values (a.run_id, a.nickname, a.ending, a.gauges, a.picks, a.created_at)
+      on conflict (run_id) do nothing;
+      if found then n := n + 1; end if;
+    exception when check_violation or not_null_violation then
+      skipped := skipped + 1;
+    end;
+  end loop;
   delete from plays_archive where archived_at = latest;
-  return json_build_object('ok', true, 'restored', n);
+  return json_build_object('ok', true, 'restored', n, 'skipped', skipped);
 end;
 $$;
 
