@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f5d4a'/%3E%3Cpath d='M32 54V34M32 34 18 16M32 34l14-18' stroke='%23f6e7c1' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@300;400;500;700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@300;400;500;700;800&display=block" rel="stylesheet" crossorigin="anonymous">
 <style>
 /* 발표 PPT(행조 4조 발표 ppt)와 같은 배경·글꼴·색. 외적·내적 색은 PPT 9번 표의 계열에서 색각 검사를 통과하도록 고른 값. */
 :root {
@@ -109,10 +109,8 @@ body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: anti
 #nav button.on { background: #4E342E; color: #fff; }
 #nav .state { color: #ddd; font-size: 13px; margin-right: 6px; }
 body.idle #nav { opacity: .15; }
-body.clean #nav, body.clean #hands { display: none !important; }
-#hands { position: fixed; right: 18px; bottom: 70px; z-index: 5; background: #fffbf2; border-radius: 14px; padding: 14px 18px; box-shadow: 0 6px 22px rgba(0, 0, 0, .3); font: 500 15px var(--sans); color: #333; }
-#hands label { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
-#hands input { width: 64px; font: 600 18px var(--sans); padding: 4px 6px; border: 1px solid #ccc; border-radius: 6px; }
+body.clean #nav { display: none !important; }
+body.embed #nav { display: none !important; }
 #table { position: fixed; inset: 40px; z-index: 6; background: #fffbf2; border-radius: 16px; padding: 24px 30px; overflow: auto; font: 16px var(--sans); box-shadow: 0 10px 40px rgba(0, 0, 0, .4); }
 #table table { border-collapse: collapse; margin: 8px 0 22px; }
 #table th, #table td { border-bottom: 1px solid #e4dccb; padding: 6px 18px 6px 0; text-align: left; }
@@ -120,7 +118,6 @@ body.clean #nav, body.clean #hands { display: none !important; }
 </head>
 <body>
 <div id="stage"><h1 id="title"></h1><p id="sub"></p><main id="view"></main></div>
-<div id="hands" hidden><b>13번 슬라이드 손들기</b><br><label>외적이 더 크다 <input id="h-ext" type="number" min="0"></label><label>내적이 더 크다 <input id="h-int" type="number" min="0"></label></div>
 <nav id="nav"></nav>
 <div id="table" hidden></div>
 <!--__CONFIG__-->
@@ -132,8 +129,8 @@ body.clean #nav, body.clean #hands { display: none !important; }
   const CONFIG = JSON.parse($('#game-config').textContent), DATA = JSON.parse($('#game-data').textContent);
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-  const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 저장 불가 */ } } };
   const DEMO = /demo/.test(location.search + location.hash);
+  if (/embed/.test(location.search)) document.body.classList.add('embed'); // 발표자 페이지 미리보기 안에서는 조작 버튼을 숨긴다
 
   function fit() {
     const s = Math.min(innerWidth / 1920, innerHeight / 1080), st = $('#stage');
@@ -199,7 +196,7 @@ body.clean #nav, body.clean #hands { display: none !important; }
 
   function viewShare(s) {
     if (!s.people) return empty('1차 플레이가 끝나면 여기에 나타나요.');
-    const hands = store.get('results.hands') || {}, he = +hands.ext || 0, hi = +hands.int || 0, rows = [];
+    const he = +extra.hands_ext || 0, hi = +extra.hands_int || 0, rows = [];
     if (he + hi) rows.push(`<div class="hrow"><div class="who"><b>손들기로 본 우리 반</b><span>스스로 생각한 비중 · ${he + hi}명</span></div>${stack(he, hi, '명')}</div>`);
     rows.push(`<div class="hrow"><div class="who"><b>게임 속 선택</b><span>1차 플레이 ${s.people}명 · 선택 ${s.first.intrinsic + s.first.extrinsic}개</span></div>${stack(s.first.extrinsic, s.first.intrinsic, '개')}</div>`);
     return `${legendGoals()}<div class="hrows" style="--h:${rows.length > 1 ? 130 : 170}px">${rows.join('')}</div><div class="foot">1차 플레이에서 고른 모든 선택을 외적·내적 목표로 나눠 센 비율입니다.</div>`;
@@ -258,7 +255,7 @@ body.clean #nav, body.clean #hands { display: none !important; }
     { slide: 26, title: '결과 그래프', sub: '토론 전/후 엔딩의 차이', draw: viewEndings },
     { slide: 27, title: '결과 그래프', sub: '토론 전/후 내적/외적 목표 비율 변화', draw: viewShift },
   ];
-  let cur = Math.max(0, VIEWS.findIndex(v => location.hash.includes(String(v.slide)))), last = null, status = '';
+  let cur = Math.max(0, VIEWS.findIndex(v => location.hash.includes(String(v.slide)))), last = null, extra = {}, status = '';
 
   function table(s) {
     const row = (...c) => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
@@ -271,14 +268,13 @@ body.clean #nav, body.clean #hands { display: none !important; }
     $('#title').textContent = v.title; $('#sub').textContent = v.sub;
     if (!ready && !DEMO) $('#view').innerHTML = empty('게이지가 아직 외적·내적 목표로 나뉘지 않았어요.', 'content.json 게이지에 family를 넣으면 나타나요.');
     else if (last) { const s = stats(last); $('#view').innerHTML = v.draw(s); if ($('#table').hidden === false) $('#table').innerHTML = table(s); requestAnimationFrame(drawTrend); }
-    $('#hands').hidden = cur !== 0 || document.body.classList.contains('clean') ? true : $('#hands').hidden;
-    $('#nav').innerHTML = `<span class="state">${esc(status)}</span>${VIEWS.map((x, k) => `<button class="${k === cur ? 'on' : ''}" data-v="${k}">${x.slide}번</button>`).join('')}<button data-act="hands">손들기 입력</button><button data-act="table">표</button><button data-act="clean">숨기기 H</button>`;
+    $('#nav').innerHTML = `<span class="state">${esc(status)}</span>${VIEWS.map((x, k) => `<button class="${k === cur ? 'on' : ''}" data-v="${k}">${x.slide}번</button>`).join('')}<button data-act="jpg">JPG 저장</button><button data-act="table">표</button><button data-act="clean">숨기기 H</button>`;
     history.replaceState(null, '', `${location.pathname}${location.search}#${v.slide}`);
   }
   document.addEventListener('click', e => {
     const b = e.target.closest('#nav button'); if (!b) return;
     if (b.dataset.v) { cur = +b.dataset.v; render(); }
-    else if (b.dataset.act === 'hands') { $('#hands').hidden = !$('#hands').hidden; if (cur !== 0) { cur = 0; render(); $('#hands').hidden = false; } }
+    else if (b.dataset.act === 'jpg') saveJpg(VIEWS[cur].slide);
     else if (b.dataset.act === 'table') { $('#table').hidden = !$('#table').hidden; render(); }
     else if (b.dataset.act === 'clean') document.body.classList.add('clean');
   });
@@ -292,17 +288,60 @@ body.clean #nav, body.clean #hands { display: none !important; }
     else if (k === 't' || k === 'T') { $('#table').hidden = !$('#table').hidden; render(); }
     else if (k === 'f' || k === 'F') { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch { /* 무시 */ } }
   });
-  const hands = store.get('results.hands') || {};
-  $('#h-ext').value = hands.ext ?? ''; $('#h-int').value = hands.int ?? '';
-  $('#hands').addEventListener('input', () => { store.set('results.hands', { ext: $('#h-ext').value, int: $('#h-int').value }); render(); });
+
+  // ---------- JPG 내보내기: 화면을 1920×1080의 두 배(3840×2160)로 저장한다 ----------
+  const LIB = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
+  let libLoad;
+  const lib = () => libLoad ||= new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = LIB; sc.onload = () => ok(window.htmlToImage); sc.onerror = () => { libLoad = null; no(new Error('이미지 도구를 불러오지 못했어요.')); }; document.head.appendChild(sc); });
+  // 화면에 쓰인 글자만 담은 글꼴을 받아 그림 안에 넣는다 (한글 글꼴 전체는 너무 커서).
+  async function fontCss() {
+    const text = [...new Set(`${$('#stage').textContent}0123456789%`.replace(/\s/g, ''))].join('');
+    let css = await (await fetch(`https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@300;400;500;700;800&display=block&text=${encodeURIComponent(text)}`)).text();
+    for (const u of [...new Set(css.match(/https:\/\/[^)'"\s]+/g) || [])]) {
+      const blob = await (await fetch(u)).blob();
+      const data = await new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(blob); });
+      css = css.split(u).join(data);
+    }
+    return css;
+  }
+  // 한 번 그린 캔버스로 JPG(파일 저장)와 PNG(클립보드: 브라우저는 PNG만 받는다)를 만든다.
+  async function exportCanvas(slide) {
+    const k = VIEWS.findIndex(v => v.slide === slide);
+    if (k < 0) throw new Error(`${slide}번 화면이 없어요.`);
+    cur = k; render();
+    await new Promise(ok => requestAnimationFrame(() => requestAnimationFrame(ok))); drawTrend();
+    const [h, css] = await Promise.all([lib(), fontCss()]);
+    return h.toCanvas($('#stage'), { width: 1920, height: 1080, pixelRatio: 2, backgroundColor: '#FFFBF2', fontEmbedCSS: css, style: { transform: 'none', left: '0px', top: '0px' } });
+  }
+  const toJpeg = canvas => canvas.toDataURL('image/jpeg', .95);
+  const toPng = canvas => new Promise(ok => canvas.toBlob(ok, 'image/png'));
+  async function exportJpg(slide) { return toJpeg(await exportCanvas(slide)); }
+  // 클립보드 쓰기는 클릭 직후에 시작해야 허용된다. 그림은 나중에 채워지는 Promise로 넘긴다.
+  function copyLater(pngPromise) {
+    if (!navigator.clipboard?.write || !window.ClipboardItem) return Promise.resolve(false);
+    return navigator.clipboard.write([new ClipboardItem({ 'image/png': pngPromise })]).then(() => true, () => false);
+  }
+  const fileName = slide => `결과그래프_${slide}번_${new Date().toTimeString().slice(0, 5).replace(':', '')}.jpg`;
+  async function saveJpg(slide) {
+    status = 'JPG 만드는 중…'; render();
+    const canvas = exportCanvas(slide), copied = copyLater(canvas.then(toPng));
+    try {
+      const a = document.createElement('a'); a.href = toJpeg(await canvas); a.download = fileName(slide); a.click();
+      status = (await copied) ? `${slide}번 저장·복사함 (Ctrl+V로 붙여넣기)` : `${slide}번 저장함 (복사는 이 브라우저에서 막힘)`;
+    } catch (e) { status = e.message; }
+    render();
+  }
+  window.__results = { slides: VIEWS.map(v => v.slide), exportJpg, exportCanvas, toJpeg, toPng, fileName, show(slide) { const k = VIEWS.findIndex(v => v.slide === slide); if (k >= 0) { cur = k; render(); } } };
 
   async function refresh() {
-    if (DEMO) { last = demoPlays(); status = '미리보기 (가상 데이터 38명)'; render(); return; }
+    if (DEMO) { last = demoPlays(); extra = { hands_ext: 14, hands_int: 24 }; status = '미리보기 (가상 데이터 38명)'; render(); return; }
     if (!CONFIG.supabaseUrl || !CONFIG.supabaseKey) { status = '저장소 연결 안 됨'; $('#view').innerHTML = empty('아직 기록 저장소가 연결되지 않았어요.'); render(); return; }
     const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json' };
     if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
     try {
-      const res = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/results_plays`, { method: 'POST', headers, body: '{}' });
+      const call = fn => fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: '{}' });
+      const [res, ex] = await Promise.all([call('results_plays'), call('results_extra')]);
+      if (ex.ok) extra = await ex.json();
       if (res.ok) { last = await res.json(); status = `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신`; }
       else status = res.status === 404 ? 'Supabase에서 schema.sql을 다시 실행해 주세요' : `불러오기 실패 (${res.status})`;
     } catch { status = '연결 끊김, 다시 시도 중'; }

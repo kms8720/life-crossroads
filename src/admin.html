@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>발표자 페이지 — 인생 갈림길</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f5d4a'/%3E%3Cpath d='M32 54V34M32 34 18 16M32 34l14-18' stroke='%23f6e7c1' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #FFFBF2; --card: #FFFFFF; --ink: #23313A; --ink-2: #4E5357; --muted: #7E8487; --line: #E6E0D4; --brown: #4E342E; --green: #2F5D4A; --danger: #B3402A; --danger-soft: #FBEAE5; --ok: #2E7D5B; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif; font-size: 16px; line-height: 1.55; }
+main { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+h1 { margin: 0; font-family: 'Jua', sans-serif; font-weight: 400; font-size: 34px; color: var(--brown); }
+h2 { margin: 0 0 4px; font-size: 20px; }
+.lead { margin: 6px 0 22px; color: var(--muted); }
+.links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 22px; font-size: 15px; }
+.links a { color: var(--green); font-weight: 700; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; margin-bottom: 18px; }
+.card p.desc { margin: 2px 0 14px; color: var(--ink-2); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+input[type=password], input[type=number], input[type=text] { font: inherit; font-size: 18px; padding: 9px 12px; border: 2px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+input[type=number] { width: 110px; }
+button { font: inherit; font-weight: 700; font-size: 16px; padding: 10px 18px; border-radius: 10px; border: 2px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
+button.primary { background: var(--green); border-color: var(--green); color: #fff; }
+button.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+button:disabled { opacity: .5; cursor: default; }
+label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); font-size: 15px; }
+.msg { min-height: 1.5em; margin-top: 10px; font-weight: 700; }
+.msg.ok { color: var(--ok); } .msg.err { color: var(--danger); }
+.stat { display: flex; flex-wrap: wrap; gap: 10px 28px; font-size: 15px; color: var(--ink-2); }
+.stat b { font-size: 22px; color: var(--ink); margin-right: 4px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 15px; }
+.preview { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #FFFBF2; margin: 14px 0; }
+.preview iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; }
+.warn { background: var(--danger-soft); border-radius: 12px; padding: 12px 16px; color: var(--danger); font-weight: 500; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>발표자 페이지</h1>
+  <p class="lead">수업 전에 기록을 초기화하고, 손들기 수를 넣고, 결과 그래프를 JPG로 내려받습니다.</p>
+  <nav class="links"><a href="../" target="_blank">각자 플레이</a><a href="../presentation/" target="_blank">발표 화면</a><a href="../results/" target="_blank">결과 그래프</a></nav>
+
+  <section class="card" id="login">
+    <h2 id="login-title">비밀번호</h2>
+    <p class="desc" id="login-desc">초기화와 손들기 저장에는 비밀번호가 필요해요.</p>
+    <form class="row" id="login-form"><input type="password" id="pin" autocomplete="current-password" placeholder="비밀번호" minlength="6" required><label class="check"><input type="checkbox" id="remember"> 이 기기에서 기억</label><button class="primary" type="submit" id="login-btn">확인</button></form>
+    <div class="msg" id="login-msg"></div>
+  </section>
+
+  <section class="card">
+    <h2>지금 기록</h2>
+    <div class="stat"><span><b id="s-plays">–</b>판 저장됨</span><span><b id="s-people">–</b>명 플레이</span><span><b id="s-pairs">–</b>명 두 번 플레이</span><span id="s-time"></span></div>
+  </section>
+
+  <section class="card" id="c-reset">
+    <h2>1. 수업 전 기록 초기화</h2>
+    <p class="desc">테스트·리허설·교수님 시연으로 쌓인 기록을 모두 비웁니다. 지운 기록은 보관함으로 옮겨져, 바로 아래 버튼으로 되돌릴 수 있어요.</p>
+    <div class="row"><button class="danger" id="reset" disabled>기록 모두 초기화</button><button id="restore" disabled>마지막 초기화 되돌리기</button></div>
+    <div class="msg" id="reset-msg"></div>
+  </section>
+
+  <section class="card" id="c-hands">
+    <h2>2. 13번 슬라이드 손들기</h2>
+    <p class="desc">"지금 내 삶에서 외적·내적 목표 중 어느 쪽이 더 큰가요?"에 손 든 인원을 넣으면, 14번 그래프에 게임 결과와 나란히 나옵니다.</p>
+    <form class="row" id="hands-form"><label class="field">외적 목표가 더 크다<input type="number" id="h-ext" min="0" max="999" inputmode="numeric"></label><label class="field">내적 목표가 더 크다<input type="number" id="h-int" min="0" max="999" inputmode="numeric"></label><button class="primary" type="submit" id="hands-btn" disabled style="align-self:flex-end">저장</button></form>
+    <div class="msg" id="hands-msg"></div>
+  </section>
+
+  <section class="card" id="c-jpg">
+    <h2>3. 결과 그래프 사진으로 내보내기</h2>
+    <p class="desc">슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다. 한 장씩 누르면 JPG로 저장되고 클립보드에도 복사돼서, 슬라이드에서 바로 Ctrl+V(맥은 ⌘+V)로 붙여넣을 수 있어요. 붙인 뒤 슬라이드 전체 크기로 맞추면 됩니다.</p>
+    <div class="row"><span id="jpg-btns"></span><button class="primary" id="jpg-all">4장 모두</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
+    <div class="preview" id="preview"><iframe id="frame" title="결과 그래프 미리보기"></iframe></div>
+    <div class="msg" id="jpg-msg"></div>
+  </section>
+</main>
+<!--__CONFIG__-->
+<script>
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const CONFIG = JSON.parse($('#game-config').textContent);
+  const PIN_KEY = 'insaeng-galimgil.admin';
+  const ERR = { wrong: '비밀번호가 틀렸어요.', locked: '여러 번 틀려서 10분 동안 잠겼어요.', no_pin: '비밀번호가 아직 없어요.', short: '비밀번호는 6자 이상이어야 해요.', exists: '이미 다른 비밀번호가 정해져 있어요. 새로고침해 주세요.' };
+  const say = (id, text, ok = true) => { const el = $(id); el.textContent = text; el.className = `msg ${ok ? 'ok' : 'err'}`; };
+  const stored = () => { try { return sessionStorage.getItem(PIN_KEY) || localStorage.getItem(PIN_KEY); } catch { return null; } };
+  let pin = null;
+
+  async function rpc(fn, args = {}) {
+    const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json' };
+    if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
+    const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(args) });
+    if (!r.ok) throw new Error(r.status === 404 ? 'Supabase에서 schema.sql을 다시 실행해 주세요.' : `서버 오류 (${r.status})`);
+    return r.json();
+  }
+  const unlock = on => { for (const id of ['#reset', '#restore', '#hands-btn']) $(id).disabled = !on; };
+
+  async function setupLogin() {
+    if (!CONFIG.supabaseUrl) { say('#login-msg', '기록 저장소가 연결되지 않았어요.', false); return; }
+    try {
+      const st = await rpc('admin_status');
+      if (!st.pin_set) {
+        $('#login-title').textContent = '처음 사용: 비밀번호 정하기';
+        $('#login-desc').textContent = '팀이 함께 쓸 비밀번호를 6자 이상으로 정해 주세요. 한 번 정하면 이 페이지에서는 바꿀 수 없어요.';
+        $('#login-btn').textContent = '비밀번호 정하기'; $('#pin').autocomplete = 'new-password';
+        return;
+      }
+      const saved = stored();
+      if (saved && await rpc('admin_verify', { pin: saved }) === 'ok') { pin = saved; loggedIn(); }
+    } catch (e) { say('#login-msg', e.message, false); }
+  }
+  function loggedIn() {
+    unlock(true);
+    $('#login-title').textContent = '로그인됨';
+    $('#login-desc').textContent = '초기화와 손들기 저장을 쓸 수 있어요.';
+    $('#login-form').hidden = true; say('#login-msg', '');
+  }
+  $('#login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const value = $('#pin').value;
+    try {
+      const first = $('#login-btn').textContent === '비밀번호 정하기';
+      const r = first ? await rpc('admin_init_pin', { new_pin: value }) : await rpc('admin_verify', { pin: value });
+      if (r !== 'ok') return say('#login-msg', ERR[r] || r, false);
+      pin = value;
+      try { ($('#remember').checked ? localStorage : sessionStorage).setItem(PIN_KEY, value); } catch { /* 저장 불가 */ }
+      loggedIn(); if (first) say('#login-msg', '비밀번호를 정했어요. 팀원에게 알려 주세요.');
+    } catch (err) { say('#login-msg', err.message, false); }
+  });
+
+  async function refreshStats() {
+    try {
+      const [ex, people] = await Promise.all([rpc('results_extra'), rpc('results_plays')]);
+      $('#s-plays').textContent = ex.plays; $('#s-people').textContent = people.length; $('#s-pairs').textContent = people.filter(p => p.last).length;
+      $('#s-time').textContent = `${new Date().toLocaleTimeString('ko-KR')} 기준`;
+      if (document.activeElement?.type !== 'number') { $('#h-ext').value = ex.hands_ext ?? ''; $('#h-int').value = ex.hands_int ?? ''; }
+    } catch (e) { $('#s-time').textContent = e.message; }
+  }
+
+  $('#reset').addEventListener('click', async () => {
+    const typed = prompt('정말 모든 기록을 초기화할까요? 계속하려면 "초기화"라고 입력하세요.');
+    if (typed?.trim() !== '초기화') return say('#reset-msg', '초기화를 취소했어요.', false);
+    const r = await rpc('admin_reset_plays', { pin }).catch(e => ({ ok: false, error: e.message }));
+    if (!r.ok) return say('#reset-msg', ERR[r.error] || r.error, false);
+    say('#reset-msg', `기록 ${r.moved}판을 비웠어요. 결과 그래프도 0명부터 다시 쌓여요.`); refreshStats(); reloadFrame();
+  });
+  $('#restore').addEventListener('click', async () => {
+    if (!confirm('마지막으로 초기화한 기록을 되돌릴까요? 그 뒤에 새로 쌓인 기록은 그대로 남아요.')) return;
+    const r = await rpc('admin_restore_plays', { pin }).catch(e => ({ ok: false, error: e.message }));
+    if (!r.ok) return say('#reset-msg', ERR[r.error] || r.error, false);
+    say('#reset-msg', r.restored ? `기록 ${r.restored}판을 되돌렸어요.` : '되돌릴 기록이 없어요.'); refreshStats(); reloadFrame();
+  });
+  $('#hands-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const ext = Math.max(0, parseInt($('#h-ext').value, 10) || 0), int = Math.max(0, parseInt($('#h-int').value, 10) || 0);
+    const r = await rpc('admin_set_hands', { pin, hands_ext: ext, hands_int: int }).catch(err => ({ ok: false, error: err.message }));
+    if (!r.ok) return say('#hands-msg', ERR[r.error] || r.error, false);
+    say('#hands-msg', `저장했어요: 외적 ${ext}명 · 내적 ${int}명. 결과 그래프 14번에 5초 안에 반영돼요.`); reloadFrame();
+  });
+
+  // ---------- 그래프 미리보기와 JPG ----------
+  const SLIDES = [14, 15, 26, 27];
+  const frame = $('#frame');
+  function fitFrame() { frame.style.transform = `scale(${$('#preview').clientWidth / 1920})`; }
+  function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}#${slide || 14}`; }
+  addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
+  $('#demo').addEventListener('change', () => reloadFrame());
+  $('#jpg-btns').innerHTML = SLIDES.map(n => `<button data-jpg="${n}">${n}번</button> `).join('');
+  const ready = () => new Promise((ok, no) => { const t0 = Date.now(); (function wait() { if (frame.contentWindow?.__results) ok(frame.contentWindow.__results); else if (Date.now() - t0 > 15000) no(new Error('그래프 화면을 불러오지 못했어요.')); else setTimeout(wait, 200); })(); });
+  // 한 장씩: JPG로 저장하고 PNG로 클립보드에도 복사 (붙여넣기용). 여러 장: 저장만.
+  function download(slides) {
+    const R = frame.contentWindow?.__results;
+    if (!R) return say('#jpg-msg', '그래프 화면을 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.', false);
+    const btns = [...document.querySelectorAll('#c-jpg button')]; btns.forEach(b => { b.disabled = true; });
+    const one = slides.length === 1, first = R.exportCanvas(slides[0]);
+    // 클립보드는 클릭과 같은 순간에 요청해야 해서 첫 장의 그림을 Promise로 넘긴다 (다른 창의 Blob은 이 창 것으로 다시 감싼다).
+    const copied = one && navigator.clipboard?.write && window.ClipboardItem
+      ? navigator.clipboard.write([new ClipboardItem({ 'image/png': first.then(R.toPng).then(async b => new Blob([await b.arrayBuffer()], { type: 'image/png' })) })]).then(() => true, () => false)
+      : Promise.resolve(false);
+    (async () => {
+      try {
+        for (const [i, n] of slides.entries()) {
+          say('#jpg-msg', `${n}번 만드는 중…`);
+          const canvas = i === 0 ? await first : await R.exportCanvas(n);
+          const a = document.createElement('a'); a.href = R.toJpeg(canvas); a.download = R.fileName(n); a.click();
+          await new Promise(ok => setTimeout(ok, 400));
+        }
+        const demo = $('#demo').checked ? ' (가상 데이터)' : '';
+        if (!one) say('#jpg-msg', `${slides.join(', ')}번을 다운로드 폴더에 저장했어요. 클립보드 복사는 한 장씩 누를 때만 돼요.${demo}`);
+        else say('#jpg-msg', (await copied) ? `${slides[0]}번을 저장하고 복사했어요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣으세요.${demo}` : `${slides[0]}번을 저장했어요. 이 브라우저에서는 복사가 막혀 있어요.${demo}`);
+      } catch (e) { say('#jpg-msg', e.message, false); }
+      btns.forEach(b => { b.disabled = false; });
+    })();
+  }
+  document.addEventListener('click', e => { const b = e.target.closest('[data-jpg]'); if (b) download([+b.dataset.jpg]); });
+  $('#jpg-all').addEventListener('click', () => download(SLIDES));
+
+  setupLogin(); refreshStats(); setInterval(refreshStats, 5000);
+})();
+</script>
+</body>
+</html>

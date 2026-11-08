@@ -91,3 +91,183 @@ $$;
 
 revoke all on function public.results_plays() from public;
 grant execute on function public.results_plays() to anon;
+
+-- ---------- Presenter page ----------
+-- A passphrase guards the presenter actions. Only its salted hash is stored, in a table the public key cannot read.
+create table if not exists public.admin_secret (
+  id int primary key default 1 check (id = 1),
+  salt text not null,
+  hash text not null,
+  fails int not null default 0,
+  locked_until timestamptz
+);
+alter table public.admin_secret enable row level security;
+revoke all on public.admin_secret from anon, authenticated;
+
+-- Plays removed by a reset are kept here so the last reset can be undone.
+create table if not exists public.plays_archive (
+  run_id text not null,
+  nickname text not null,
+  ending text not null,
+  gauges jsonb not null,
+  picks jsonb not null,
+  created_at timestamptz not null,
+  archived_at timestamptz not null default now()
+);
+alter table public.plays_archive enable row level security;
+revoke all on public.plays_archive from anon, authenticated;
+
+-- Hand counts taken in class, shown next to the game results.
+create table if not exists public.class_state (
+  id int primary key default 1 check (id = 1),
+  hands_ext int,
+  hands_int int,
+  updated_at timestamptz
+);
+alter table public.class_state enable row level security;
+revoke all on public.class_state from anon, authenticated;
+
+create or replace function public.admin_hash(salt text, pin text)
+returns text language sql immutable as $$
+  select encode(sha256(convert_to(salt || pin, 'UTF8')), 'hex');
+$$;
+revoke all on function public.admin_hash(text, text) from public, anon, authenticated;
+
+-- Checks the passphrase. Five wrong tries lock the page for ten minutes.
+create or replace function public.admin_check(pin text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare s admin_secret;
+begin
+  select * into s from admin_secret where id = 1 for update;
+  if not found then return 'no_pin'; end if;
+  if s.locked_until is not null and s.locked_until > now() then return 'locked'; end if;
+  if admin_hash(s.salt, coalesce(pin, '')) = s.hash then
+    update admin_secret set fails = 0, locked_until = null where id = 1;
+    return 'ok';
+  end if;
+  update admin_secret
+    set fails = case when s.fails + 1 >= 5 then 0 else s.fails + 1 end,
+        locked_until = case when s.fails + 1 >= 5 then now() + interval '10 minutes' else null end
+    where id = 1;
+  return 'wrong';
+end;
+$$;
+revoke all on function public.admin_check(text) from public, anon, authenticated;
+
+create or replace function public.admin_status()
+returns json language sql stable security definer set search_path = public as $$
+  select json_build_object('pin_set', exists (select 1 from admin_secret), 'archived', (select count(*) from plays_archive));
+$$;
+
+-- The first visitor to the presenter page sets the passphrase. After that it can only be changed in the SQL Editor.
+create or replace function public.admin_init_pin(new_pin text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare s text := gen_random_uuid()::text;
+begin
+  if char_length(coalesce(new_pin, '')) < 6 then return 'short'; end if;
+  insert into admin_secret (id, salt, hash) values (1, s, admin_hash(s, new_pin)) on conflict (id) do nothing;
+  if not found then return 'exists'; end if;
+  return 'ok';
+end;
+$$;
+
+-- For the SQL Editor only: select public.admin_set_pin('new passphrase');
+create or replace function public.admin_set_pin(new_pin text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare s text := gen_random_uuid()::text;
+begin
+  if char_length(coalesce(new_pin, '')) < 6 then return 'short'; end if;
+  insert into admin_secret (id, salt, hash) values (1, s, admin_hash(s, new_pin))
+    on conflict (id) do update set salt = excluded.salt, hash = excluded.hash, fails = 0, locked_until = null;
+  return 'ok';
+end;
+$$;
+revoke all on function public.admin_set_pin(text) from public, anon, authenticated;
+
+create or replace function public.admin_reset_plays(pin text)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare r text := admin_check(pin); n int;
+begin
+  if r <> 'ok' then return json_build_object('ok', false, 'error', r); end if;
+  with moved as (delete from plays returning run_id, nickname, ending, gauges, picks, created_at)
+  insert into plays_archive (run_id, nickname, ending, gauges, picks, created_at)
+  select run_id, nickname, ending, gauges, picks, created_at from moved;
+  get diagnostics n = row_count;
+  return json_build_object('ok', true, 'moved', n);
+end;
+$$;
+
+create or replace function public.admin_restore_plays(pin text)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare r text := admin_check(pin); latest timestamptz; n int;
+begin
+  if r <> 'ok' then return json_build_object('ok', false, 'error', r); end if;
+  select max(archived_at) into latest from plays_archive;
+  if latest is null then return json_build_object('ok', true, 'restored', 0); end if;
+  insert into plays (run_id, nickname, ending, gauges, picks, created_at)
+  select run_id, nickname, ending, gauges, picks, created_at from plays_archive where archived_at = latest
+  on conflict (run_id) do nothing;
+  get diagnostics n = row_count;
+  delete from plays_archive where archived_at = latest;
+  return json_build_object('ok', true, 'restored', n);
+end;
+$$;
+
+create or replace function public.admin_set_hands(pin text, hands_ext int, hands_int int)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare r text := admin_check(pin);
+begin
+  if r <> 'ok' then return json_build_object('ok', false, 'error', r); end if;
+  insert into class_state (id, hands_ext, hands_int, updated_at) values (1, greatest(hands_ext, 0), greatest(hands_int, 0), now())
+    on conflict (id) do update set hands_ext = excluded.hands_ext, hands_int = excluded.hands_int, updated_at = now();
+  return json_build_object('ok', true);
+end;
+$$;
+
+-- Public totals for the results page: play counts and the hand counts.
+create or replace function public.results_extra()
+returns json language sql stable security definer set search_path = public as $$
+  select json_build_object(
+    'hands_ext', (select hands_ext from class_state where id = 1),
+    'hands_int', (select hands_int from class_state where id = 1),
+    'plays', (select count(*) from plays)
+  );
+$$;
+
+grant execute on function public.admin_status() to anon;
+grant execute on function public.admin_init_pin(text) to anon;
+grant execute on function public.admin_reset_plays(text) to anon;
+grant execute on function public.admin_restore_plays(text) to anon;
+grant execute on function public.admin_set_hands(text, int, int) to anon;
+grant execute on function public.results_extra() to anon;
+
+-- Lets the presenter page check a passphrase before showing its controls.
+create or replace function public.admin_verify(pin text)
+returns text language sql security definer set search_path = public as $$
+  select admin_check(pin);
+$$;
+grant execute on function public.admin_verify(text) to anon;

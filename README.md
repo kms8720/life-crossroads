@@ -30,19 +30,16 @@ The site has three pages.
 | --- | --- |
 | [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop or tablet. Post this link on the LMS. |
 | [Presentation](https://kms8720.github.io/life-crossroads/presentation/) | The shared screen. Five questions, decided by a show of hands. |
-| [Results](https://kms8720.github.io/life-crossroads/results/) | Compares each student's first and latest ending. Updates every five seconds. |
+| [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 14, 15, 26 and 27. Updates every five seconds. Add `?demo` to preview with sample data. |
+| [Presenter](https://kms8720.github.io/life-crossroads/admin/) | Clears the saved plays, records the hand count, and exports the charts as images. Needs the team passphrase. |
 
 ### Before the class
 
-1. **Clear the saved playthroughs right before the class starts.** Open the [SQL Editor](https://supabase.com/dashboard/project/epulzaewtbvonoestnxm/sql/new) and run:
-
-   ```sql
-   truncate table plays;
-   ```
-
-   Every finished playthrough counts, including tests, rehearsals, a preview for the professor, and students who open the link early. Any of them would be compared as someone's first play. The public key cannot delete data, so this has to be done from the dashboard.
-2. **Check that the database is awake.** After clearing, the results page should say that nobody has finished a second playthrough yet. If it stays blank, open the Supabase dashboard and restore the project if it is paused.
+1. **Clear the saved playthroughs right before the class starts.** On the presenter page, press the reset button. Every finished playthrough counts, including tests, rehearsals, a preview for the professor, and students who open the link early. Any of them would be compared as someone's first play. Reset plays are kept in an archive, so the last reset can be undone from the same page.
+2. **Check that the database is awake.** The presenter page should show the play counts. If it shows an error, open the Supabase dashboard and restore the project if it is paused.
 3. Open the presentation page and the results page in two tabs on the classroom computer. Press `F` for full screen.
+
+The first person to open the presenter page sets the team passphrase (six characters or more). To change it later, run `select public.admin_set_pin('new passphrase');` in the Supabase SQL Editor.
 
 ### During the class
 
@@ -51,6 +48,8 @@ The site has three pages.
 - **A play is saved only when the ending screen appears.** Students who stop partway are not counted.
 - **Team members should not finish a game on the student page during the class**, because it would be counted too. The presentation page never saves anything.
 - If the database is unreachable, the game still plays normally but nothing is saved, and the results page stays blank.
+- **Slide 13 hand count:** type the two numbers on the presenter page. They appear next to the game results on slide 14.
+- **Charts for the slides:** on the presenter page, press a slide number. The chart is saved as a 3840×2160 JPG and copied to the clipboard, so it can be pasted straight into the slide.
 
 On the presentation page:
 
@@ -109,7 +108,8 @@ npm run build:web     # write the site to dist/
 | `src/art.js` | SVG drawings |
 | `src/app.js` | Screens, input, and animation |
 | `src/style.css`, `src/template.html` | Styles and page shell |
-| `src/results.html` | The page comparing first and second playthroughs |
+| `src/results.html` | The charts for the talk |
+| `src/admin.html` | The presenter page |
 | `config.json` | Database address and public key |
 | `supabase/schema.sql` | Database table, access rules, and totals |
 | `build.mjs` | Validates content and merges everything into one HTML file |

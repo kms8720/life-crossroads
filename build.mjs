@@ -1,6 +1,6 @@
 // src/ + content.json + fonts/ → 더블클릭으로 열리는 HTML 한 파일.
 // 사용: node build.mjs   (content.json을 고친 뒤 다시 실행, 오프라인용 한 파일)
-//       node build.mjs --site dist   (웹 배포용: 각자 플레이, /presentation/, /results/)
+//       node build.mjs --site dist   (웹 배포용: 각자 플레이, /presentation/, /results/, /admin/)
 import { readFileSync, writeFileSync, existsSync, statSync, readdirSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -89,4 +89,5 @@ if (SITE) {
   write(join(SITE, 'index.html'), html);
   write(join(SITE, 'presentation', 'index.html'), html.replace('<html lang="ko">', '<html lang="ko" data-mode="presentation">'));
   write(join(SITE, 'results', 'index.html'), results);
+  write(join(SITE, 'admin', 'index.html'), read('src/admin.html').replace('<!--__CONFIG__-->', () => `<script type="application/json" id="game-config">${safe(config)}</script>`));
 } else write(OFFLINE, html);
