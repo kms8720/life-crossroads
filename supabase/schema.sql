@@ -70,7 +70,8 @@ grant execute on function public.results_summary() to anon;
 
 -- Each person's first and latest playthrough with their choices, for the goal charts.
 -- Names are used only to pair the two plays and are never returned.
--- One row per person: first and latest play, gender and admission year. Nicknames are filled in only for the presenter.
+-- One row per person: first and latest play. Nicknames are filled in only for the presenter.
+-- Student IDs and genders are stored with each play but never returned here.
 create or replace function public.results_people(with_names boolean)
 returns json
 language sql
@@ -84,9 +85,6 @@ as $$
       trim(nickname) as nick,
       ending,
       picks,
-      gender,
-      -- Only the admission year (e.g. '21' from 2021xxxx) leaves the table, never the student ID itself.
-      case when student_id ~ '^(19|20)[0-9]{4,}$' then substr(student_id, 3, 2) end as cohort,
       row_number() over (partition by lower(trim(nickname)) order by created_at asc, id asc) as first_rank,
       row_number() over (partition by lower(trim(nickname)) order by created_at desc, id desc) as last_rank,
       count(*) over (partition by lower(trim(nickname))) as total
@@ -95,8 +93,6 @@ as $$
   select coalesce(json_agg(json_build_object(
     'first', json_build_object('ending', f.ending, 'picks', f.picks),
     'last', case when f.total >= 2 then json_build_object('ending', l.ending, 'picks', l.picks) end,
-    'gender', coalesce(f.gender, l.gender),
-    'cohort', coalesce(f.cohort, l.cohort),
     'name', case when with_names then f.nick end
   ) order by random()), '[]'::json)
   from ranked f

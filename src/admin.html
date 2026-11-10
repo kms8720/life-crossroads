@@ -79,7 +79,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
     <h2>3. 결과 그래프 사진으로 내보내기</h2>
     <p class="desc">번호를 누르면 그 장이 미리보기에 뜨고 클립보드에 복사돼요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣은 뒤 슬라이드 전체 크기로 맞추면 됩니다. JPG 파일이 필요하면 저장 버튼을 누르세요. 슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다.</p>
     <div class="row"><span class="row-label">복사</span><span id="jpg-btns"></span></div>
-    <div class="row" style="margin-top:10px"><span class="row-label">저장</span><button id="save-cur">15번 JPG 저장</button><button class="primary" id="jpg-all">6장 모두 JPG 저장</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
+    <div class="row" style="margin-top:10px"><span class="row-label">저장</span><button id="save-cur">15번 JPG 저장</button><button class="primary" id="jpg-all">5장 모두 JPG 저장</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
     <div class="preview" id="preview"><iframe id="frame" title="결과 그래프 미리보기"></iframe></div>
     <div class="msg" id="jpg-msg"></div>
   </section>
@@ -175,7 +175,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   });
 
   // ---------- 그래프 미리보기와 JPG ----------
-  const SLIDES = [15, 16, 17, 23, 26, 27];
+  const SLIDES = [15, 16, 17, 26, 27];
   let curSlide = SLIDES[0];
   const frame = $('#frame');
   function fitFrame() { frame.style.transform = `scale(${$('#preview').clientWidth / 1920})`; }
@@ -185,7 +185,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}&n=${++loads}#${slide || curSlide || 15}`; }
   addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
   $('#demo').addEventListener('change', () => reloadFrame());
-  // 토론 전(15·16·17·23)과 토론 후(26·27) 사이에 작은 틈을 둔다.
+  // 토론 전(15·16·17)과 토론 후(26·27) 사이에 작은 틈을 둔다.
   $('#jpg-btns').innerHTML = SLIDES.map((n, i) => `${i && n >= 26 && SLIDES[i - 1] < 26 ? '<span class="btn-gap"></span>' : ''}<button data-jpg="${n}">${n}번</button> `).join('');
   const busy = on => document.querySelectorAll('#c-jpg button').forEach(b => { b.disabled = on; });
   const demoNote = () => $('#demo').checked ? ' (가상 데이터)' : '';
