@@ -398,6 +398,8 @@ body.embed #nav { display: none !important; }
   const NEAR = 3;
   const side = (p, base = 50) => p - base > NEAR ? 1 : base - p > NEAR ? -1 : 0;
   const HERE = '이 장';
+  // 17번(나이대) 결과로 갈래가 정해지는 뒤쪽 장들의 노트. 덱 번호가 바뀌면 여기만 고친다.
+  const AGE_NEXT = '18번 슬라이드 · 목표의 종류와 행복 (첫 장)', AGE_BOOK = '20번 슬라이드 · 김희삼 「행복 공부」 장';
   const signed = v => v > 0 ? `+${v}` : v < 0 ? `−${-v}` : '0';
   function scriptShare(s) {
     if (!s.people) return null;
@@ -471,7 +473,7 @@ body.embed #nav { display: none !important; }
     ][g + 1];
     return {
       facts: `외적 목표 비율 청년기 ${py}% → 노년기 ${po}% (${signed(po - py)}%p) · 노년기에도 외적을 고른 사람 ${s.oldExt}명`,
-      blocks: [{ where: HERE, when, text: here }, { where: '다음 장 · 목표의 종류와 행복 (첫 장)', when, text: next }, { where: '김희삼 교수님 「행복 공부」 장', when, text: book }],
+      blocks: [{ where: HERE, when, text: here }, { where: AGE_NEXT, when, text: next }, { where: AGE_BOOK, when, text: book }],
     };
   }
   function scriptEndings(s) {
