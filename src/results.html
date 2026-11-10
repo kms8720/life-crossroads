@@ -390,8 +390,8 @@ body.embed #nav { display: none !important; }
     { slide: 15, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare },
     { slide: 16, title: '게임의 게이지 그래프', sub: '나이에 따른 외적/내적 선택의 누적', draw: viewDots },
     { slide: 17, title: '게임의 게이지 그래프', sub: '나이대에 따른 내적/외적 목표 변화 그래프', draw: viewAge },
-    { slide: 26, title: '결과 그래프', sub: '토론 전/후 엔딩의 차이', draw: viewEndings },
-    { slide: 27, title: '결과 그래프', sub: '토론 전/후 내적/외적 목표 비율 변화', draw: viewShift },
+    { slide: 26, title: '결과 그래프', sub: '1&2차 게임 전후 엔딩의 차이', draw: viewEndings },
+    { slide: 27, title: '결과 그래프', sub: '1&2차 게임 전후 내적/외적 목표 비율 변화', draw: viewShift },
   ];
   const viewIndex = slide => VIEWS.findIndex(v => String(v.slide) === String(slide));
   let cur = Math.max(0, viewIndex(decodeURIComponent(location.hash.slice(1)))), last = null, extra = {}, status = '';

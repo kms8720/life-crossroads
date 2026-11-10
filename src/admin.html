@@ -185,7 +185,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}&n=${++loads}#${slide || curSlide || 15}`; }
   addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
   $('#demo').addEventListener('change', () => reloadFrame());
-  // 토론 전(15·16·17)과 토론 후(26·27) 사이에 작은 틈을 둔다.
+  // 1차 게임(15·16·17)과 1&2차 게임 비교(26·27) 사이에 작은 틈을 둔다.
   $('#jpg-btns').innerHTML = SLIDES.map((n, i) => `${i && n >= 26 && SLIDES[i - 1] < 26 ? '<span class="btn-gap"></span>' : ''}<button data-jpg="${n}">${n}번</button> `).join('');
   const busy = on => document.querySelectorAll('#c-jpg button').forEach(b => { b.disabled = on; });
   const demoNote = () => $('#demo').checked ? ' (가상 데이터)' : '';
