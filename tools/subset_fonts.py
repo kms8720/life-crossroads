@@ -44,7 +44,9 @@ def collect_chars():
                 chars.add(ch)
         except UnicodeEncodeError:
             pass
-    for p in [ROOT / "content.json", *sorted((ROOT / "src").glob("*"))]:
+    # src/ 바로 아래의 텍스트 파일만 읽는다 (src/icons 같은 폴더·그림 파일은 건너뛴다).
+    texts = [p for p in sorted((ROOT / "src").glob("*")) if p.is_file() and p.suffix in (".html", ".js", ".css", ".svg", ".json")]
+    for p in [ROOT / "content.json", *texts]:
         chars |= set(p.read_text(encoding="utf-8"))
     return sorted(c for c in chars if c.isprintable())
 

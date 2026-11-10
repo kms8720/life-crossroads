@@ -79,6 +79,11 @@ svg.dots { display: block; margin-top: 18px; overflow: visible; }
 .dots .age-label { font-family: var(--display); font-size: 32px; fill: var(--ink); }
 .dots .era { font: 500 20px var(--sans); fill: var(--muted); }
 .dots .count { font-family: var(--display); font-size: 30px; }
+.dots .grid { stroke: #E6DFD2; stroke-width: 2; stroke-dasharray: 6 8; }
+.dots .path { fill: none; stroke: #6D4C41; stroke-width: 2.4; stroke-opacity: .2; }
+.dots .trend-halo { fill: none; stroke: var(--bg); stroke-width: 15; stroke-linecap: round; stroke-opacity: .9; }
+.dots .trend { fill: none; stroke: #3E2723; stroke-width: 6; stroke-linecap: round; }
+.legend svg { vertical-align: -6px; margin-right: 10px; }
 
 /* 엔딩 */
 .two { display: grid; grid-template-columns: 560px 1fr; gap: 70px; height: 100%; }
@@ -161,6 +166,7 @@ body.embed #nav { display: none !important; }
   const STAGES = DEMO && !ready ? DEMO_STAGES : DATA.stages, ENDINGS = DEMO && !ready ? DEMO_ENDINGS : DATA.endings;
   const goalOf = Object.fromEntries(STAGES.map(s => [s.id, s.goals]));
   const periodOf = Object.fromEntries(STAGES.map(s => [s.id, PERIODS.find(p => s.age < p.max).key]));
+  const SPLIT = STAGES.filter(st => st.goals[0] && st.goals[1]); // 외적·내적이 갈리는 질문만
   const famLabels = f => DATA.dims.filter(d => d.family === f).map(d => d.label).join(' · ') || (f === 'extrinsic' ? '돈 · 인정' : '관계 · 건강');
 
   function demoPlays() {
@@ -193,7 +199,8 @@ body.embed #nav { display: none !important; }
       people: people.length, pairs: pairs.length, first: sum(first), second: sum(pairs.map(p => p.last)), firstOfPairs: sum(pairs.map(p => p.first)),
       periods: PERIODS.map(p => ({ ...p, ...sum(first, p.key) })),
       oldExt: first.filter(pl => goalCount(pl, 'old').extrinsic > 0).length,
-      ages: STAGES.filter(st => st.goals[0] && st.goals[1]).map(st => {
+      paths: first.map(pl => SPLIT.map(st => { const p = (pl.picks || []).find(x => x.stage === st.id), g = p && goalOf[st.id][p.opt]; return g ? (g === 'extrinsic' ? 1 : -1) : null; })),
+      ages: SPLIT.map(st => {
         const c = { extrinsic: 0, intrinsic: 0 };
         for (const pl of first) { const p = (pl.picks || []).find(x => x.stage === st.id), g = p && goalOf[st.id][p.opt]; if (g) c[g]++; }
         return { age: st.age, era: st.era || '', ...c };
@@ -240,31 +247,69 @@ body.embed #nav { display: none !important; }
     svg.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--ext-ink)" stroke-width="3" stroke-dasharray="10 10" opacity=".6"/>${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="var(--bg)" stroke="var(--ext-ink)" stroke-width="3"/>`).join('')}` : '';
   }
 
-  // 15-1: 가로는 나이, 0선 위는 외적·아래는 내적 선택. 점 하나가 한 사람의 1차 선택 하나다.
-  // 점 크기와 한 줄에 놓는 개수는 가장 많은 쪽에 맞춰 모든 나이에 똑같이 써서, 쌓인 높이로 바로 비교할 수 있게 한다.
+  // ---------- 굵은 선: 외적 +1, 내적 −1로 놓고 모든 선택과의 오차 제곱(RMSE)이 가장 작은 다항식 ----------
+  // 차수를 올릴수록 RMSE는 계속 줄지만 나이별 평균을 그대로 꿰는 구불구불한 선이 된다. 그래서 한 사람씩 빼고 맞춰 본
+  // 예측 RMSE(교차검증)가 가장 작은 차수(1~3차)를 고른 뒤, 그 차수로 모든 점에 대해 RMSE가 최소인 곡선을 구한다.
+  function polyFit(pts, deg) {
+    const n = deg + 1, A = Array.from({ length: n }, () => Array(n + 1).fill(0));
+    for (const [t, y] of pts) { const p = Array.from({ length: n }, (_, i) => t ** i); for (let i = 0; i < n; i++) { for (let j = 0; j < n; j++) A[i][j] += p[i] * p[j]; A[i][n] += p[i] * y; } }
+    for (let i = 0; i < n; i++) {
+      let m = i; for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[m][i])) m = r;
+      [A[i], A[m]] = [A[m], A[i]]; if (Math.abs(A[i][i]) < 1e-12) return null;
+      for (let r = 0; r < n; r++) if (r !== i) { const f = A[r][i] / A[i][i]; for (let c = i; c <= n; c++) A[r][c] -= f * A[i][c]; }
+    }
+    return A.map((row, i) => row[n] / row[i]);
+  }
+  const polyAt = (c, t) => c.reduce((sum, a, i) => sum + a * t ** i, 0);
+  function trendOf(paths, ages) {
+    const T = a => (a - 40) / 25, ptsOf = list => list.flatMap(v => v.map((y, k) => y == null ? null : [T(ages[k]), y]).filter(Boolean));
+    const all = ptsOf(paths), maxDeg = Math.min(3, new Set(ages).size - 1);
+    if (all.length < 3 || maxDeg < 1) return null;
+    let deg = Math.min(2, maxDeg), cv = null;
+    if (paths.length >= 4) {
+      for (let d = 1; d <= maxDeg; d++) {
+        let se = 0, n = 0;
+        for (let i = 0; i < paths.length && se < Infinity; i++) { const c = polyFit(ptsOf(paths.filter((_, j) => j !== i)), d); if (!c) { se = Infinity; break; } for (const [t, y] of ptsOf([paths[i]])) { se += (polyAt(c, t) - y) ** 2; n++; } }
+        const e = n ? Math.sqrt(se / n) : Infinity;
+        if (cv == null || e < cv - 1e-9) { cv = e; deg = d; }
+      }
+    }
+    const c = polyFit(all, deg); if (!c) return null;
+    return { deg, c, rmse: Math.sqrt(all.reduce((sum, [t, y]) => sum + (polyAt(c, t) - y) ** 2, 0) / all.length), at: a => polyAt(c, T(a)) };
+  }
+
+  // 15-1: 가로는 나이, 위(+1)는 외적·아래(−1)는 내적 선택. 점 하나가 한 사람의 1차 선택 하나다.
+  // 사람마다 고정된 자리(외적을 많이 고른 사람일수록 위)가 있어서, 한 사람의 점은 늘 같은 높이에 찍히고
+  // 그 점들을 부드러운 선으로 잇는다. 그대로면 수평선, 외적↔내적을 오가면 S자 곡선이 된다.
   function viewDots(s) {
     if (!s.people) return empty('1차 플레이가 끝나면 여기에 나타나요.');
-    const cols = s.ages;
+    const cols = s.ages, paths = s.paths, ages = cols.map(c => c.age), N = paths.length;
     if (!cols.length) return empty('외적·내적이 갈리는 질문이 없어요.');
-    const W = 1748, H = 546, L = 190, R = 40, T = 46, B = 104, yc = T + (H - T - B) / 2, half = (H - T - B) / 2 - 38, g = 5;
+    const W = 1748, H = 546, L = 200, R = 120, T = 46, B = 104, J = .42, gap = 3;
+    const yc = T + (H - T - B) / 2, A = ((H - T - B) / 2 - 36) / (1 + J), band = 2 * J * A, yv = v => yc - v * A;
     const amin = 10, amax = 68, x = a => L + (a - amin) / (amax - amin) * (W - L - R);
-    const room = Math.min(260, ...cols.slice(1).map((c, i) => x(c.age) - x(cols[i].age))) - 18;
-    const M = Math.max(1, ...cols.map(c => Math.max(c.extrinsic, c.intrinsic)));
-    let d = 10, per = Math.ceil(M / Math.max(1, Math.floor(half / (10 + g))));
-    for (let dd = 30; dd >= 10; dd -= 2) { const n = Math.ceil(M / Math.max(1, Math.floor(half / (dd + g)))); if (n * (dd + g) - g <= room) { d = dd; per = n; break; } }
+    const room = Math.min(260, ...cols.slice(1).map((c, i) => x(c.age) - x(cols[i].age))) - 22;
+    // 자리 배치: 띠 높이에 들어가는 줄 수와 칸 수를 사람 수에 맞춰 고른다.
+    let d = 6, K = Math.ceil(N / Math.max(1, Math.floor(band / (6 + gap))));
+    for (let dd = 16; dd >= 6; dd -= 1) { const k = Math.ceil(N / Math.max(1, Math.floor(band / (dd + gap)))); if (k * (dd + gap) - gap <= room) { d = dd; K = k; break; } }
+    const rows = Math.ceil(N / K), score = v => v.reduce((t, y) => t + (y || 0), 0);
+    const rank = []; paths.map((v, i) => [i, score(v)]).sort((a, b) => b[1] - a[1] || a[0] - b[0]).forEach(([i], r) => { rank[i] = r; });
+    const seat = i => { const r = rank[i], row = Math.floor(r / K), inRow = Math.min(K, N - row * K), col = r % K; return { dx: (col - (inRow - 1) / 2) * (d + gap), dy: rows > 1 ? (.5 - row / (rows - 1)) * band : 0 }; };
+    const pos = (i, k) => { const v = paths[i][k]; if (v == null) return null; const st = seat(i); return [x(ages[k]) + st.dx, yv(v) - st.dy]; };
+    // 한 사람의 선: 점마다 기울기 0으로 잇는 3차 곡선 (같은 쪽이면 수평, 바뀌면 부드러운 S자)
+    const smooth = pts => pts.map(([px, py], k) => { if (!k) return `M${px.toFixed(1)} ${py.toFixed(1)}`; const [qx, qy] = pts[k - 1], h = (px - qx) / 2; return `C${(qx + h).toFixed(1)} ${qy.toFixed(1)} ${(px - h).toFixed(1)} ${py.toFixed(1)} ${px.toFixed(1)} ${py.toFixed(1)}`; }).join('');
+    const lines = paths.map((v, i) => { const pts = v.map((_, k) => pos(i, k)).filter(Boolean); return pts.length > 1 ? `<path class="path" d="${smooth(pts)}"/>` : ''; }).join('');
+    const dots = paths.map((v, i) => v.map((y, k) => { const p = pos(i, k); return p ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${d / 2}" fill="${y > 0 ? 'var(--ext)' : 'var(--int)'}"/>` : ''; }).join('')).join('');
+    const tr = trendOf(paths, ages); // 굵은 선
+    let trend = '';
+    if (tr) {
+      const pts = []; for (let a = ages[0]; a <= ages.at(-1) + 1e-9; a += .5) pts.push([x(a), yv(Math.max(-1 - J, Math.min(1 + J, tr.at(a))))]);
+      const dpath = pts.map(([px, py], k) => `${k ? 'L' : 'M'}${px.toFixed(1)} ${py.toFixed(1)}`).join('');
+      trend = `<g><title>RMSE가 가장 작은 ${tr.deg}차 곡선 (RMSE ${tr.rmse.toFixed(2)}): ${cols.map(c => `${c.age}세 ${tr.at(c.age).toFixed(2)}`).join(', ')}</title><path class="trend-halo" d="${dpath}"/><path class="trend" d="${dpath}"/></g>`;
+    }
     const bands = [['청년기', amin, 30], ['중년기', 30, 50], ['노년기', 50, amax]].map(([name, a, b], k) =>
       `${k % 2 ? '' : `<rect class="band" x="${x(a)}" y="${T - 6}" width="${x(b) - x(a)}" height="${H - B - T + 6}" rx="14"/>`}<text class="band-label" x="${x(a) + 18}" y="${T - 16}">${name}</text>`).join('');
-    const stack = (c, side) => {
-      const n = c[side], up = side === 'extrinsic', color = up ? 'var(--ext)' : 'var(--int)', cx = x(c.age);
-      let dots = '';
-      for (let k = 0; k < n; k++) {
-        const row = Math.floor(k / per), inRow = Math.min(per, n - row * per), col = k % per;
-        const px = cx + (col - (inRow - 1) / 2) * (d + g), py = yc + (up ? -1 : 1) * (8 + d / 2 + row * (d + g));
-        dots += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${d / 2}" fill="${color}"/>`;
-      }
-      const rows = Math.ceil(n / per), tip = yc + (up ? -1 : 1) * (8 + rows * (d + g) + (up ? 12 : 34));
-      return `<g><title>${c.age}세 ${esc(c.era)} · ${up ? '외적' : '내적'} ${n}명</title>${dots}<text class="count" x="${cx}" y="${tip}" text-anchor="middle" fill="${up ? 'var(--ext-ink)' : 'var(--int-ink)'}">${n}</text></g>`;
-    };
+    const counts = cols.map(c => `<g><title>${c.age}세 ${esc(c.era)} · 외적 ${c.extrinsic}명, 내적 ${c.intrinsic}명</title><text class="count" x="${x(c.age)}" y="${yv(1 + J) - 12}" text-anchor="middle" fill="var(--ext-ink)">${c.extrinsic}</text><text class="count" x="${x(c.age)}" y="${yv(-1 - J) + 34}" text-anchor="middle" fill="var(--int-ink)">${c.intrinsic}</text></g>`).join('');
     // 시기 이름이 이웃 칸까지 닿을 만큼 길면(43·47세) 두 줄로 나눠 겹치지 않게 한다.
     const eraLabel = (c, i) => {
       const near = Math.min(i ? x(c.age) - x(cols[i - 1].age) : 999, i < cols.length - 1 ? x(cols[i + 1].age) - x(c.age) : 999), w = c.era.split(' ');
@@ -273,14 +318,18 @@ body.embed #nav { display: none !important; }
     };
     const svg = `<svg class="dots" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="나이별 외적·내적 선택: ${cols.map(c => `${c.age}세 외적 ${c.extrinsic}명 내적 ${c.intrinsic}명`).join(', ')}">
       ${bands}${cols.map(c => `<line class="guide" x1="${x(c.age)}" x2="${x(c.age)}" y1="${T}" y2="${H - B}"/>`).join('')}
-      <line class="zero" x1="${L - 20}" x2="${W - R}" y1="${yc}" y2="${yc}"/>
-      <text class="ylab" x="${L - 34}" y="${yc - half / 2 + 9}" text-anchor="end" fill="var(--ext-ink)">외적 ↑</text>
-      <text class="ylab" x="${L - 34}" y="${yc + half / 2 + 9}" text-anchor="end" fill="var(--int-ink)">내적 ↓</text>
-      ${cols.map(c => stack(c, 'extrinsic') + stack(c, 'intrinsic')).join('')}
+      <line class="grid" x1="${L - 20}" x2="${W - R + 60}" y1="${yv(1)}" y2="${yv(1)}"/><line class="grid" x1="${L - 20}" x2="${W - R + 60}" y1="${yv(-1)}" y2="${yv(-1)}"/>
+      <line class="zero" x1="${L - 20}" x2="${W - R + 60}" y1="${yc}" y2="${yc}"/>
+      <text class="ylab" x="${L - 34}" y="${yv(1) + 9}" text-anchor="end" fill="var(--ext-ink)">외적 +1</text>
+      <text class="ylab" x="${L - 34}" y="${yc + 9}" text-anchor="end" fill="var(--muted)">0</text>
+      <text class="ylab" x="${L - 34}" y="${yv(-1) + 9}" text-anchor="end" fill="var(--int-ink)">내적 −1</text>
+      ${lines}${dots}${trend}${counts}
       ${cols.map((c, i) => `<text class="age-label" x="${x(c.age)}" y="${H - B + 38}" text-anchor="middle">${c.age}세</text>${eraLabel(c, i)}`).join('')}</svg>`;
     const left = STAGES.filter(st => !st.goals[0]).map(st => `${st.age}`);
-    return `<div class="dots-wrap"><div class="legend"><span><i class="dot" style="background:var(--ext)"></i>외적 목표<small>${esc(famLabels('extrinsic'))}</small></span><span><i class="dot" style="background:var(--int)"></i>내적 목표<small>${esc(famLabels('intrinsic'))}</small></span><span class="unit">점 1개 = 한 사람의 선택 1개</span></div>${svg}</div>
-      <div class="foot">1차 플레이 ${s.people}명의 선택입니다.${left.length ? ` 두 선택지가 모두 내적인 ${left.join('·')}세 질문은 뺐어요.` : ''}</div>`;
+    const lineIcon = (w, color, op) => `<svg width="46" height="20" viewBox="0 0 46 20"><path d="M2 16C16 16 30 4 44 4" fill="none" stroke="${color}" stroke-width="${w}" stroke-opacity="${op}" stroke-linecap="round"/></svg>`;
+    return `<div class="dots-wrap"><div class="legend"><span><i class="dot" style="background:var(--ext)"></i>외적 목표<small>${esc(famLabels('extrinsic'))}</small></span><span><i class="dot" style="background:var(--int)"></i>내적 목표<small>${esc(famLabels('intrinsic'))}</small></span>
+        <span>${lineIcon(3, '#6D4C41', .45)}한 사람의 선택 흐름</span><span class="unit">점 1개 = 한 사람의 선택 1개</span></div>${svg}</div>
+      <div class="foot">1차 플레이 ${s.people}명.${tr ? ` 굵은 선은 외적 +1, 내적 −1로 놓고 모든 점과의 RMSE가 가장 작은 ${tr.deg}차 곡선이에요 (RMSE ${tr.rmse.toFixed(2)}).` : ''}${left.length ? ` 두 선택지가 모두 내적인 ${left.join('·')}세 질문은 뺐어요.` : ''}</div>`;
   }
 
   function viewEndings(s) {
@@ -324,7 +373,7 @@ body.embed #nav { display: none !important; }
   function table(s) {
     const row = (...c) => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
     return `<b>표로 보기</b> (T로 닫기)<table><tr><th></th><th>외적</th><th>내적</th></tr>${row('1차 전체', s.first.extrinsic, s.first.intrinsic)}${s.periods.map(p => row(p.name, p.extrinsic, p.intrinsic)).join('')}${row('2차 (두 번 한 사람)', s.second.extrinsic, s.second.intrinsic)}</table>
-      <table><tr><th>나이 (15-1)</th><th>외적</th><th>내적</th></tr>${s.ages.map(c => row(`${c.age}세 ${esc(c.era)}`, c.extrinsic, c.intrinsic)).join('')}</table>
+      ${(() => { const tr = trendOf(s.paths, s.ages.map(c => c.age)); return `<table><tr><th>나이 (15-1)</th><th>외적</th><th>내적</th><th>평균 (+1~−1)</th><th>굵은 선${tr ? ` (${tr.deg}차, RMSE ${tr.rmse.toFixed(3)})` : ''}</th></tr>${s.ages.map(c => row(`${c.age}세 ${esc(c.era)}`, c.extrinsic, c.intrinsic, c.extrinsic + c.intrinsic ? ((c.extrinsic - c.intrinsic) / (c.extrinsic + c.intrinsic)).toFixed(2) : '-', tr ? tr.at(c.age).toFixed(2) : '-')).join('')}</table>`; })()}
       <table><tr><th>엔딩</th><th>1차</th><th>2차</th></tr>${ENDINGS.map(e => row(esc(e.label), s.before[e.key], s.after[e.key])).join('')}</table>
       <table>${row('1차 플레이', `${s.people}명`)}${row('두 번 플레이', `${s.pairs}명`)}${row('엔딩 바뀜', `${s.changed}명`)}${row('내적 쪽 / 그대로 / 외적 쪽', `${s.shift.toInt} / ${s.shift.same} / ${s.shift.toExt}`)}${row('노년기 외적 선택', `${s.oldExt}명`)}</table>`;
   }
