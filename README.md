@@ -35,7 +35,7 @@ The site has three pages.
 | --- | --- |
 | [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop, tablet, or phone. Post this link on the LMS. |
 | [Presentation](https://kms8720.github.io/life-crossroads/presentation/) | The shared screen. Five questions, decided by a show of hands. |
-| [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 14, 15, 26 and 27, plus 15-1 (every first-play choice as a dot by age). Updates every five seconds. Add `?demo` to preview with sample data. |
+| [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 15, 16, 17, 23, 26 and 27. Updates every five seconds. Add `?demo` to preview with sample data. |
 | [Presenter](https://kms8720.github.io/life-crossroads/admin/) | Clears the saved plays, records the hand count, and exports the charts as images. Needs the team passphrase. |
 
 ### Before the class
@@ -54,7 +54,7 @@ The first person to open the presenter page sets the team passphrase (six charac
 - **A play is saved only when the ending screen appears.** Students who stop partway are not counted.
 - **Team members should not finish a game on the student page during the class**, because it would be counted too. The presentation page never saves anything.
 - If the database is unreachable, the game still plays normally but nothing is saved, and the results page stays blank.
-- **Slide 13 hand count:** type the two numbers on the presenter page. They appear next to the game results on slide 14.
+- **Slide 13 hand count:** type the two numbers on the presenter page. They appear next to the game results on slide 15.
 - **Charts for the slides:** on the presenter page, press a slide number. The chart is copied to the clipboard as a 3840×2160 image, so it can be pasted straight into the slide. To get JPG files instead, use the save buttons below the numbers.
 
 On the presentation page:

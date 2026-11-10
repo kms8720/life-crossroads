@@ -82,6 +82,9 @@ as $$
       lower(trim(nickname)) as who,
       ending,
       picks,
+      gender,
+      -- Only the admission year (e.g. '21' from 2021xxxx) leaves the table, never the student ID itself.
+      case when student_id ~ '^(19|20)[0-9]{4,}$' then substr(student_id, 3, 2) end as cohort,
       row_number() over (partition by lower(trim(nickname)) order by created_at asc, id asc) as first_rank,
       row_number() over (partition by lower(trim(nickname)) order by created_at desc, id desc) as last_rank,
       count(*) over (partition by lower(trim(nickname))) as total
@@ -89,7 +92,9 @@ as $$
   )
   select coalesce(json_agg(json_build_object(
     'first', json_build_object('ending', f.ending, 'picks', f.picks),
-    'last', case when f.total >= 2 then json_build_object('ending', l.ending, 'picks', l.picks) end
+    'last', case when f.total >= 2 then json_build_object('ending', l.ending, 'picks', l.picks) end,
+    'gender', coalesce(f.gender, l.gender),
+    'cohort', coalesce(f.cohort, l.cohort)
   ) order by random()), '[]'::json)
   from ranked f
   join ranked l on l.who = f.who and l.last_rank = 1

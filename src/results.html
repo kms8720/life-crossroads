@@ -87,6 +87,14 @@ svg.dots { display: block; margin-top: 18px; overflow: visible; }
 .dots .hl-halo { fill: none; stroke: var(--bg); stroke-width: 11; stroke-linecap: round; stroke-linejoin: round; stroke-opacity: .85; }
 .dots .hl { fill: none; stroke-width: 5.5; stroke-linecap: round; stroke-linejoin: round; }
 .legend svg { vertical-align: -6px; margin-right: 10px; }
+.dots .panel-title { font: 700 27px var(--sans); fill: var(--ink-2); }
+.dots .box { fill: #F3EADF; stroke: #6D4C41; stroke-width: 3; }
+.dots .med { stroke: #3E2723; stroke-width: 5; stroke-linecap: round; }
+.dots .whisker { stroke: #6D4C41; stroke-width: 3; }
+.dots .group-label { font-family: var(--display); font-size: 34px; fill: var(--ink); }
+.dots .group-n { font: 500 21px var(--sans); fill: var(--muted); }
+.dots .note-text { font: 500 22px var(--sans); fill: var(--muted); }
+.dots .val { font-family: var(--display); font-size: 30px; fill: var(--ink); }
 
 /* 엔딩 */
 .two { display: grid; grid-template-columns: 560px 1fr; gap: 70px; height: 100%; }
@@ -181,7 +189,7 @@ body.embed #nav { display: none !important; }
       const pool = ENDINGS.filter(e => e.family === fam);
       return { ending: (pool.length ? pool[Math.floor(r() * pool.length)] : ENDINGS.at(-1)).key, picks };
     };
-    return Array.from({ length: 38 }, (_, i) => { const lean = .3 + r() * .35; return { first: play(lean, .1), last: i < 34 ? play(lean + .13 * r(), .12) : null }; });
+    return Array.from({ length: 38 }, (_, i) => { const lean = .3 + r() * .35; return { first: play(lean, .1), last: i < 34 ? play(lean + .13 * r(), .12) : null, gender: r() < .5 ? 'm' : 'f', cohort: ['21', '22', '23', '24', '25'][Math.floor(r() * 5)] }; });
   }
 
   // ---------- 집계 ----------
@@ -202,6 +210,7 @@ body.embed #nav { display: none !important; }
       people: people.length, pairs: pairs.length, first: sum(first), second: sum(pairs.map(p => p.last)), firstOfPairs: sum(pairs.map(p => p.first)),
       periods: PERIODS.map(p => ({ ...p, ...sum(first, p.key) })),
       oldExt: first.filter(pl => goalCount(pl, 'old').extrinsic > 0).length,
+      who: people.map(p => { const c = goalCount(p.first); return { score: c.extrinsic - c.intrinsic, gender: p.gender === 'm' || p.gender === 'f' ? p.gender : null, cohort: p.cohort || null }; }),
       paths: first.map(pl => SPLIT.map(st => { const p = (pl.picks || []).find(x => x.stage === st.id), g = p && goalOf[st.id][p.opt]; return g ? (g === 'extrinsic' ? 1 : -1) : null; })),
       ages: SPLIT.map(st => {
         const c = { extrinsic: 0, intrinsic: 0 };
@@ -341,6 +350,57 @@ body.embed #nav { display: none !important; }
       <div class="foot">1차 플레이 ${s.people}명.${tr ? ` 굵은 선은 모든 사람의 누적합과의 RMSE가 가장 작은 ${tr.deg}차 곡선이에요 (RMSE ${tr.rmse.toFixed(2)}).` : ''}${left.length ? ` 두 선택지가 모두 내적인 ${left.join('·')}세 질문은 뺐어요.` : ''}</div>`;
   }
 
+  // 23: 사람마다 1차 플레이의 (외적 − 내적) 선택 수(−7~+7, 16번 누적합의 끝값)를 성별 박스플롯과 학번(입학년도)별 평균 막대로 본다.
+  const quantile = (sorted, q) => { const p = (sorted.length - 1) * q, lo = Math.floor(p), hi = Math.ceil(p); return sorted[lo] + (sorted[hi] - sorted[lo]) * (p - lo); };
+  const fmt = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(Math.round(v * 10) / 10)}`;
+  function viewGroups(s) {
+    if (!s.people) return empty('1차 플레이가 끝나면 여기에 나타나요.');
+    const Q = SPLIT.length || 7, who = s.who, W = 1748, H = 560, T = 70, B = 96, L = 150, mid = 800, R = 30;
+    const yc = T + (H - T - B) / 2, unit = (H - T - B) / 2 / (Q + .6), yv = v => yc - v * unit;
+    const dotColor = v => v > 0 ? 'var(--ext)' : v < 0 ? 'var(--int)' : 'var(--same)';
+    const step = Q > 4 ? 2 : 1, ticks = []; for (let v = -Q; v <= Q; v++) if (v % step === 0) ticks.push(v);
+    const axis = ticks.map(v => `${v ? `<line class="grid" x1="${L - 10}" x2="${W - R}" y1="${yv(v)}" y2="${yv(v)}"/>` : ''}<text class="tick" x="${L - 22}" y="${yv(v) + 9}" text-anchor="end" fill="${v > 0 ? 'var(--ext-ink)' : v < 0 ? 'var(--int-ink)' : 'var(--muted)'}">${fmt(v)}</text>`).join('')
+      + `<line class="zero" x1="${L - 10}" x2="${W - R}" y1="${yc}" y2="${yc}"/><text class="ylab" x="${L - 70}" y="${yv(Q) + 9}" text-anchor="end" fill="var(--ext-ink)">외적 ↑</text><text class="ylab" x="${L - 70}" y="${yv(-Q) + 9}" text-anchor="end" fill="var(--int-ink)">내적 ↓</text>`;
+    // 왼쪽: 성별 박스플롯 (상자 = 사분위, 굵은 선 = 중앙값, 수염 = 1.5×IQR 안의 최소·최대, 점 = 한 사람)
+    const groups = [['m', '남자'], ['f', '여자']].map(([g, name]) => ({ name, vals: who.filter(w => w.gender === g).map(w => w.score).sort((a, b) => a - b) }));
+    const gw = (mid - L - 40) / groups.length;
+    let left = `<text class="panel-title" x="${L}" y="${T - 34}">성별에 따라</text>`;
+    if (!groups.some(g => g.vals.length)) left += `<text class="note-text" x="${(L + mid) / 2}" y="${yc - 40}" text-anchor="middle">성별을 고른 플레이가 아직 없어요</text>`;
+    groups.forEach((g, i) => {
+      const cx = L + 20 + gw * (i + .5), n = g.vals.length;
+      left += `<text class="group-label" x="${cx}" y="${H - B + 42}" text-anchor="middle">${g.name}</text><text class="group-n" x="${cx}" y="${H - B + 72}" text-anchor="middle">${n}명</text>`;
+      if (!n) return;
+      const q1 = quantile(g.vals, .25), med = quantile(g.vals, .5), q3 = quantile(g.vals, .75), iqr = q3 - q1;
+      const lo = g.vals.find(v => v >= q1 - 1.5 * iqr), hi = [...g.vals].reverse().find(v => v <= q3 + 1.5 * iqr), bw = Math.min(170, gw * .55);
+      left += `<g><title>${g.name} ${n}명 · 중앙값 ${fmt(med)} · 사분위 ${fmt(q1)} ~ ${fmt(q3)} · 평균 ${fmt(g.vals.reduce((a, b) => a + b, 0) / n)}</title>
+        <line class="whisker" x1="${cx}" x2="${cx}" y1="${yv(hi)}" y2="${yv(q3)}"/><line class="whisker" x1="${cx}" x2="${cx}" y1="${yv(q1)}" y2="${yv(lo)}"/>
+        <line class="whisker" x1="${cx - bw / 4}" x2="${cx + bw / 4}" y1="${yv(hi)}" y2="${yv(hi)}"/><line class="whisker" x1="${cx - bw / 4}" x2="${cx + bw / 4}" y1="${yv(lo)}" y2="${yv(lo)}"/>
+        <rect class="box" x="${cx - bw / 2}" y="${yv(q3)}" width="${bw}" height="${Math.max(3, yv(q1) - yv(q3))}" rx="8"/></g>`;
+      // 점: 같은 값끼리 가로로 늘어놓는다 (점 하나 = 한 사람). 중앙값 선은 점 위에 그린다.
+      const byVal = {}; g.vals.forEach(v => { (byVal[v] ||= []).push(v); });
+      const most = Math.max(...Object.values(byVal).map(a => a.length)), d = Math.max(6, Math.min(14, (bw - 10) / most - 3));
+      for (const [v, arr] of Object.entries(byVal)) arr.forEach((_, j) => { left += `<circle cx="${(cx + (j - (arr.length - 1) / 2) * (d + 3)).toFixed(1)}" cy="${yv(+v)}" r="${d / 2}" fill="${dotColor(+v)}" fill-opacity=".85"/>`; });
+      left += `<line class="med" x1="${cx - bw / 2}" x2="${cx + bw / 2}" y1="${yv(med)}" y2="${yv(med)}"/><text class="val" x="${cx + bw / 2 + 14}" y="${yv(med) + 10}">${fmt(med)}</text>`;
+    });
+    // 오른쪽: 학번(입학년도)별 평균 막대. 0 위는 외적 쪽, 아래는 내적 쪽.
+    const cohorts = {}; who.forEach(w => { if (w.cohort) (cohorts[w.cohort] ||= []).push(w.score); });
+    const keys = Object.keys(cohorts).sort(), x0 = mid + 60, cw = (W - R - x0) / Math.max(1, keys.length);
+    let right = `<text class="panel-title" x="${x0}" y="${T - 34}">학번(입학년도)에 따라 · 평균</text>`;
+    if (!keys.length) right += `<text class="note-text" x="${(x0 + W - R) / 2}" y="${yc - 40}" text-anchor="middle">학번을 적은 플레이가 아직 없어요</text>`;
+    keys.forEach((k, i) => {
+      const vals = cohorts[k], n = vals.length, mean = vals.reduce((a, b) => a + b, 0) / n, cx = x0 + cw * (i + .5), bw = Math.min(110, cw * .55);
+      const y0 = yc, y1 = yv(mean), top = Math.min(y0, y1), h = Math.max(3, Math.abs(y1 - y0)), up = mean >= 0;
+      right += `<g><title>${k}학번 ${n}명 · 평균 ${fmt(mean)}</title><rect x="${cx - bw / 2}" y="${top}" width="${bw}" height="${h}" rx="6" fill="${mean > 0 ? 'var(--ext)' : mean < 0 ? 'var(--int)' : 'var(--same)'}"/>
+        <text class="val" x="${cx}" y="${up ? top - 12 : top + h + 34}" text-anchor="middle">${fmt(mean)}</text></g>
+        <text class="group-label" x="${cx}" y="${H - B + 42}" text-anchor="middle">${k}학번</text><text class="group-n" x="${cx}" y="${H - B + 72}" text-anchor="middle">${n}명</text>`;
+    });
+    const svg = `<svg class="dots" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="성별·학번에 따른 (외적 − 내적) 선택 수">
+      ${axis}<line class="guide" x1="${mid}" x2="${mid}" y1="${T - 50}" y2="${H - B + 70}"/>${left}${right}</svg>`;
+    const noInfo = who.filter(w => !w.gender || !w.cohort).length;
+    return `<div class="dots-wrap"><div class="legend"><span><i class="dot" style="background:var(--ext)"></i>외적 쪽</span><span><i class="dot" style="background:var(--int)"></i>내적 쪽</span><span class="unit">값 = 1차 플레이에서 고른 외적 − 내적 수 (${Q}문항)</span></div>${svg}</div>
+      <div class="foot">1차 플레이 ${s.people}명.${noInfo ? ` 성별이나 학번이 없는 ${noInfo}명은 해당 그래프에서 빠졌어요.` : ''} 박스: 가운데 50%, 굵은 선: 중앙값, 점: 한 사람.</div>`;
+  }
+
   function viewEndings(s) {
     if (!s.pairs) return empty('2차 플레이가 끝나면 여기에 나타나요.', s.people ? `지금까지 1차 플레이 ${s.people}명` : '');
     const p = pct(s.changed, s.pairs), R = 160, C = 2 * Math.PI * R;
@@ -370,11 +430,12 @@ body.embed #nav { display: none !important; }
   }
 
   const VIEWS = [
-    { slide: 14, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare },
-    { slide: 15, title: '게임의 게이지 그래프', sub: '나이대에 따른 내적/외적 목표 변화 그래프', draw: viewAge },
+    { slide: 15, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare },
+    { slide: 16, title: '게임의 게이지 그래프', sub: '나이에 따른 외적/내적 선택의 누적', draw: viewDots },
+    { slide: 17, title: '게임의 게이지 그래프', sub: '나이대에 따른 내적/외적 목표 변화 그래프', draw: viewAge },
+    { slide: 23, title: '데이터 분석', sub: '성별·학번에 따른 외적/내적 선택', draw: viewGroups },
     { slide: 26, title: '결과 그래프', sub: '토론 전/후 엔딩의 차이', draw: viewEndings },
     { slide: 27, title: '결과 그래프', sub: '토론 전/후 내적/외적 목표 비율 변화', draw: viewShift },
-    { slide: '15-1', title: '게임의 게이지 그래프', sub: '나이에 따른 외적/내적 선택의 누적', draw: viewDots },
   ];
   const viewIndex = slide => VIEWS.findIndex(v => String(v.slide) === String(slide));
   let cur = Math.max(0, viewIndex(decodeURIComponent(location.hash.slice(1)))), last = null, extra = {}, status = '';
@@ -383,6 +444,7 @@ body.embed #nav { display: none !important; }
     const row = (...c) => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
     return `<b>표로 보기</b> (T로 닫기)<table><tr><th></th><th>외적</th><th>내적</th></tr>${row('1차 전체', s.first.extrinsic, s.first.intrinsic)}${s.periods.map(p => row(p.name, p.extrinsic, p.intrinsic)).join('')}${row('2차 (두 번 한 사람)', s.second.extrinsic, s.second.intrinsic)}</table>
       ${(() => { const cum = s.paths.map(v => { let t = 0; return v.map(y => y == null ? null : (t += y)); }), tr = trendOf(cum, s.ages.map(c => c.age)), n = cum.length || 1; return `<table><tr><th>나이 (15-1)</th><th>외적</th><th>내적</th><th>평균 누적합</th><th>굵은 선${tr ? ` (${tr.deg}차, RMSE ${tr.rmse.toFixed(3)})` : ''}</th></tr>${s.ages.map((c, k) => row(`${c.age}세 ${esc(c.era)}`, c.extrinsic, c.intrinsic, (cum.reduce((t, v) => t + (v[k] || 0), 0) / n).toFixed(2), tr ? tr.at(c.age).toFixed(2) : '-')).join('')}</table>`; })()}
+      ${(() => { const grp = (list, name) => { const v = list.map(w => w.score).sort((x, y) => x - y); return row(name, `${v.length}명`, v.length ? fmt(quantile(v, .5)) : '-', v.length ? fmt(v.reduce((x, y) => x + y, 0) / v.length) : '-'); }; const ks = [...new Set(s.who.map(w => w.cohort).filter(Boolean))].sort(); return `<table><tr><th>23번 (외적 − 내적)</th><th>인원</th><th>중앙값</th><th>평균</th></tr>${grp(s.who.filter(w => w.gender === 'm'), '남자')}${grp(s.who.filter(w => w.gender === 'f'), '여자')}${ks.map(k => grp(s.who.filter(w => w.cohort === k), `${k}학번`)).join('')}</table>`; })()}
       <table><tr><th>엔딩</th><th>1차</th><th>2차</th></tr>${ENDINGS.map(e => row(esc(e.label), s.before[e.key], s.after[e.key])).join('')}</table>
       <table>${row('1차 플레이', `${s.people}명`)}${row('두 번 플레이', `${s.pairs}명`)}${row('엔딩 바뀜', `${s.changed}명`)}${row('내적 쪽 / 그대로 / 외적 쪽', `${s.shift.toInt} / ${s.shift.same} / ${s.shift.toExt}`)}${row('노년기 외적 선택', `${s.oldExt}명`)}</table>`;
   }
@@ -406,7 +468,7 @@ body.embed #nav { display: none !important; }
     const k = e.key;
     if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') { cur = Math.min(VIEWS.length - 1, cur + 1); render(); }
     else if (k === 'ArrowLeft' || k === 'PageUp') { cur = Math.max(0, cur - 1); render(); }
-    else if (/^[1-5]$/.test(k)) { cur = +k - 1; render(); }
+    else if (/^[1-9]$/.test(k) && +k <= VIEWS.length) { cur = +k - 1; render(); }
     else if (k === 'h' || k === 'H') document.body.classList.toggle('clean');
     else if (k === 't' || k === 'T') { $('#table').hidden = !$('#table').hidden; render(); }
     else if (k === 'f' || k === 'F') { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch { /* 무시 */ } }
