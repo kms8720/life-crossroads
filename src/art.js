@@ -84,6 +84,12 @@
     friend2: look('#f4cdaa', '#6b4430', 'bob', [['#f2a65a', '#4a4f6a'], ['#f2a65a', '#4a4f6a'], ['#f2a65a', '#4a4f6a'], ['#e0954b', '#4a4f6a'], ['#c9935a', '#4e5160'], ['#b9907a', '#56586a']]),
     friend3: look('#e9b88f', '#3b3030', 'kid', [['#7a8cd6', '#3f4a66'], ['#7a8cd6', '#3f4a66'], ['#7a8cd6', '#3f4a66'], ['#6c7dc4', '#3f4a66'], ['#7b86a8', '#4e5160'], ['#8a8fa8', '#56586a']]),
   };
+  // 여자 주인공: 옷은 남자 주인공과 같고 머리만 다르다 (긴 머리, 노년엔 쪽머리).
+  LOOKS.meF = { ...LOOKS.me, hairstyle: 'long' };
+  // 여자 주인공일 때의 연인·배우자: 같은 옷에 짧은 머리.
+  LOOKS.partnerM = { ...LOOKS.partner, hair: '#3b2a22', hairstyle: 'short' };
+  LOOKS.partnerM2 = { ...LOOKS.partner2, hair: '#5a3c2a', hairstyle: 'short' };
+  LOOKS.partnerM3 = { ...LOOKS.partner3, hairstyle: 'short', clip: null };
   const OUTFITS = {
     'jacket-bright': { body: '#e8b74a', arm: '#f6efe0', trim: '#f6efe0' },
     'jacket-navy': { body: '#2c3e66', arm: '#f1ece0', trim: '#f1ece0', emblem: '#e2b04a' },
@@ -139,7 +145,7 @@
     bowl: '<g transform="translate(-2 -62)"><path d="M0 0h26a13 11 0 0 1-26 0Z" fill="#fff" stroke="#b9a98a" stroke-width="1.5"/><path d="M5 0q4-6 8 0q4-6 8 0" fill="#9fcd88"/></g>',
   };
   function held(name) { return name ? (HOLD[name] || `<g transform="translate(10 -62)"><circle r="12" fill="#fff" stroke="#c9bfae" stroke-width="1.5"/>${iconAt(name, 0, 0, 16, '#6b6252')}</g>`) : ''; }
-  // look: me|partner|partner2|partner3|kid|friend1~3. 발끝 (0,0) 기준, 오른쪽을 보고 걷는다.
+  // look: me|meF|partner|partner2|partner3|partnerM~M3|kid|friend1~3. 발끝 (0,0) 기준, 오른쪽을 보고 걷는다.
   // opts: { wear: [glasses, bandage, beret, strawhat, lanyard, camera, guitar, headband], outfit, hold, mood, baby }
   function person(lookName, age, opts = {}) {
     const L = LOOKS[lookName] || LOOKS.me, st = lifeStage(age), [baseTop, pants] = L[st];
@@ -172,7 +178,7 @@
     const lanyard = wear.has('lanyard') ? '<path d="M-6 -99 4 -80 12 -99" stroke="#3b78d4" stroke-width="2.5" fill="none"/><rect x="-1" y="-80" width="12" height="15" rx="2" fill="#fff" stroke="#3b78d4" stroke-width="1.5"/><rect x="1" y="-78" width="8" height="3" fill="#3b78d4"/>' : '';
     const camera = wear.has('camera') ? '<path d="M-10 -99 6 -78 16 -99" stroke="#3a3a3a" stroke-width="2" fill="none"/><rect x="-2" y="-82" width="20" height="13" rx="3" fill="#2f3237"/><circle cx="8" cy="-75.5" r="4" fill="#8fb6d9" stroke="#1d1f22" stroke-width="1.5"/>' : '';
     const watch = O && O.watch ? '<rect x="-6.5" y="-70" width="13" height="5" rx="2" fill="#d4a64a"/>' : '';
-    const cane = st === 'senior' && lookName === 'me' ? `<path d="M26 -58 30 0" stroke="#8a6447" stroke-width="5" stroke-linecap="round"/><path d="M20 -60q6-6 8 2" stroke="#8a6447" stroke-width="5" fill="none" stroke-linecap="round"/>` : '';
+    const cane = st === 'senior' && (lookName === 'me' || lookName === 'meF') ? `<path d="M26 -58 30 0" stroke="#8a6447" stroke-width="5" stroke-linecap="round"/><path d="M20 -60q6-6 8 2" stroke="#8a6447" stroke-width="5" fill="none" stroke-linecap="round"/>` : '';
     const baby = opts.baby ? `<g class="baby"><ellipse cx="17" cy="-74" rx="13" ry="11" fill="#fff4dc" stroke="#e8d7b0" stroke-width="2"/><circle cx="22" cy="-86" r="8" fill="${skin}"/><path d="M17 -91c3-4 9-4 11 0" fill="#e8d7b0"/><circle cx="25" cy="-86" r="1.3" fill="#3b302b"/></g>` : '';
     return `<g class="person look-${lookName} st-${st}"><ellipse class="shadow" cx="2" cy="1" rx="${26 * s}" ry="${6 * s}" fill="#2b3a2a" opacity=".16"/>
       <g transform="scale(${s})"><g class="bob">${guitar}${backpack}${leg('l2', legBack)}${arm('a2', armBack)}${leg('l1', pants)}${torso}${lanyard}${camera}<rect x="-6" y="-106" width="12" height="10" rx="4" fill="${skin}"/><circle cx="3" cy="-127" r="28" fill="${skin}"/>${hair(L, st)}${headband}${beret}${strawhat}${face(opts.mood, L.hairstyle !== 'kid')}${glasses}${bandage}${arm('a1', armTop, watch + held(opts.hold))}${cane}${baby}</g></g></g>`;

@@ -20,6 +20,13 @@ alter table public.plays enable row level security;
 
 -- The public key gets one table permission only, whatever the project's defaults are.
 revoke all on public.plays from anon, authenticated;
+-- Student ID and the character the player picked ('m' or 'f'). Like nicknames, the publishable key can write them but never read them.
+alter table public.plays add column if not exists student_id text;
+alter table public.plays add column if not exists gender text;
+alter table public.plays drop constraint if exists plays_student_id_check;
+alter table public.plays add constraint plays_student_id_check check (student_id is null or char_length(student_id) between 1 and 20) not valid;
+alter table public.plays drop constraint if exists plays_gender_check;
+alter table public.plays add constraint plays_gender_check check (gender is null or gender in ('m', 'f')) not valid;
 grant insert on public.plays to anon;
 
 drop policy if exists "anyone can add a play" on public.plays;
@@ -114,6 +121,8 @@ create table if not exists public.plays_archive (
   created_at timestamptz not null,
   archived_at timestamptz not null default now()
 );
+alter table public.plays_archive add column if not exists student_id text;
+alter table public.plays_archive add column if not exists gender text;
 alter table public.plays_archive enable row level security;
 revoke all on public.plays_archive from anon, authenticated;
 
@@ -206,9 +215,9 @@ declare r text := admin_check(pin); n int;
 begin
   if r <> 'ok' then return json_build_object('ok', false, 'error', r); end if;
   -- Supabase blocks DELETE without a WHERE clause on API calls (pg-safeupdate). Clearing every row is the point here.
-  with moved as (delete from plays where true returning run_id, nickname, ending, gauges, picks, created_at)
-  insert into plays_archive (run_id, nickname, ending, gauges, picks, created_at)
-  select run_id, nickname, ending, gauges, picks, created_at from moved;
+  with moved as (delete from plays where true returning run_id, nickname, student_id, gender, ending, gauges, picks, created_at)
+  insert into plays_archive (run_id, nickname, student_id, gender, ending, gauges, picks, created_at)
+  select run_id, nickname, student_id, gender, ending, gauges, picks, created_at from moved;
   get diagnostics n = row_count;
   return json_build_object('ok', true, 'moved', n);
 end;
@@ -229,8 +238,8 @@ begin
   -- for example with an ending that no longer exists. Skip it instead of failing the whole batch.
   for a in select * from plays_archive where archived_at = latest loop
     begin
-      insert into plays (run_id, nickname, ending, gauges, picks, created_at)
-      values (a.run_id, a.nickname, a.ending, a.gauges, a.picks, a.created_at)
+      insert into plays (run_id, nickname, student_id, gender, ending, gauges, picks, created_at)
+      values (a.run_id, a.nickname, a.student_id, a.gender, a.ending, a.gauges, a.picks, a.created_at)
       on conflict (run_id) do nothing;
       if found then n := n + 1; end if;
     exception when check_violation or not_null_violation then

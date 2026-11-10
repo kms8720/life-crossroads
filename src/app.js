@@ -20,6 +20,7 @@
   // 주소로 화면을 나눈다: 기본은 각자 플레이, /presentation/ 은 발표용 5문항 (단일 파일은 주소 끝에 #presentation)
   const MODE = document.documentElement.dataset.mode || (/presentation/.test(location.hash) ? 'presentation' : 'solo');
   const SAVE_KEY = `insaeng-galimgil.save.v5.${MODE}`, SET_KEY = 'insaeng-galimgil.settings.v5', NAME_KEY = 'insaeng-galimgil.name';
+  const SID_KEY = 'insaeng-galimgil.sid', GENDER_KEY = 'insaeng-galimgil.gender'; // 학번, 캐릭터 성별('m'|'f')
   const decade = a => `${Math.max(1, Math.floor(a / 10)) * 10}대`;
 
   let C, REV, settings, state, history = [], world, savedGame = null;
@@ -61,11 +62,18 @@
     recorded = s.seed;
     const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
     if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
-    const body = JSON.stringify({ run_id: String(s.seed), nickname: store.get(NAME_KEY) || '이름 없음', ending: E.typeOf(C, s.gauges), gauges: s.gauges, picks: s.picks.map(p => ({ stage: p.stageId, opt: p.opt })) });
+    const base = { run_id: String(s.seed), nickname: store.get(NAME_KEY) || '이름 없음', ending: E.typeOf(C, s.gauges), gauges: s.gauges, picks: s.picks.map(p => ({ stage: p.stageId, opt: p.opt })) };
+    let body = { ...base, student_id: store.get(SID_KEY) || null, gender: store.get(GENDER_KEY) || null };
+    const post = b => fetch(`${CONFIG.supabaseUrl}/rest/v1/plays`, { method: 'POST', headers, body: JSON.stringify(b) });
     for (const wait of [0, 2000, 6000, 15000]) {
       await new Promise(r => setTimeout(r, wait));
       try {
-        const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/plays`, { method: 'POST', headers, body });
+        let r = await post(body);
+        // DB에 아직 학번·성별 칸이 없으면(schema.sql을 다시 실행하기 전) 그 두 칸을 빼고라도 저장한다.
+        if (r.status === 400 && 'student_id' in body) {
+          const e = await r.json().catch(() => ({}));
+          if (e.code === 'PGRST204' || /column/i.test(e.message || '')) { console.warn('학번·성별 칸이 없어 빼고 저장합니다. schema.sql을 다시 실행해 주세요.'); body = base; r = await post(body); }
+        }
         if (r.ok || r.status === 409) return; // 409: 이미 저장된 판
       } catch { /* 다음 시도 */ }
     }
@@ -343,20 +351,23 @@
     const fr = friendBack ? ['friend1'] : friends && !partner && age < 23 ? friends : [];
     return { me: { wear: [...me.wear], outfit: me.outfit, hold: me.hold, reach: meReach, face }, partner: partner && { look: partner.look, hold: partnerHold, mood: partnerMood || null, reach: pReach }, kid, friends: fr, friendBack, give };
   }
+  // 여자 캐릭터를 고르면 주인공은 meF, 연인·배우자는 짧은 머리(partnerM…)로 그린다. 발표 화면(행복이)은 그대로.
+  const FEMALE_LOOK = { me: 'meF', partner: 'partnerM', partner2: 'partnerM2', partner3: 'partnerM3' };
+  const lookOf = name => !present() && store.get(GENDER_KEY) === 'f' ? FEMALE_LOOK[name] || name : name;
   function drawPeople(age, s, popNew = false) {
     const ap = appearance(s, age);
-    const key = JSON.stringify({ st: A.lifeStage(age), me: ap.me, p: ap.partner, k: ap.kid && { st: A.lifeStage(ap.kid.age), baby: ap.kid.baby, hold: ap.kid.hold, mood: ap.kid.mood }, f: ap.friends });
+    const key = JSON.stringify({ g: lookOf('me'), st: A.lifeStage(age), me: ap.me, p: ap.partner, k: ap.kid && { st: A.lifeStage(ap.kid.age), baby: ap.kid.baby, hold: ap.kid.hold, mood: ap.kid.mood }, f: ap.friends });
     if (key === peopleKey) return;
     peopleKey = key;
     const prev = lastLook; lastLook = ap;
     const pop = cond => popNew && cond ? 'pop' : '';
-    const meSvg = A.person('me', age, { ...ap.me, baby: ap.kid?.baby });
+    const meSvg = A.person(lookOf('me'), age, { ...ap.me, baby: ap.kid?.baby });
     $('#me').innerHTML = ap.me.face === 'left' ? `<g transform="scale(-1 1)">${meSvg}</g>` : meSvg;
-    $('#partner').innerHTML = ap.partner ? `<g class="${pop(!prev?.partner || prev.partner.look !== ap.partner.look)}">${A.person(ap.partner.look, age, ap.partner)}</g>` : '';
+    $('#partner').innerHTML = ap.partner ? `<g class="${pop(!prev?.partner || prev.partner.look !== ap.partner.look)}">${A.person(lookOf(ap.partner.look), age, ap.partner)}</g>` : '';
     $('#kid').innerHTML = ap.kid && !ap.kid.baby ? `<g class="${pop(!prev?.kid || prev.kid.baby)}">${A.person('kid', ap.kid.age, ap.kid)}</g>` : '';
     const start = ap.partner ? 1 : 0, slots = [PARTNER_DX, KID_DX, KID_DX + 100];
     $('#friends').innerHTML = ap.friends.map((f, k) => `<g class="fr" data-dx="${slots[k + start]}"><g class="${pop(!(prev?.friends || []).includes(f))}">${A.person(f, ap.friendBack ? age : Math.min(age, 22), {})}</g></g>`).join('');
-    if (popNew && prev && ap.partner && prev.partner && prev.partner.look !== ap.partner.look) ghost(A.person(prev.partner.look, age, {}), PARTNER_DX);
+    if (popNew && prev && ap.partner && prev.partner && prev.partner.look !== ap.partner.look) ghost(A.person(lookOf(prev.partner.look), age, {}), PARTNER_DX);
     if (popNew && prev && prev.friends.length && !ap.friends.length) prev.friends.forEach((f, k) => ghost(A.person(f, Math.min(age, 22), {}), [PARTNER_DX, KID_DX, KID_DX + 100][k]));
     place(view.x, view.cam, view.lane);
   }
@@ -896,9 +907,30 @@
       : [['완전한 전체 화면', '브라우저 메뉴 → 홈 화면에 추가 → 홈 화면의 ‘인생 갈림길’로 열기']]).map(([l, t]) => `<div><span>${l}</span><span>${t}</span></div>`).join('')}</div>
       <p class="m-note">홈 화면에서 열면 이름을 한 번 더 적어야 해요. 1차 때와 똑같이 적어 주세요.</p><div class="m-actions"><button class="btn primary" data-act="close">닫기</button></div></div>`;
     else if (kind === 'name') {
-      m.innerHTML = `<div class="m-box small name-box"><h2>이름을 적어 주세요</h2><p>본인의 이름, 또는 기억할 수 있는 닉네임으로 진행해주세요.</p><form id="name-form"><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="이름 또는 닉네임" value="${esc(store.get(NAME_KEY) || '')}"><div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div></form></div>`;
-      const f = $('#name-form'); f.nick.focus(); f.nick.select();
-      f.addEventListener('submit', e => { e.preventDefault(); const nick = f.nick.value.trim(); if (!nick) return; store.set(NAME_KEY, nick); closeModal(); newGame(); });
+      const g0 = store.get(GENDER_KEY);
+      let gender = g0 === 'm' || g0 === 'f' ? g0 : null;
+      m.innerHTML = `<div class="m-box small name-box"><h2>닉네임과 학번을 적어 주세요</h2><p>기억할 수 있는 닉네임으로 진행해 주세요. 2차 때도 같은 닉네임과 학번을 써 주세요.</p>
+        <form id="name-form" novalidate>
+          <label class="f-row"><span>닉네임</span><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="닉네임" value="${esc(store.get(NAME_KEY) || '')}"></label>
+          <label class="f-row"><span>학번</span><input class="name-input" name="sid" maxlength="20" autocomplete="off" inputmode="numeric" placeholder="학번" value="${esc(store.get(SID_KEY) || '')}"></label>
+          <div class="f-row"><span>캐릭터</span><div class="gender" role="radiogroup" aria-label="캐릭터">${[['m', '남자'], ['f', '여자']].map(([v, l]) => `<button type="button" role="radio" aria-checked="${gender === v}" class="${gender === v ? 'on' : ''}" data-gender="${v}">${l}</button>`).join('')}</div></div>
+          <p class="f-err" hidden></p>
+          <div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div>
+        </form></div>`;
+      const f = $('#name-form'), err = t => { const el = f.querySelector('.f-err'); el.textContent = t; el.hidden = !t; };
+      f.querySelectorAll('[data-gender]').forEach(b => b.addEventListener('click', () => {
+        gender = b.dataset.gender; err('');
+        f.querySelectorAll('[data-gender]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', String(x === b)); });
+      }));
+      f.nick.focus(); f.nick.select();
+      f.addEventListener('submit', e => {
+        e.preventDefault();
+        const nick = f.nick.value.trim(), sid = f.sid.value.trim();
+        if (!nick) { err('닉네임을 적어 주세요.'); return f.nick.focus(); }
+        if (!/^[0-9A-Za-z-]{4,20}$/.test(sid)) { err(sid ? '학번을 다시 확인해 주세요.' : '학번을 적어 주세요.'); return f.sid.focus(); }
+        if (!gender) return err('캐릭터를 남자·여자 중에서 골라 주세요.');
+        store.set(NAME_KEY, nick); store.set(SID_KEY, sid); store.set(GENDER_KEY, gender); closeModal(); newGame();
+      });
     }
     else if (kind === 'vote') {
       const s = E.stageAt(C, state, state.i), q = E.question(C, state), v = state.votes?.[s.id] || ['', ''];

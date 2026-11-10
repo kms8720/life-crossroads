@@ -48,7 +48,8 @@ The first person to open the presenter page sets the team passphrase (six charac
 
 ### During the class
 
-- **Students must use the same name for both plays.** On the same device the name is filled in automatically. On a different device they have to type it again exactly.
+- **Students enter a nickname, their student ID, and a male or female character.** All three are required. The character only changes how the player and their partner look.
+- **Students must use the same nickname for both plays.** On the same device the nickname, student ID, and character are filled in automatically. On a different device they have to type them again exactly.
 - **Ask for a name nobody else in the class uses.** Plays with the same name count as one person, ignoring capital letters and spaces at either end. If someone plays three or more times, the first and the latest are compared.
 - **A play is saved only when the ending screen appears.** Students who stop partway are not counted.
 - **Team members should not finish a game on the student page during the class**, because it would be counted too. The presentation page never saves anything.
@@ -130,7 +131,7 @@ GitHub Pages only serves files, so finished playthroughs are stored in a free [S
 1. Create a project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor.
 2. Put the project URL and the publishable key in `config.json`. Never use the secret key here, because this repository is public.
 
-The publishable key can add a playthrough and read the totals, but it cannot read individual rows or names. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
+The publishable key can add a playthrough and read the totals, but it cannot read individual rows, nicknames, or student IDs. To see them, open the `plays` table in the Supabase dashboard (Table Editor), where it can also be exported as CSV. If the game is deployed before `schema.sql` is run again, plays are still saved, just without the student ID and character. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
 
 If the database is unavailable, the game still plays normally. It just doesn't save the result.
 

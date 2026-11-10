@@ -361,6 +361,14 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 
 /* ---------- 이름 입력 · 발표 화면 QR ---------- */
 .name-input { width: 100%; height: 92px; margin-top: 18px; padding: 0 26px; font: inherit; font-size: 38px; font-weight: 700; border: 3px solid var(--line); border-radius: 22px; background: #fff; color: var(--ink); }
+/* 이름 창: 닉네임 · 학번 · 캐릭터(남자/여자) */
+.f-row { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 18px; margin-top: 16px; }
+.f-row > span { font-size: 25px; font-weight: 800; color: var(--ink-2); }
+.f-row .name-input { margin-top: 0; height: 84px; }
+.gender { display: flex; gap: 12px; }
+.gender button { flex: 1; height: 80px; border-radius: 20px; border: 3px solid var(--line); background: #fff; font-size: 29px; font-weight: 800; color: var(--ink-2); }
+.gender button.on { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+.f-err { margin: 14px 0 0; font-size: 23px; font-weight: 700; color: #b6452f; }
 .t-title.hero { font-size: 84px; }
 .t-qr { position: absolute; right: 44px; bottom: 34px; width: 176px; margin: 0; text-align: center; }
 .t-qr svg { display: block; width: 176px; height: 176px; }
@@ -454,10 +462,15 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 [data-layout=phone] #toast { font-size: 26px; }
 /* 이름 창: 가로 화면에서 키보드가 올라오면 위쪽 한 줄만 보인다. 입력칸과 버튼을 맨 위 한 줄에 둔다. */
 [data-layout=phone] #modal:has(.name-box) { padding-top: 0; }
-[data-layout=phone] .name-box { width: 1120px; display: flex; flex-direction: column; padding: 12px 24px 18px; border-radius: 0 0 30px 30px; }
+[data-layout=phone] .m-box.name-box { width: calc(100% - 60px); max-width: 1760px; display: flex; flex-direction: column; padding: 12px 24px 18px; border-radius: 0 0 30px 30px; }
 [data-layout=phone] .name-box h2 { display: none; }
-[data-layout=phone] .name-box form { order: -1; display: flex; align-items: center; gap: 14px; }
-[data-layout=phone] .name-box .name-input { margin: 0; flex: 1; min-width: 0; height: 78px; }
+[data-layout=phone] .name-box form { order: -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+[data-layout=phone] .name-box .f-row { display: block; margin: 0; flex: 1 1 0; min-width: 0; }
+[data-layout=phone] .name-box .f-row > span { display: none; }
+[data-layout=phone] .name-box .f-row:has(.gender) { flex: none; }
+[data-layout=phone] .name-box .gender button { flex: none; height: 78px; padding: 0 22px; font-size: 26px; }
+[data-layout=phone] .name-box .name-input { margin: 0; width: 100%; min-width: 0; height: 78px; }
+[data-layout=phone] .name-box .f-err { order: 5; flex-basis: 100%; margin: 2px 6px 0; font-size: 22px; }
 [data-layout=phone] .name-box .m-actions { margin: 0; flex: none; }
 [data-layout=phone] .name-box .m-actions .btn { height: 78px; }
 [data-layout=phone] .name-box > p { margin: 12px 6px 0; font-size: 22px; }
