@@ -36,6 +36,8 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
 .field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 15px; }
 .preview { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #FFFBF2; margin: 14px 0; }
 .preview iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; }
+#jpg-btns button.on { border-color: var(--green); color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+.row-label { font-weight: 700; color: var(--ink-2); margin-right: 2px; }
 .warn { background: var(--danger-soft); border-radius: 12px; padding: 12px 16px; color: var(--danger); font-weight: 500; }
 [hidden] { display: none !important; }
 </style>
@@ -74,8 +76,9 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
 
   <section class="card" id="c-jpg">
     <h2>3. 결과 그래프 사진으로 내보내기</h2>
-    <p class="desc">슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다. 한 장씩 누르면 JPG로 저장되고 클립보드에도 복사돼서, 슬라이드에서 바로 Ctrl+V(맥은 ⌘+V)로 붙여넣을 수 있어요. 붙인 뒤 슬라이드 전체 크기로 맞추면 됩니다.</p>
-    <div class="row"><span id="jpg-btns"></span><button class="primary" id="jpg-all">5장 모두</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
+    <p class="desc">번호를 누르면 그 장이 미리보기에 뜨고 클립보드에 복사돼요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣은 뒤 슬라이드 전체 크기로 맞추면 됩니다. JPG 파일이 필요하면 저장 버튼을 누르세요. 슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다.</p>
+    <div class="row"><span class="row-label">복사</span><span id="jpg-btns"></span></div>
+    <div class="row" style="margin-top:10px"><span class="row-label">저장</span><button id="save-cur">14번 JPG 저장</button><button class="primary" id="jpg-all">5장 모두 JPG 저장</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
     <div class="preview" id="preview"><iframe id="frame" title="결과 그래프 미리보기"></iframe></div>
     <div class="msg" id="jpg-msg"></div>
   </section>
@@ -176,33 +179,53 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
   $('#demo').addEventListener('change', () => reloadFrame());
   $('#jpg-btns').innerHTML = SLIDES.map(n => `<button data-jpg="${n}">${n}번</button> `).join('');
-  const ready = () => new Promise((ok, no) => { const t0 = Date.now(); (function wait() { if (frame.contentWindow?.__results) ok(frame.contentWindow.__results); else if (Date.now() - t0 > 15000) no(new Error('그래프 화면을 불러오지 못했어요.')); else setTimeout(wait, 200); })(); });
-  // 한 장씩: JPG로 저장하고 PNG로 클립보드에도 복사 (붙여넣기용). 여러 장: 저장만.
-  function download(slides) {
-    const R = frame.contentWindow?.__results;
-    if (!R) return say('#jpg-msg', '그래프 화면을 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.', false);
-    const btns = [...document.querySelectorAll('#c-jpg button')]; btns.forEach(b => { b.disabled = true; });
-    const one = slides.length === 1, first = R.exportCanvas(slides[0]);
-    // 클립보드는 클릭과 같은 순간에 요청해야 해서 첫 장의 그림을 Promise로 넘긴다 (다른 창의 Blob은 이 창 것으로 다시 감싼다).
-    const copied = one && navigator.clipboard?.write && window.ClipboardItem
-      ? navigator.clipboard.write([new ClipboardItem({ 'image/png': first.then(R.toPng).then(async b => new Blob([await b.arrayBuffer()], { type: 'image/png' })) })]).then(() => true, () => false)
+  let curSlide = SLIDES[0];
+  const busy = on => document.querySelectorAll('#c-jpg button').forEach(b => { b.disabled = on; });
+  const demoNote = () => $('#demo').checked ? ' (가상 데이터)' : '';
+  function select(n) {
+    curSlide = n;
+    document.querySelectorAll('[data-jpg]').forEach(b => b.classList.toggle('on', b.dataset.jpg === String(n)));
+    $('#save-cur').textContent = `${n}번 JPG 저장`;
+  }
+  select(curSlide);
+  const results = () => { const R = frame.contentWindow?.__results; if (!R) say('#jpg-msg', '그래프 화면을 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.', false); return R; };
+  // 번호 버튼: 그 장을 미리보기에 띄우고 클립보드에만 복사한다 (파일 저장은 저장 버튼).
+  function copySlide(n) {
+    const R = results(); if (!R) return;
+    select(n); busy(true); say('#jpg-msg', `${n}번 복사하는 중…`);
+    const canvas = R.exportCanvas(n);
+    // 클립보드는 클릭과 같은 순간에 요청해야 해서 그림을 Promise로 넘긴다 (다른 창의 Blob은 이 창 것으로 다시 감싼다).
+    const copied = navigator.clipboard?.write && window.ClipboardItem
+      ? navigator.clipboard.write([new ClipboardItem({ 'image/png': canvas.then(R.toPng).then(async b => new Blob([await b.arrayBuffer()], { type: 'image/png' })) })]).then(() => true, () => false)
       : Promise.resolve(false);
     (async () => {
       try {
-        for (const [i, n] of slides.entries()) {
-          say('#jpg-msg', `${n}번 만드는 중…`);
-          const canvas = i === 0 ? await first : await R.exportCanvas(n);
-          const a = document.createElement('a'); a.href = R.toJpeg(canvas); a.download = R.fileName(n); a.click();
-          await new Promise(ok => setTimeout(ok, 400));
-        }
-        const demo = $('#demo').checked ? ' (가상 데이터)' : '';
-        if (!one) say('#jpg-msg', `${slides.join(', ')}번을 다운로드 폴더에 저장했어요. 클립보드 복사는 한 장씩 누를 때만 돼요.${demo}`);
-        else say('#jpg-msg', (await copied) ? `${slides[0]}번을 저장하고 복사했어요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣으세요.${demo}` : `${slides[0]}번을 저장했어요. 이 브라우저에서는 복사가 막혀 있어요.${demo}`);
+        await canvas;
+        if (await copied) say('#jpg-msg', `${n}번을 복사했어요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣으세요.${demoNote()}`);
+        else say('#jpg-msg', `이 브라우저에서는 복사가 막혀 있어요. ${n}번 JPG 저장 버튼으로 파일을 받아 주세요.`, false);
       } catch (e) { say('#jpg-msg', e.message, false); }
-      btns.forEach(b => { b.disabled = false; });
+      busy(false);
     })();
   }
-  document.addEventListener('click', e => { const b = e.target.closest('[data-jpg]'); if (b) download([b.dataset.jpg]); });
+  // 저장 버튼: JPG 파일로 내려받기만 한다.
+  function download(slides) {
+    const R = results(); if (!R) return;
+    busy(true);
+    (async () => {
+      try {
+        for (const n of slides) {
+          say('#jpg-msg', `${n}번 만드는 중…`);
+          const a = document.createElement('a'); a.href = R.toJpeg(await R.exportCanvas(n)); a.download = R.fileName(n); a.click();
+          await new Promise(ok => setTimeout(ok, 400));
+        }
+        if (slides.length > 1) R.show(curSlide); // 미리보기는 고른 장으로 되돌린다
+        say('#jpg-msg', `${slides.join(', ')}번을 다운로드 폴더에 저장했어요.${demoNote()}`);
+      } catch (e) { say('#jpg-msg', e.message, false); }
+      busy(false);
+    })();
+  }
+  document.addEventListener('click', e => { const b = e.target.closest('[data-jpg]'); if (b) copySlide(b.dataset.jpg); });
+  $('#save-cur').addEventListener('click', () => download([curSlide]));
   $('#jpg-all').addEventListener('click', () => download(SLIDES));
 
   setupLogin(); refreshStats(); setInterval(refreshStats, 5000);

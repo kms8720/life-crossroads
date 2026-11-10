@@ -54,7 +54,7 @@ The first person to open the presenter page sets the team passphrase (six charac
 - **Team members should not finish a game on the student page during the class**, because it would be counted too. The presentation page never saves anything.
 - If the database is unreachable, the game still plays normally but nothing is saved, and the results page stays blank.
 - **Slide 13 hand count:** type the two numbers on the presenter page. They appear next to the game results on slide 14.
-- **Charts for the slides:** on the presenter page, press a slide number. The chart is saved as a 3840×2160 JPG and copied to the clipboard, so it can be pasted straight into the slide.
+- **Charts for the slides:** on the presenter page, press a slide number. The chart is copied to the clipboard as a 3840×2160 image, so it can be pasted straight into the slide. To get JPG files instead, use the save buttons below the numbers.
 
 On the presentation page:
 
