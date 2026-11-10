@@ -173,13 +173,15 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
 
   // ---------- 그래프 미리보기와 JPG ----------
   const SLIDES = [14, 15, 26, 27, '15-1'];
+  let curSlide = SLIDES[0];
   const frame = $('#frame');
   function fitFrame() { frame.style.transform = `scale(${$('#preview').clientWidth / 1920})`; }
-  function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}#${slide || 14}`; }
+  // GitHub Pages는 페이지를 10분 동안 캐시하게 한다. 미리보기(그리고 내보내는 그림)가 방금 배포한 결과 화면을 쓰도록 주소를 매번 바꾼다.
+  const FRESH = Date.now().toString(36);
+  function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}#${slide || curSlide || 14}`; }
   addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
   $('#demo').addEventListener('change', () => reloadFrame());
   $('#jpg-btns').innerHTML = SLIDES.map(n => `<button data-jpg="${n}">${n}번</button> `).join('');
-  let curSlide = SLIDES[0];
   const busy = on => document.querySelectorAll('#c-jpg button').forEach(b => { b.disabled = on; });
   const demoNote = () => $('#demo').checked ? ' (가상 데이터)' : '';
   function select(n) {
