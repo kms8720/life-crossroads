@@ -75,7 +75,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   <section class="card" id="c-jpg">
     <h2>3. 결과 그래프 사진으로 내보내기</h2>
     <p class="desc">슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다. 한 장씩 누르면 JPG로 저장되고 클립보드에도 복사돼서, 슬라이드에서 바로 Ctrl+V(맥은 ⌘+V)로 붙여넣을 수 있어요. 붙인 뒤 슬라이드 전체 크기로 맞추면 됩니다.</p>
-    <div class="row"><span id="jpg-btns"></span><button class="primary" id="jpg-all">4장 모두</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
+    <div class="row"><span id="jpg-btns"></span><button class="primary" id="jpg-all">5장 모두</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
     <div class="preview" id="preview"><iframe id="frame" title="결과 그래프 미리보기"></iframe></div>
     <div class="msg" id="jpg-msg"></div>
   </section>
@@ -169,7 +169,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   });
 
   // ---------- 그래프 미리보기와 JPG ----------
-  const SLIDES = [14, 15, 26, 27];
+  const SLIDES = [14, 15, 26, 27, '15-1'];
   const frame = $('#frame');
   function fitFrame() { frame.style.transform = `scale(${$('#preview').clientWidth / 1920})`; }
   function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}#${slide || 14}`; }
@@ -202,7 +202,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
       btns.forEach(b => { b.disabled = false; });
     })();
   }
-  document.addEventListener('click', e => { const b = e.target.closest('[data-jpg]'); if (b) download([+b.dataset.jpg]); });
+  document.addEventListener('click', e => { const b = e.target.closest('[data-jpg]'); if (b) download([b.dataset.jpg]); });
   $('#jpg-all').addEventListener('click', () => download(SLIDES));
 
   setupLogin(); refreshStats(); setInterval(refreshStats, 5000);

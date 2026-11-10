@@ -35,7 +35,7 @@ The site has three pages.
 | --- | --- |
 | [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop, tablet, or phone. Post this link on the LMS. |
 | [Presentation](https://kms8720.github.io/life-crossroads/presentation/) | The shared screen. Five questions, decided by a show of hands. |
-| [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 14, 15, 26 and 27. Updates every five seconds. Add `?demo` to preview with sample data. |
+| [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 14, 15, 26 and 27, plus 15-1 (every first-play choice as a dot by age). Updates every five seconds. Add `?demo` to preview with sample data. |
 | [Presenter](https://kms8720.github.io/life-crossroads/admin/) | Clears the saved plays, records the hand count, and exports the charts as images. Needs the team passphrase. |
 
 ### Before the class

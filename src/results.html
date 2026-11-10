@@ -66,6 +66,20 @@ body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: anti
 .callout .big small { font-size: 52px; margin-left: 4px; }
 .callout span { font-size: 23px; color: var(--muted); }
 
+/* 15-1: 나이별 점 그림 */
+.dots-wrap { display: flex; flex-direction: column; height: 100%; }
+.legend i.dot { border-radius: 50%; }
+.legend .unit { margin-left: auto; font-weight: 400; font-size: 23px; color: var(--muted); }
+svg.dots { display: block; margin-top: 18px; overflow: visible; }
+.dots .band { fill: #F4ECDD; }
+.dots .band-label { font: 700 24px var(--sans); fill: var(--muted); }
+.dots .guide { stroke: #E9E1D2; stroke-width: 2; }
+.dots .zero { stroke: #CFC6B8; stroke-width: 3; }
+.dots .ylab { font: 700 27px var(--sans); }
+.dots .age-label { font-family: var(--display); font-size: 32px; fill: var(--ink); }
+.dots .era { font: 500 20px var(--sans); fill: var(--muted); }
+.dots .count { font-family: var(--display); font-size: 30px; }
+
 /* 엔딩 */
 .two { display: grid; grid-template-columns: 560px 1fr; gap: 70px; height: 100%; }
 .ring { text-align: center; }
@@ -179,6 +193,11 @@ body.embed #nav { display: none !important; }
       people: people.length, pairs: pairs.length, first: sum(first), second: sum(pairs.map(p => p.last)), firstOfPairs: sum(pairs.map(p => p.first)),
       periods: PERIODS.map(p => ({ ...p, ...sum(first, p.key) })),
       oldExt: first.filter(pl => goalCount(pl, 'old').extrinsic > 0).length,
+      ages: STAGES.filter(st => st.goals[0] && st.goals[1]).map(st => {
+        const c = { extrinsic: 0, intrinsic: 0 };
+        for (const pl of first) { const p = (pl.picks || []).find(x => x.stage === st.id), g = p && goalOf[st.id][p.opt]; if (g) c[g]++; }
+        return { age: st.age, era: st.era || '', ...c };
+      }),
       changed: pairs.filter(p => p.first.ending !== p.last.ending).length,
       before: by(pairs, 'first'), after: by(pairs, 'last'), top: top && { from: top[0].split('>')[0], to: top[0].split('>')[1], n: top[1] }, shift,
     };
@@ -221,6 +240,49 @@ body.embed #nav { display: none !important; }
     svg.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--ext-ink)" stroke-width="3" stroke-dasharray="10 10" opacity=".6"/>${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="var(--bg)" stroke="var(--ext-ink)" stroke-width="3"/>`).join('')}` : '';
   }
 
+  // 15-1: 가로는 나이, 0선 위는 외적·아래는 내적 선택. 점 하나가 한 사람의 1차 선택 하나다.
+  // 점 크기와 한 줄에 놓는 개수는 가장 많은 쪽에 맞춰 모든 나이에 똑같이 써서, 쌓인 높이로 바로 비교할 수 있게 한다.
+  function viewDots(s) {
+    if (!s.people) return empty('1차 플레이가 끝나면 여기에 나타나요.');
+    const cols = s.ages;
+    if (!cols.length) return empty('외적·내적이 갈리는 질문이 없어요.');
+    const W = 1748, H = 546, L = 190, R = 40, T = 46, B = 104, yc = T + (H - T - B) / 2, half = (H - T - B) / 2 - 38, g = 5;
+    const amin = 10, amax = 68, x = a => L + (a - amin) / (amax - amin) * (W - L - R);
+    const room = Math.min(260, ...cols.slice(1).map((c, i) => x(c.age) - x(cols[i].age))) - 18;
+    const M = Math.max(1, ...cols.map(c => Math.max(c.extrinsic, c.intrinsic)));
+    let d = 10, per = Math.ceil(M / Math.max(1, Math.floor(half / (10 + g))));
+    for (let dd = 30; dd >= 10; dd -= 2) { const n = Math.ceil(M / Math.max(1, Math.floor(half / (dd + g)))); if (n * (dd + g) - g <= room) { d = dd; per = n; break; } }
+    const bands = [['청년기', amin, 30], ['중년기', 30, 50], ['노년기', 50, amax]].map(([name, a, b], k) =>
+      `${k % 2 ? '' : `<rect class="band" x="${x(a)}" y="${T - 6}" width="${x(b) - x(a)}" height="${H - B - T + 6}" rx="14"/>`}<text class="band-label" x="${x(a) + 18}" y="${T - 16}">${name}</text>`).join('');
+    const stack = (c, side) => {
+      const n = c[side], up = side === 'extrinsic', color = up ? 'var(--ext)' : 'var(--int)', cx = x(c.age);
+      let dots = '';
+      for (let k = 0; k < n; k++) {
+        const row = Math.floor(k / per), inRow = Math.min(per, n - row * per), col = k % per;
+        const px = cx + (col - (inRow - 1) / 2) * (d + g), py = yc + (up ? -1 : 1) * (8 + d / 2 + row * (d + g));
+        dots += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${d / 2}" fill="${color}"/>`;
+      }
+      const rows = Math.ceil(n / per), tip = yc + (up ? -1 : 1) * (8 + rows * (d + g) + (up ? 12 : 34));
+      return `<g><title>${c.age}세 ${esc(c.era)} · ${up ? '외적' : '내적'} ${n}명</title>${dots}<text class="count" x="${cx}" y="${tip}" text-anchor="middle" fill="${up ? 'var(--ext-ink)' : 'var(--int-ink)'}">${n}</text></g>`;
+    };
+    // 시기 이름이 이웃 칸까지 닿을 만큼 길면(43·47세) 두 줄로 나눠 겹치지 않게 한다.
+    const eraLabel = (c, i) => {
+      const near = Math.min(i ? x(c.age) - x(cols[i - 1].age) : 999, i < cols.length - 1 ? x(cols[i + 1].age) - x(c.age) : 999), w = c.era.split(' ');
+      const lines = c.era.length * 20 > near - 14 && w.length > 1 ? [w.slice(0, Math.ceil(w.length / 2)).join(' '), w.slice(Math.ceil(w.length / 2)).join(' ')] : [c.era];
+      return `<text class="era" x="${x(c.age)}" y="${H - B + 66}" text-anchor="middle">${lines.map((t, k) => `<tspan x="${x(c.age)}" dy="${k ? 24 : 0}">${esc(t)}</tspan>`).join('')}</text>`;
+    };
+    const svg = `<svg class="dots" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="나이별 외적·내적 선택: ${cols.map(c => `${c.age}세 외적 ${c.extrinsic}명 내적 ${c.intrinsic}명`).join(', ')}">
+      ${bands}${cols.map(c => `<line class="guide" x1="${x(c.age)}" x2="${x(c.age)}" y1="${T}" y2="${H - B}"/>`).join('')}
+      <line class="zero" x1="${L - 20}" x2="${W - R}" y1="${yc}" y2="${yc}"/>
+      <text class="ylab" x="${L - 34}" y="${yc - half / 2 + 9}" text-anchor="end" fill="var(--ext-ink)">외적 ↑</text>
+      <text class="ylab" x="${L - 34}" y="${yc + half / 2 + 9}" text-anchor="end" fill="var(--int-ink)">내적 ↓</text>
+      ${cols.map(c => stack(c, 'extrinsic') + stack(c, 'intrinsic')).join('')}
+      ${cols.map((c, i) => `<text class="age-label" x="${x(c.age)}" y="${H - B + 38}" text-anchor="middle">${c.age}세</text>${eraLabel(c, i)}`).join('')}</svg>`;
+    const left = STAGES.filter(st => !st.goals[0]).map(st => `${st.age}`);
+    return `<div class="dots-wrap"><div class="legend"><span><i class="dot" style="background:var(--ext)"></i>외적 목표<small>${esc(famLabels('extrinsic'))}</small></span><span><i class="dot" style="background:var(--int)"></i>내적 목표<small>${esc(famLabels('intrinsic'))}</small></span><span class="unit">점 1개 = 한 사람의 선택 1개</span></div>${svg}</div>
+      <div class="foot">1차 플레이 ${s.people}명의 선택입니다.${left.length ? ` 두 선택지가 모두 내적인 ${left.join('·')}세 질문은 뺐어요.` : ''}</div>`;
+  }
+
   function viewEndings(s) {
     if (!s.pairs) return empty('2차 플레이가 끝나면 여기에 나타나요.', s.people ? `지금까지 1차 플레이 ${s.people}명` : '');
     const p = pct(s.changed, s.pairs), R = 160, C = 2 * Math.PI * R;
@@ -254,12 +316,15 @@ body.embed #nav { display: none !important; }
     { slide: 15, title: '게임의 게이지 그래프', sub: '나이대에 따른 내적/외적 목표 변화 그래프', draw: viewAge },
     { slide: 26, title: '결과 그래프', sub: '토론 전/후 엔딩의 차이', draw: viewEndings },
     { slide: 27, title: '결과 그래프', sub: '토론 전/후 내적/외적 목표 비율 변화', draw: viewShift },
+    { slide: '15-1', title: '게임의 게이지 그래프', sub: '나이에 따른 외적/내적 선택 분포', draw: viewDots },
   ];
-  let cur = Math.max(0, VIEWS.findIndex(v => location.hash.includes(String(v.slide)))), last = null, extra = {}, status = '';
+  const viewIndex = slide => VIEWS.findIndex(v => String(v.slide) === String(slide));
+  let cur = Math.max(0, viewIndex(decodeURIComponent(location.hash.slice(1)))), last = null, extra = {}, status = '';
 
   function table(s) {
     const row = (...c) => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
     return `<b>표로 보기</b> (T로 닫기)<table><tr><th></th><th>외적</th><th>내적</th></tr>${row('1차 전체', s.first.extrinsic, s.first.intrinsic)}${s.periods.map(p => row(p.name, p.extrinsic, p.intrinsic)).join('')}${row('2차 (두 번 한 사람)', s.second.extrinsic, s.second.intrinsic)}</table>
+      <table><tr><th>나이 (15-1)</th><th>외적</th><th>내적</th></tr>${s.ages.map(c => row(`${c.age}세 ${esc(c.era)}`, c.extrinsic, c.intrinsic)).join('')}</table>
       <table><tr><th>엔딩</th><th>1차</th><th>2차</th></tr>${ENDINGS.map(e => row(esc(e.label), s.before[e.key], s.after[e.key])).join('')}</table>
       <table>${row('1차 플레이', `${s.people}명`)}${row('두 번 플레이', `${s.pairs}명`)}${row('엔딩 바뀜', `${s.changed}명`)}${row('내적 쪽 / 그대로 / 외적 쪽', `${s.shift.toInt} / ${s.shift.same} / ${s.shift.toExt}`)}${row('노년기 외적 선택', `${s.oldExt}명`)}</table>`;
   }
@@ -283,7 +348,7 @@ body.embed #nav { display: none !important; }
     const k = e.key;
     if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') { cur = Math.min(VIEWS.length - 1, cur + 1); render(); }
     else if (k === 'ArrowLeft' || k === 'PageUp') { cur = Math.max(0, cur - 1); render(); }
-    else if (/^[1-4]$/.test(k)) { cur = +k - 1; render(); }
+    else if (/^[1-5]$/.test(k)) { cur = +k - 1; render(); }
     else if (k === 'h' || k === 'H') document.body.classList.toggle('clean');
     else if (k === 't' || k === 'T') { $('#table').hidden = !$('#table').hidden; render(); }
     else if (k === 'f' || k === 'F') { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch { /* 무시 */ } }
@@ -306,7 +371,7 @@ body.embed #nav { display: none !important; }
   }
   // 한 번 그린 캔버스로 JPG(파일 저장)와 PNG(클립보드: 브라우저는 PNG만 받는다)를 만든다.
   async function exportCanvas(slide) {
-    const k = VIEWS.findIndex(v => v.slide === slide);
+    const k = viewIndex(slide);
     if (k < 0) throw new Error(`${slide}번 화면이 없어요.`);
     cur = k; render();
     await new Promise(ok => requestAnimationFrame(() => requestAnimationFrame(ok))); drawTrend();
@@ -331,7 +396,7 @@ body.embed #nav { display: none !important; }
     } catch (e) { status = e.message; }
     render();
   }
-  window.__results = { slides: VIEWS.map(v => v.slide), exportJpg, exportCanvas, toJpeg, toPng, fileName, show(slide) { const k = VIEWS.findIndex(v => v.slide === slide); if (k >= 0) { cur = k; render(); } } };
+  window.__results = { slides: VIEWS.map(v => v.slide), exportJpg, exportCanvas, toJpeg, toPng, fileName, show(slide) { const k = viewIndex(slide); if (k >= 0) { cur = k; render(); } } };
 
   async function refresh() {
     if (DEMO) { last = demoPlays(); extra = { hands_ext: 14, hands_int: 24 }; status = '미리보기 (가상 데이터 38명)'; render(); return; }
