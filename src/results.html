@@ -132,6 +132,11 @@ svg.dots { display: block; margin-top: 18px; overflow: visible; }
 .mover .hb em { font-style: normal; font-family: var(--display); font-size: 40px; color: var(--ink); white-space: nowrap; }
 .mover .hb em small { font-family: var(--sans); font-size: 22px; color: var(--muted); margin-left: 8px; }
 .h3 { margin: 0; font-size: 28px; font-weight: 700; color: var(--ink-2); }
+.names-box { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 8px; }
+.names { margin: 0; font-size: 25px; line-height: 1.45; color: var(--ink); word-break: keep-all; }
+.names b { color: var(--int-ink); margin-right: 8px; }
+.names.ext b { color: var(--ext-ink); }
+.names small { font-size: 21px; color: var(--muted); margin-left: 6px; }
 
 /* 조작 (H로 숨김) */
 #nav { position: fixed; right: 18px; bottom: 16px; display: flex; gap: 8px; align-items: center; z-index: 5; transition: opacity .3s; font-family: var(--sans); }
@@ -189,7 +194,7 @@ body.embed #nav { display: none !important; }
       const pool = ENDINGS.filter(e => e.family === fam);
       return { ending: (pool.length ? pool[Math.floor(r() * pool.length)] : ENDINGS.at(-1)).key, picks };
     };
-    return Array.from({ length: 38 }, (_, i) => { const lean = .3 + r() * .35; return { first: play(lean, .1), last: i < 34 ? play(lean + .13 * r(), .12) : null, gender: r() < .5 ? 'm' : 'f', cohort: ['21', '22', '23', '24', '25'][Math.floor(r() * 5)] }; });
+    return Array.from({ length: 38 }, (_, i) => { const lean = .3 + r() * .35; return { first: play(lean, .1), last: i < 34 ? play(lean + .13 * r(), .12) : null, gender: r() < .5 ? 'm' : 'f', cohort: ['21', '22', '23', '24', '25'][Math.floor(r() * 5)], name: `참가자${i + 1}` }; });
   }
 
   // ---------- 집계 ----------
@@ -205,7 +210,12 @@ body.embed #nav { display: none !important; }
     const moves = {}; for (const p of pairs) if (p.first.ending !== p.last.ending) { const k = `${p.first.ending}>${p.last.ending}`; moves[k] = (moves[k] || 0) + 1; }
     const top = Object.entries(moves).sort((a, b) => b[1] - a[1])[0];
     const shift = { toInt: 0, same: 0, toExt: 0 };
-    for (const p of pairs) { const d = goalCount(p.last).intrinsic - goalCount(p.first).intrinsic; shift[d > 0 ? 'toInt' : d < 0 ? 'toExt' : 'same']++; }
+    const movers = { toInt: [], toExt: [], named: pairs.some(p => p.name) };
+    for (const p of pairs) {
+      const d = goalCount(p.last).intrinsic - goalCount(p.first).intrinsic, k = d > 0 ? 'toInt' : d < 0 ? 'toExt' : 'same';
+      shift[k]++; if (p.name && movers[k]) movers[k].push(p.name);
+    }
+    for (const k of ['toInt', 'toExt']) movers[k].sort((a, b) => a.localeCompare(b, 'ko', { numeric: true }));
     return {
       people: people.length, pairs: pairs.length, first: sum(first), second: sum(pairs.map(p => p.last)), firstOfPairs: sum(pairs.map(p => p.first)),
       periods: PERIODS.map(p => ({ ...p, ...sum(first, p.key) })),
@@ -218,7 +228,7 @@ body.embed #nav { display: none !important; }
         return { age: st.age, era: st.era || '', ...c };
       }),
       changed: pairs.filter(p => p.first.ending !== p.last.ending).length,
-      before: by(pairs, 'first'), after: by(pairs, 'last'), top: top && { from: top[0].split('>')[0], to: top[0].split('>')[1], n: top[1] }, shift,
+      before: by(pairs, 'first'), after: by(pairs, 'last'), top: top && { from: top[0].split('>')[0], to: top[0].split('>')[1], n: top[1] }, shift, movers,
     };
   }
 
@@ -418,6 +428,12 @@ body.embed #nav { display: none !important; }
         <div class="note">${s.top ? `가장 많이 옮겨 간 길: <b>${esc(endingLabel(s.top.from))} → ${esc(endingLabel(s.top.to))}</b> (${s.top.n}명)` : '엔딩이 바뀐 사람이 아직 없어요.'}</div></div></div>`;
   }
 
+  // 27번 맨 아래: 이동한 사람 닉네임. 닉네임은 발표자 페이지에 로그인한 브라우저에서만 받는다 (공개 화면에는 인원수만).
+  function namesBox(s) {
+    const MAX = 30, list = names => names.length > MAX ? `${esc(names.slice(0, MAX).join(' · '))} 외 ${names.length - MAX}명` : names.length ? esc(names.join(' · ')) : '없음';
+    const line = (label, cls, names, count) => `<p class="names ${cls}"><b>${label}:</b>${s.movers.named ? list(names) : `${count}명<small>닉네임은 발표자 페이지에 로그인한 브라우저에서만 보여요</small>`}</p>`;
+    return `<div class="names-box">${line('내적 쪽으로 이동한 사람', '', s.movers.toInt, s.shift.toInt)}${line('외적 쪽으로 이동한 사람', 'ext', s.movers.toExt, s.shift.toExt)}</div>`;
+  }
   function viewShift(s) {
     if (!s.pairs) return empty('2차 플레이가 끝나면 여기에 나타나요.', s.people ? `지금까지 1차 플레이 ${s.people}명` : '');
     const a = s.firstOfPairs, b = s.second, pa = pct(a.intrinsic, a.intrinsic + a.extrinsic), pb = pct(b.intrinsic, b.intrinsic + b.extrinsic), d = pb - pa;
@@ -426,7 +442,8 @@ body.embed #nav { display: none !important; }
     return `<div class="two shift" style="grid-template-columns:1fr 760px"><div>${legendGoals()}
         <div class="hrows"><div class="hrow"><div class="who"><b>1차</b></div>${stack(a.extrinsic, a.intrinsic, '개')}</div><div class="hrow"><div class="who"><b>2차</b></div>${stack(b.extrinsic, b.intrinsic, '개')}</div></div>
         <div class="delta ${d < 0 ? 'ext' : ''}">${d > 0 ? `내적 목표 선택 ${d}%p 늘었어요` : d < 0 ? `외적 목표 선택 ${-d}%p 늘었어요` : '내적·외적 비율이 그대로예요'}</div></div>
-      <div><p class="h3">한 사람씩 보면 · 두 번 플레이한 ${n}명</p><div class="movers">${mover('내적 쪽으로 이동', s.shift.toInt, 'var(--int)')}${mover('그대로', s.shift.same, 'var(--same)')}${mover('외적 쪽으로 이동', s.shift.toExt, 'var(--ext)')}</div></div></div>`;
+      <div><p class="h3">한 사람씩 보면 · 두 번 플레이한 ${n}명</p><div class="movers">${mover('내적 쪽으로 이동', s.shift.toInt, 'var(--int)')}${mover('그대로', s.shift.same, 'var(--same)')}${mover('외적 쪽으로 이동', s.shift.toExt, 'var(--ext)')}</div></div></div>
+      ${namesBox(s)}`;
   }
 
   const VIEWS = [
@@ -518,17 +535,27 @@ body.embed #nav { display: none !important; }
   }
   window.__results = { slides: VIEWS.map(v => v.slide), exportJpg, exportCanvas, toJpeg, toPng, fileName, show(slide) { const k = viewIndex(slide); if (k >= 0) { cur = k; render(); } } };
 
+  let adminPin = (() => { try { return sessionStorage.getItem('insaeng-galimgil.admin') || localStorage.getItem('insaeng-galimgil.admin'); } catch { return null; } })();
   async function refresh() {
     if (DEMO) { last = demoPlays(); extra = { hands_ext: 14, hands_int: 24 }; status = '미리보기 (가상 데이터 38명)'; render(); return; }
     if (!CONFIG.supabaseUrl || !CONFIG.supabaseKey) { status = '저장소 연결 안 됨'; $('#view').innerHTML = empty('아직 기록 저장소가 연결되지 않았어요.'); render(); return; }
     const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json' };
     if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
     try {
-      const call = fn => fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: '{}' });
-      const [res, ex] = await Promise.all([call('results_plays'), call('results_extra')]);
-      if (ex.ok) extra = await ex.json();
-      if (res.ok) { last = await res.json(); status = `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신`; }
-      else status = res.status === 404 ? 'Supabase에서 schema.sql을 다시 실행해 주세요' : `불러오기 실패 (${res.status})`;
+      const call = (fn, body = {}) => fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(body) });
+      const ex = call('results_extra');
+      let rows = null, res = null;
+      // 발표자 페이지에 로그인한 브라우저면 닉네임까지 받는다. 한 번이라도 거절되면(비밀번호가 바뀜 등) 다시 묻지 않는다.
+      // 틀린 비밀번호로 5초마다 물으면 발표자 페이지가 잠기기 때문이다.
+      if (adminPin) {
+        const a = await call('admin_results_plays', { pin: adminPin });
+        const j = a.ok ? await a.json() : null;
+        if (j?.ok) rows = j.people; else adminPin = null;
+      }
+      if (!rows) { res = await call('results_plays'); if (res.ok) rows = await res.json(); }
+      const e = await ex; if (e.ok) extra = await e.json();
+      if (rows) { last = rows; status = `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신${adminPin ? ' · 닉네임 표시' : ''}`; }
+      else status = res?.status === 404 ? 'Supabase에서 schema.sql을 다시 실행해 주세요' : `불러오기 실패 (${res?.status})`;
     } catch { status = '연결 끊김, 다시 시도 중'; }
     render();
     setTimeout(refresh, 5000);

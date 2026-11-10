@@ -36,6 +36,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
 .field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 15px; }
 .preview { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #FFFBF2; margin: 14px 0; }
 .preview iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; }
+.btn-gap { display: inline-block; width: 18px; }
 #jpg-btns button.on { border-color: var(--green); color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
 .row-label { font-weight: 700; color: var(--ink-2); margin-right: 2px; }
 .warn { background: var(--danger-soft); border-radius: 12px; padding: 12px 16px; color: var(--danger); font-weight: 500; }
@@ -119,6 +120,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
       }
       const saved = stored();
       if (saved && await rpc('admin_verify', { pin: saved }) === 'ok') { pin = saved; loggedIn(); }
+      else if (saved) { try { sessionStorage.removeItem(PIN_KEY); localStorage.removeItem(PIN_KEY); } catch { /* 무시 */ } } // 바뀐 비밀번호는 지운다
     } catch (e) { say('#login-msg', e.message, false); }
   }
   function loggedIn() {
@@ -126,6 +128,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
     $('#login-title').textContent = '로그인됨';
     $('#login-desc').textContent = '초기화와 손들기 저장을 쓸 수 있어요.';
     $('#login-form').hidden = true; say('#login-msg', '');
+    reloadFrame(); // 미리보기(결과 화면)가 저장된 비밀번호로 닉네임까지 받아 오게 다시 연다
   }
   $('#login-form').addEventListener('submit', async e => {
     e.preventDefault();
@@ -177,11 +180,13 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   const frame = $('#frame');
   function fitFrame() { frame.style.transform = `scale(${$('#preview').clientWidth / 1920})`; }
   // GitHub Pages는 페이지를 10분 동안 캐시하게 한다. 미리보기(그리고 내보내는 그림)가 방금 배포한 결과 화면을 쓰도록 주소를 매번 바꾼다.
-  const FRESH = Date.now().toString(36);
-  function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}#${slide || curSlide || 15}`; }
+  // 다시 열 때마다 주소의 n을 바꾼다. 해시(#15)까지 같은 주소를 넣으면 브라우저가 페이지를 새로 읽지 않는다.
+  const FRESH = Date.now().toString(36); let loads = 0;
+  function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}&n=${++loads}#${slide || curSlide || 15}`; }
   addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
   $('#demo').addEventListener('change', () => reloadFrame());
-  $('#jpg-btns').innerHTML = SLIDES.map(n => `<button data-jpg="${n}">${n}번</button> `).join('');
+  // 토론 전(15·16·17·23)과 토론 후(26·27) 사이에 작은 틈을 둔다.
+  $('#jpg-btns').innerHTML = SLIDES.map((n, i) => `${i && n >= 26 && SLIDES[i - 1] < 26 ? '<span class="btn-gap"></span>' : ''}<button data-jpg="${n}">${n}번</button> `).join('');
   const busy = on => document.querySelectorAll('#c-jpg button').forEach(b => { b.disabled = on; });
   const demoNote = () => $('#demo').checked ? ' (가상 데이터)' : '';
   function select(n) {

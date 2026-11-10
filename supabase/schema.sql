@@ -70,7 +70,8 @@ grant execute on function public.results_summary() to anon;
 
 -- Each person's first and latest playthrough with their choices, for the goal charts.
 -- Names are used only to pair the two plays and are never returned.
-create or replace function public.results_plays()
+-- One row per person: first and latest play, gender and admission year. Nicknames are filled in only for the presenter.
+create or replace function public.results_people(with_names boolean)
 returns json
 language sql
 stable
@@ -80,6 +81,7 @@ as $$
   with ranked as (
     select
       lower(trim(nickname)) as who,
+      trim(nickname) as nick,
       ending,
       picks,
       gender,
@@ -94,12 +96,23 @@ as $$
     'first', json_build_object('ending', f.ending, 'picks', f.picks),
     'last', case when f.total >= 2 then json_build_object('ending', l.ending, 'picks', l.picks) end,
     'gender', coalesce(f.gender, l.gender),
-    'cohort', coalesce(f.cohort, l.cohort)
+    'cohort', coalesce(f.cohort, l.cohort),
+    'name', case when with_names then f.nick end
   ) order by random()), '[]'::json)
   from ranked f
   join ranked l on l.who = f.who and l.last_rank = 1
   where f.first_rank = 1;
 $$;
+revoke all on function public.results_people(boolean) from public, anon, authenticated;
+
+-- Public: the same rows without nicknames.
+create or replace function public.results_plays()
+returns json
+language sql
+stable
+security definer
+set search_path = public
+as $$ select results_people(false); $$;
 
 revoke all on function public.results_plays() from public;
 grant execute on function public.results_plays() to anon;
@@ -171,6 +184,22 @@ begin
 end;
 $$;
 revoke all on function public.admin_check(text) from public, anon, authenticated;
+
+-- Presenter only: the results rows with nicknames, for the names on the last slide.
+create or replace function public.admin_results_plays(pin text)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare r text := admin_check(pin);
+begin
+  if r <> 'ok' then return json_build_object('ok', false, 'error', r); end if;
+  return json_build_object('ok', true, 'people', results_people(true));
+end;
+$$;
+revoke all on function public.admin_results_plays(text) from public;
+grant execute on function public.admin_results_plays(text) to anon;
 
 create or replace function public.admin_status()
 returns json language sql stable security definer set search_path = public as $$

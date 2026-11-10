@@ -131,7 +131,7 @@ GitHub Pages only serves files, so finished playthroughs are stored in a free [S
 1. Create a project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor.
 2. Put the project URL and the publishable key in `config.json`. Never use the secret key here, because this repository is public.
 
-The publishable key can add a playthrough and read the totals, but it cannot read individual rows, nicknames, or student IDs. To see them, open the `plays` table in the Supabase dashboard (Table Editor), where it can also be exported as CSV. If the game is deployed before `schema.sql` is run again, plays are still saved, just without the student ID and character. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
+The publishable key can add a playthrough and read the totals, but it cannot read individual rows, nicknames, or student IDs. The nicknames on slide 27 come from a separate function that checks the presenter passphrase, so they appear only in a browser that is signed in to the presenter page. To see them, open the `plays` table in the Supabase dashboard (Table Editor), where it can also be exported as CSV. If the game is deployed before `schema.sql` is run again, plays are still saved, just without the student ID and character. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
 
 If the database is unavailable, the game still plays normally. It just doesn't save the result.
 
