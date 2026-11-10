@@ -40,6 +40,17 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
 #jpg-btns button.on { border-color: var(--green); color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
 .row-label { font-weight: 700; color: var(--ink-2); margin-right: 2px; }
 .warn { background: var(--danger-soft); border-radius: 12px; padding: 12px 16px; color: var(--danger); font-weight: 500; }
+.script { margin-top: 18px; border-top: 1px dashed var(--line); padding-top: 16px; }
+.script-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 4px; }
+.script-head h3 { margin: 0; font-size: 18px; }
+.script .facts { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.script .demo-tag { color: var(--danger); font-size: 14px; font-weight: 700; }
+.sblock { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 14px; margin-top: 10px; background: #FFFDF8; }
+.sblock-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
+.sblock-top b { font-size: 15px; }
+.sblock-top .when { font-size: 13px; font-weight: 700; color: var(--green); background: #E9F1EC; border-radius: 999px; padding: 2px 10px; }
+.sblock-top button { margin-left: auto; padding: 5px 14px; font-size: 14px; }
+.sblock p { margin: 0; white-space: pre-wrap; color: var(--ink); }
 [hidden] { display: none !important; }
 </style>
 </head>
@@ -77,11 +88,12 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
 
   <section class="card" id="c-jpg">
     <h2>3. 결과 그래프 사진으로 내보내기</h2>
-    <p class="desc">번호를 누르면 그 장이 미리보기에 뜨고 클립보드에 복사돼요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣은 뒤 슬라이드 전체 크기로 맞추면 됩니다. JPG 파일이 필요하면 저장 버튼을 누르세요. 슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다.</p>
+    <p class="desc">번호를 누르면 그 장이 미리보기에 뜨고 클립보드에 복사돼요. 그 장의 대본(발표자 노트)은 미리보기 아래에 결과에 맞춰 채워져요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣은 뒤 슬라이드 전체 크기로 맞추면 됩니다. JPG 파일이 필요하면 저장 버튼을 누르세요. 슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다.</p>
     <div class="row"><span class="row-label">복사</span><span id="jpg-btns"></span></div>
     <div class="row" style="margin-top:10px"><span class="row-label">저장</span><button id="save-cur">15번 JPG 저장</button><button class="primary" id="jpg-all">5장 모두 JPG 저장</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
     <div class="preview" id="preview"><iframe id="frame" title="결과 그래프 미리보기"></iframe></div>
     <div class="msg" id="jpg-msg"></div>
+    <div class="script" id="script" aria-live="polite"></div>
   </section>
 </main>
 <!--__CONFIG__-->
@@ -183,6 +195,24 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   // 다시 열 때마다 주소의 n을 바꾼다. 해시(#15)까지 같은 주소를 넣으면 브라우저가 페이지를 새로 읽지 않는다.
   const FRESH = Date.now().toString(36); let loads = 0;
   function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}&n=${++loads}#${slide || curSlide || 15}`; }
+  // ---------- 대본: 고른 장의 발표자 노트를 지금 결과로 채운다 (결과 화면이 5초마다 새 기록을 받을 때마다 다시 채움) ----------
+  const escHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let scriptBlocks = [], scriptHtml = '';
+  function renderScript() {
+    const R = frame.contentWindow?.__results, r = R?.script ? R.script(curSlide) : null;
+    scriptBlocks = r?.blocks || [];
+    const html = `<div class="script-head"><h3>${curSlide}번 대본</h3>${r?.demo ? '<span class="demo-tag">가상 데이터로 채운 예시</span>' : ''}</div>` + (r
+      ? `<p class="facts">${escHtml(r.facts)}</p>${scriptBlocks.map((b, i) => `<div class="sblock"><div class="sblock-top"><b>${escHtml(b.where)}</b><span class="when">${escHtml(b.when)}</span><button type="button" data-copy-script="${i}">복사</button></div><p>${escHtml(b.text)}</p></div>`).join('')}`
+      : `<p class="facts">${R ? '이 장에 필요한 기록이 아직 없어요. 플레이가 쌓이면 숫자가 채워져요.' : '결과 화면을 불러오는 중이에요.'}</p>`);
+    if (html !== scriptHtml) { scriptHtml = html; $('#script').innerHTML = html; } // 같은 내용이면 다시 그리지 않는다 (글을 고르는 중일 수 있다)
+  }
+  frame.addEventListener('load', () => { const R = frame.contentWindow?.__results; if (R) R.onrender = renderScript; renderScript(); });
+  $('#script').addEventListener('click', async e => {
+    const b = e.target.closest('[data-copy-script]'); if (!b) return;
+    const text = scriptBlocks[+b.dataset.copyScript]?.text; if (!text) return;
+    try { await navigator.clipboard.writeText(text); b.textContent = '복사됨'; setTimeout(() => { b.textContent = '복사'; }, 1500); }
+    catch { b.textContent = '복사 막힘'; }
+  });
   addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
   $('#demo').addEventListener('change', () => reloadFrame());
   // 1차 게임(15·16·17)과 1&2차 게임 비교(26·27) 사이에 작은 틈을 둔다.
@@ -193,6 +223,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
     curSlide = n;
     document.querySelectorAll('[data-jpg]').forEach(b => b.classList.toggle('on', b.dataset.jpg === String(n)));
     $('#save-cur').textContent = `${n}번 JPG 저장`;
+    renderScript();
   }
   select(curSlide);
   const results = () => { const R = frame.contentWindow?.__results; if (!R) say('#jpg-msg', '그래프 화면을 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.', false); return R; };

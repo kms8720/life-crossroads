@@ -36,7 +36,7 @@ The site has three pages.
 | [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop, tablet, or phone. Post this link on the LMS. |
 | [Presentation](https://kms8720.github.io/life-crossroads/presentation/) | The shared screen. Five questions, decided by a show of hands. |
 | [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 15, 16, 17, 26 and 27. Updates every five seconds. Add `?demo` to preview with sample data. |
-| [Presenter](https://kms8720.github.io/life-crossroads/admin/) | Clears the saved plays, records the hand count, and exports the charts as images. Needs the team passphrase. |
+| [Presenter](https://kms8720.github.io/life-crossroads/admin/) | Clears the saved plays, records the hand count, exports the charts as images, and fills in the speaker notes from the results. Needs the team passphrase. |
 
 ### Before the class
 
@@ -56,6 +56,7 @@ The first person to open the presenter page sets the team passphrase (six charac
 - If the database is unreachable, the game still plays normally but nothing is saved, and the results page stays blank.
 - **Slide 13 hand count:** type the two numbers on the presenter page. They appear next to the game results on slide 15.
 - **Charts for the slides:** on the presenter page, press a slide number. The chart is copied to the clipboard as a 3840×2160 image, so it can be pasted straight into the slide. To get JPG files instead, use the save buttons below the numbers.
+- **Speaker notes:** below the preview, the presenter page shows the script for the chosen chart. It picks the variant from the team's speaker notes that matches the current results (for example, more extrinsic or more intrinsic choices) and fills in the numbers. Each block has a copy button. On slide 16 it names the two highlighted players when the page is signed in. Differences of 3 percentage points or less count as "about the same" (`NEAR` in `src/results.html`).
 
 On the presentation page:
 
