@@ -247,35 +247,28 @@ body.embed #nav { display: none !important; }
     svg.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--ext-ink)" stroke-width="3" stroke-dasharray="10 10" opacity=".6"/>${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="var(--bg)" stroke="var(--ext-ink)" stroke-width="3"/>`).join('')}` : '';
   }
 
-  // ---------- 굵은 선: 외적 +1, 내적 −1로 놓고 모든 선택과의 오차 제곱(RMSE)이 가장 작은 다항식 ----------
-  // 차수를 올릴수록 RMSE는 계속 줄지만 나이별 평균을 그대로 꿰는 구불구불한 선이 된다. 그래서 한 사람씩 빼고 맞춰 본
-  // 예측 RMSE(교차검증)가 가장 작은 차수(1~3차)를 고른 뒤, 그 차수로 모든 점에 대해 RMSE가 최소인 곡선을 구한다.
+  // ---------- 굵은 선: 외적 +1, 내적 −1로 놓고 모든 선택과의 오차 제곱(RMSE)이 가장 작은 6차 다항식 ----------
+  // 질문 나이가 7개라 6차가 나이별 평균을 모두 지나 RMSE가 최소가 되는 가장 낮은 차수이고, 곡선이 하나로 정해진다.
+  // (질문 나이가 줄어 해가 여럿이 되어도 계산이 멈추지 않게 아주 작은 규제(ridge)를 더한다.)
+  const TREND_DEG = 6;
   function polyFit(pts, deg) {
     const n = deg + 1, A = Array.from({ length: n }, () => Array(n + 1).fill(0));
     for (const [t, y] of pts) { const p = Array.from({ length: n }, (_, i) => t ** i); for (let i = 0; i < n; i++) { for (let j = 0; j < n; j++) A[i][j] += p[i] * p[j]; A[i][n] += p[i] * y; } }
+    const ridge = 1e-9 * A.reduce((t, row, i) => t + row[i], 0) / n;
+    for (let i = 0; i < n; i++) A[i][i] += ridge;
     for (let i = 0; i < n; i++) {
       let m = i; for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[m][i])) m = r;
-      [A[i], A[m]] = [A[m], A[i]]; if (Math.abs(A[i][i]) < 1e-12) return null;
+      [A[i], A[m]] = [A[m], A[i]]; if (Math.abs(A[i][i]) < 1e-300) return null;
       for (let r = 0; r < n; r++) if (r !== i) { const f = A[r][i] / A[i][i]; for (let c = i; c <= n; c++) A[r][c] -= f * A[i][c]; }
     }
     return A.map((row, i) => row[n] / row[i]);
   }
   const polyAt = (c, t) => c.reduce((sum, a, i) => sum + a * t ** i, 0);
   function trendOf(paths, ages) {
-    const T = a => (a - 40) / 25, ptsOf = list => list.flatMap(v => v.map((y, k) => y == null ? null : [T(ages[k]), y]).filter(Boolean));
-    const all = ptsOf(paths), maxDeg = Math.min(3, new Set(ages).size - 1);
-    if (all.length < 3 || maxDeg < 1) return null;
-    let deg = Math.min(2, maxDeg), cv = null;
-    if (paths.length >= 4) {
-      for (let d = 1; d <= maxDeg; d++) {
-        let se = 0, n = 0;
-        for (let i = 0; i < paths.length && se < Infinity; i++) { const c = polyFit(ptsOf(paths.filter((_, j) => j !== i)), d); if (!c) { se = Infinity; break; } for (const [t, y] of ptsOf([paths[i]])) { se += (polyAt(c, t) - y) ** 2; n++; } }
-        const e = n ? Math.sqrt(se / n) : Infinity;
-        if (cv == null || e < cv - 1e-9) { cv = e; deg = d; }
-      }
-    }
-    const c = polyFit(all, deg); if (!c) return null;
-    return { deg, c, rmse: Math.sqrt(all.reduce((sum, [t, y]) => sum + (polyAt(c, t) - y) ** 2, 0) / all.length), at: a => polyAt(c, T(a)) };
+    const T = a => (a - 40) / 25, all = paths.flatMap(v => v.map((y, k) => y == null ? null : [T(ages[k]), y]).filter(Boolean));
+    if (all.length < 2) return null;
+    const c = polyFit(all, TREND_DEG); if (!c) return null;
+    return { deg: TREND_DEG, c, rmse: Math.sqrt(all.reduce((sum, [t, y]) => sum + (polyAt(c, t) - y) ** 2, 0) / all.length), at: a => polyAt(c, T(a)) };
   }
 
   // 15-1: 가로는 나이, 위(+1)는 외적·아래(−1)는 내적 선택. 점 하나가 한 사람의 1차 선택 하나다.
