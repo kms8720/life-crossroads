@@ -286,7 +286,9 @@ body.embed #nav { display: none !important; }
     let d = 6, K = Math.ceil(N / Math.max(1, Math.floor(band / (6 + gap))));
     for (let dd = 16; dd >= 6; dd -= 1) { const k = Math.ceil(N / Math.max(1, Math.floor(band / (dd + gap)))); if (k * (dd + gap) - gap <= room) { d = dd; K = k; break; } }
     const rows = Math.ceil(N / K), score = v => v.reduce((t, y) => t + (y || 0), 0);
-    const rank = []; paths.map((v, i) => [i, score(v)]).sort((a, b) => b[1] - a[1] || a[0] - b[0]).forEach(([i], r) => { rank[i] = r; });
+    // 자리 순서: 외적을 많이 고른 사람이 위. 같으면 선택 패턴 순으로 정해, DB가 돌려주는 순서와 상관없이 매번 같은 그림이 되게 한다.
+    const pattern = v => v.map(y => y > 0 ? 'a' : y < 0 ? 'b' : 'c').join('');
+    const rank = []; paths.map((v, i) => [i, score(v), pattern(v)]).sort((a, b) => b[1] - a[1] || (a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : 0)).forEach(([i], r) => { rank[i] = r; });
     const seat = i => { const r = rank[i], row = Math.floor(r / K), inRow = Math.min(K, N - row * K), col = r % K; return { dx: (col - (inRow - 1) / 2) * (d + gap), dy: rows > 1 ? (.5 - row / (rows - 1)) * band : 0 }; };
     const pos = (i, k) => { const v = paths[i][k]; if (v == null) return null; const st = seat(i); return [x(ages[k]) + st.dx, yv(v) - st.dy]; };
     // 한 사람의 선: 점마다 기울기 0으로 잇는 3차 곡선 (같은 쪽이면 수평, 바뀌면 부드러운 S자)
