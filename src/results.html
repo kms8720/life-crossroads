@@ -66,7 +66,7 @@ body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: anti
 .callout .big small { font-size: 52px; margin-left: 4px; }
 .callout span { font-size: 23px; color: var(--muted); }
 
-/* 15-1: 나이별 점 그림 */
+/* 17번: 나이별 누적합 그림 */
 .dots-wrap { display: flex; flex-direction: column; height: 100%; }
 .legend i.dot { border-radius: 50%; }
 .legend .unit { margin-left: auto; font-weight: 400; font-size: 23px; color: var(--muted); }
@@ -285,7 +285,7 @@ body.embed #nav { display: none !important; }
     return { deg: TREND_DEG, c, rmse: Math.sqrt(all.reduce((sum, [t, y]) => sum + (polyAt(c, t) - y) ** 2, 0) / all.length), at: a => polyAt(c, T(a)) };
   }
 
-  // 15-1: 가로는 나이, 세로는 그 나이까지의 누적합(외적 +1, 내적 −1을 차례로 더한 값). 한 사람의 누적 경로를 반투명 선으로 그려
+  // 17번: 가로는 나이, 세로는 그 나이까지의 누적합(외적 +1, 내적 −1을 차례로 더한 값). 한 사람의 누적 경로를 반투명 선으로 그려
   // 같은 길을 간 사람이 많을수록 진해진다. 끝(마지막 나이)에서 가장 높은 한 사람은 진한 주황, 가장 낮은 한 사람은 초록으로 강조한다.
   const TOP_COLOR = '#C2502A', BOTTOM_COLOR = '#00796B';
   // 단조 3차 보간(Fritsch–Carlson): 같은 방향으로 가는 동안은 매끈한 직선에 가깝고, 방향이 바뀌는 곳에서만 부드럽게 꺾인다.
@@ -302,7 +302,7 @@ body.embed #nav { display: none !important; }
     const f = v => v.toFixed(1);
     return pts.map(([px, py], k) => { if (!k) return `M${f(px)} ${f(py)}`; const [qx, qy] = pts[k - 1], h = dx[k - 1] / 3; return `C${f(qx + h)} ${f(qy + m[k - 1] * h)} ${f(px - h)} ${f(py - m[k] * h)} ${f(px)} ${f(py)}`; }).join('');
   }
-  // 각 사람의 누적합과, 16번에서 강조할 두 사람(끝값이 가장 높은/낮은 사람).
+  // 각 사람의 누적합과, 17번에서 강조할 두 사람(끝값이 가장 높은/낮은 사람).
   // 끝값이 같으면 누적합 넓이(더 일찍부터 그쪽으로 간 사람), 그다음 선택 패턴 순으로 정한다. 대본도 같은 두 사람을 쓴다.
   const lastOf = v => v.filter(y => y != null).at(-1) ?? 0;
   function extremes(s) {
@@ -373,7 +373,7 @@ body.embed #nav { display: none !important; }
         <div class="note">${s.top ? `가장 많이 옮겨 간 길: <b>${esc(endingLabel(s.top.from))} → ${esc(endingLabel(s.top.to))}</b> (${s.top.n}명)` : '엔딩이 바뀐 사람이 아직 없어요.'}</div></div></div>`;
   }
 
-  // 27번 맨 아래: 이동한 사람 닉네임. 닉네임은 발표자 페이지에 로그인한 브라우저에서만 받는다 (공개 화면에는 인원수만).
+  // 30번 맨 아래: 이동한 사람 닉네임. 닉네임은 발표자 페이지에 로그인한 브라우저에서만 받는다 (공개 화면에는 인원수만).
   function namesBox(s) {
     const MAX = 30, list = names => names.length > MAX ? `${esc(names.slice(0, MAX).join(' · '))} 외 ${names.length - MAX}명` : names.length ? esc(names.join(' · ')) : '없음';
     const line = (label, cls, names, count) => `<p class="names ${cls}"><b>${label}:</b>${s.movers.named ? list(names) : `${count}명<small>닉네임은 발표자 페이지에 로그인한 브라우저에서만 보여요</small>`}</p>`;
@@ -392,118 +392,112 @@ body.embed #nav { display: none !important; }
   }
 
   // ---------- 발표자 노트(대본) ----------
-  // 구글 슬라이드 발표자 노트에 적힌 갈래("외적이 더 많을 때" 등) 중 지금 결과에 맞는 것을 골라 숫자를 채운다.
+  // 구글 슬라이드 발표자 노트를 NOTES에 그대로 옮겨 두고, 결과에 맞는 갈래만 남긴 뒤 [ ] 빈칸을 앞에서부터 차례로 채운다.
+  // 노트가 바뀌면 덱의 글을 NOTES에 그대로 붙여 넣으면 된다. [ ] 안의 글은 무엇이든 되고, 빈칸 순서만 맞으면 된다.
+  // 채울 값이 없는 빈칸(손들기 수를 아직 안 넣음 등)은 [ ] 그대로 둬서 발표자가 직접 채우게 한다.
   // 숫자는 그래프에 보이는 값과 같은 계산(pct 반올림)을 쓴다. 차이가 NEAR(%p) 이하면 "비슷하다"로 본다.
-  // 한 그래프의 대본이 다음 장들로 이어지면 블록을 나눠 어느 장 노트인지 적는다. 장 번호는 바뀔 수 있어 제목으로 적는다.
   const NEAR = 3;
   const side = (p, base = 50) => p - base > NEAR ? 1 : base - p > NEAR ? -1 : 0;
-  const HERE = '이 장';
-  // 17번(나이대) 결과로 갈래가 정해지는 뒤쪽 장들의 노트. 덱 번호가 바뀌면 여기만 고친다.
-  const AGE_NEXT = '18번 슬라이드 · 목표의 종류와 행복 (첫 장)', AGE_BOOK = '20번 슬라이드 · 김희삼 「행복 공부」 장';
   const signed = v => v > 0 ? `+${v}` : v < 0 ? `−${-v}` : '0';
+  const fill = (t, vals) => { let i = 0; return t.replace(/\[[^\]\n]*\]/g, m => { const v = vals[i++]; return v == null ? m : String(v); }); };
+  // slide: 지금 덱(43장) 번호. 그래프가 있는 장의 번호는 VIEWS의 slide와 같아야 한다.
+  const NOTES = {
+    share: { slide: 16, variants: {
+      ext: { when: '외적 목표 선택이 더 많을 때', text: '전체적으로 보면 외적 목표 쪽 선택이 [○○]%로 더 많았습니다. 연봉, 인정, 안정적인 조건처럼 눈에 보이는 것을 고른 순간이 많았다는 뜻이죠. 아까 손을 드셨을 때는 내적 목표 쪽이 [더 많았/비슷했]는데, 실제 선택은 조금 달랐네요.' },
+      // 노트에 없는 경우: 게임도 손들기도 외적이 더 많으면 위 마지막 문장이 틀리게 돼서 그 문장만 바꾼다.
+      extSame: { when: '외적 목표 선택이 더 많을 때 · 손들기도 외적이 더 많음 (노트에 없는 경우라 마지막 문장만 바꿈)', text: '전체적으로 보면 외적 목표 쪽 선택이 [○○]%로 더 많았습니다. 연봉, 인정, 안정적인 조건처럼 눈에 보이는 것을 고른 순간이 많았다는 뜻이죠. 아까 손을 드셨을 때도 외적 목표 쪽이 더 많았는데, 실제 선택도 같은 쪽이었네요.' },
+      int: { when: '내적 목표 선택이 더 많을 때', text: '전체적으로 보면 내적 목표 쪽 선택이 [○○]%로 더 많았습니다. 관계, 성장, 건강처럼 나 자신과 주변 사람을 챙기는 쪽을 많이 고르셨어요. 아까 손을 드신 결과와도 [비슷하네요/조금 다르네요].' },
+    } },
+    age: { slide: 18, variants: {
+      dec: { when: '나이가 들수록 외적 목표가 줄어들 때', text: '시기별로 보면 청년기에는 전체 인원중 외적 목표를 선택한 인원의 비율이 [○○]%였는데,\n노년기로 갈수록 [○○]%까지 줄어듭니다. 젊을 때는 성취와 인정을 좇다가, 나이가 들수록 관계와 건강 쪽으로 무게가 옮겨 간 거죠.' },
+      inc: { when: '나이가 들수록 외적 목표가 늘어날 때', text: '의외의 결과가 나왔습니다. 노년기로 갈수록 외적 목표 선택이 오히려 [○○]%까지 늘었어요. 나이가 들수록 노후 자금, 건강 관리, 가족의 안정처럼 현실적인 조건을 더 챙기게 된 것일 수도 있겠습니다.' },
+    } },
+    // 18번(나이대) 결과로 갈래가 정해지는 뒤쪽 장들
+    ageNext: { slide: 19, title: '목표의 종류와 행복', variants: {
+      dec: { when: '나이가 들수록 외적 목표가 줄어들 때', text: '그런데 모두가 그런 건 아니었습니다. 노년기에도 외적 목표를 고른 분이 [○명] 있었는데요, 이분처럼 나이가 들어서도 멋진 차와 성취를 즐기는 삶도 있습니다.' },
+      inc: { when: '나이가 들수록 외적 목표가 늘어날 때', text: '이분처럼 나이가 들어서도 원하는 것을 손에 넣고 즐기는 삶, 우리 결과는 이런 모습에 더 가까웠습니다.' },
+    } },
+    ageBook: { slide: 23, title: '김희삼 「행복 공부」', before: '김희삼 교수님의 ‘행복 공부’에서는 앞서 본 연구들처럼,\n외적 목표를 이룬다고 행복이 보장되지는 않고, 사랑과 우정, 자아의 성장 같은 내적 목표가 더 높은 행복감과 관련된다고 설명하십니다.\n그런데 여기서 주목하고 싶은 건 세 번째입니다. 젊을 때는 외적 목표에 집중하다가도, 나이가 들면서 내적 가치를 중시하는 사람이 늘어난다는 것입니다.', variants: {
+      dec: { when: '나이가 들수록 외적 목표가 줄었을 때 (책과 같은 결과)', text: '아까 게임에서도 노년기로 갈수록 외적 목표 선택이 줄었죠. 여러분의 선택이 교수님 말씀과 같은 흐름을 보여 준 셈입니다.' },
+      inc: { when: '나이가 들수록 외적 목표가 늘었을 때 (책과 반대인 결과)', text: '그런데 아까 게임에서는 오히려 노년기로 갈수록 외적 목표 선택이 늘었습니다. 게임 속에서 노후 자금이나 가족의 안정 같은 현실적인 고민을 먼저 떠올리셨기 때문일 수도 있겠습니다.' },
+    } },
+    endings: { slide: 29, before: '여러분은 이미 게임을 한 번 경험했고, 이론과 연구를 배우고, 다른 사람들의 경험도 들었습니다.', variants: {
+      many: { when: '바뀐 사람 많을 때', text: '보시는 것처럼 [N]명 중 [N]명, [○○]%의 엔딩이 바뀌었습니다. 특히 [○○ 엔딩]에서 [○○ 엔딩]으로 옮겨 간 분이 [N]명으로 가장 많았어요. 저희의 데이터와 이론을 본 이후에 이렇게 생각이 많이 바뀐 것입니다.' },
+      few: { when: '안 바뀐 사람이 더 많을 때', text: '보시는 것처럼 [N]명 중 [N]명, [○○]%는 두 번 모두 같은 엔딩을 받았습니다. 이론과 연구를 다 듣고 나서도 대부분 처음 선택을 지키신 거죠. 그만큼 각자가 중요하게 여기는 가치가 분명하다는 뜻일 겁니다.' },
+    } },
+    shift: { slide: 30, after: '전후 결과가 바뀐 사람도 있고 그대로인 사람들도 있는데요 그러면 저희가 게임에서 몇개의 질문을 뽑아서 자신의 선택이 바뀌었는지, 바뀌었다면 그 이유에 대해 조원들과 함께 토론해보겠습니다..!!!!', variants: {
+      int: { when: '내적 목표 쪽으로 이동했을 때', text: '숨겨진 게이지도 비교해 보겠습니다. 1차에서 [○○]%였던 내적 목표 선택이 2차에서는 [○○]%로 늘었습니다.' },
+      ext: { when: '외적 목표 쪽으로 이동했을 때', text: '숨겨진 게이지를 보면, 오히려 외적 목표 선택이 [○○]%에서 [○○]%로 늘었습니다.' },
+      same: { when: '거의 그대로일 때', text: '숨겨진 게이지도 1차 [○○]%, 2차 [○○]%로 거의 그대로였습니다. 내적 목표가 행복과 관련 있다는 연구를 듣고도 선택은 크게 바뀌지 않았어요.' },
+    } },
+  };
+  // 한 장의 노트에서 고른 갈래(들)만 남긴다. 두 갈래가 똑같이 맞으면(동률) 둘 다 보여 준다.
+  const noteBlocks = (key, picks) => {
+    const n = NOTES[key], tie = picks.length > 1;
+    return picks.map(([v, vals]) => ({
+      where: `${n.slide}번 슬라이드${n.title ? ` · ${n.title}` : ''}`,
+      when: n.variants[v].when + (tie ? ' (동률이라 두 갈래 모두)' : ''),
+      text: [n.before, fill(n.variants[v].text, vals), n.after].filter(Boolean).join('\n'),
+    }));
+  };
   function scriptShare(s) {
     if (!s.people) return null;
     const t = s.first.extrinsic + s.first.intrinsic, pe = pct(s.first.extrinsic, t), pi = 100 - pe;
-    const he = +extra.hands_ext || 0, hi = +extra.hands_int || 0, hands = he + hi ? side(pct(he, he + hi)) : null;
-    const g = side(pe);
-    let text, when;
-    if (g > 0) {
-      when = '외적 목표 선택이 더 많을 때';
-      text = `전체적으로 보면 외적 목표 쪽 선택이 ${pe}%로 더 많았습니다. 연봉, 인정, 안정적인 조건처럼 눈에 보이는 것을 고른 순간이 많았다는 뜻이죠.`;
-      if (hands === -1) text += ' 아까 손을 드셨을 때는 내적 목표 쪽이 더 많았는데, 실제 선택은 조금 달랐네요.';
-      else if (hands === 0) text += ' 아까 손을 드셨을 때는 두 쪽이 비슷했는데, 실제 선택은 조금 달랐네요.';
-      else if (hands === 1) text += ' 아까 손을 드셨을 때도 외적 목표 쪽이 더 많았는데, 실제 선택도 같은 쪽이었네요.';
-    } else if (g < 0) {
-      when = '내적 목표 선택이 더 많을 때';
-      text = `전체적으로 보면 내적 목표 쪽 선택이 ${pi}%로 더 많았습니다. 관계, 성장, 건강처럼 나 자신과 주변 사람을 챙기는 쪽을 많이 고르셨어요.`;
-      if (hands != null) text += ` 아까 손을 드신 결과와도 ${hands < 0 ? '비슷하네요' : '조금 다르네요'}.`;
-    } else {
-      when = '비슷할 때';
-      text = '내적 목표와 외적 목표가 거의 반반으로 나왔습니다. 우리가 한쪽만 좇으며 사는 게 아니라, 갈림길마다 두 가지 사이에서 계속 저울질하고 있다는 뜻이겠죠.';
-    }
-    return { facts: `게임 1차 선택 외적 ${pe}% · 내적 ${pi}% (${s.people}명, 선택 ${t}개) · ${he + hi ? `손들기 외적 ${he}명 · 내적 ${hi}명` : '손들기 수는 아직 안 넣음'}`, blocks: [{ where: HERE, when, text }] };
+    const he = +extra.hands_ext || 0, hi = +extra.hands_int || 0, hands = he + hi ? side(pct(he, he + hi)) : null; // 1: 손들기 외적이 더 많음, 0: 비슷, −1: 내적이 더 많음
+    const ext = hands === 1 ? ['extSame', [pe]] : ['ext', [pe, hands === -1 ? '더 많았' : hands === 0 ? '비슷했' : null]];
+    const int = ['int', [pi, hands == null ? null : hands === -1 ? '비슷하네요' : '조금 다르네요']];
+    const picks = s.first.extrinsic > s.first.intrinsic ? [ext] : s.first.intrinsic > s.first.extrinsic ? [int] : [ext, int];
+    return { facts: `게임 1차 선택 외적 ${pe}% · 내적 ${pi}% (${s.people}명, 선택 ${t}개) · ${he + hi ? `손들기 외적 ${he}명 · 내적 ${hi}명` : '손들기 수를 아직 안 넣어서 손들기 칸은 [ ]로 남겨 둠'}`, blocks: noteBlocks('share', picks) };
   }
+  // 17번(누적합)은 대본을 바꾸지 않는다 (팀 결정). 노트 속 "평생 내적만/외적만 고른 분"이 실제로 있는지 확인용 숫자만 보여 준다.
   function scriptDots(s) {
     if (!s.people || !s.ages.length) return null;
-    const { cum, top, bottom } = extremes(s), N = cum.length, named = s.names.some(Boolean);
-    const who = i => s.names[i] ? `${s.names[i]}님은` : '이분은';
+    const { cum, top, bottom } = extremes(s), N = cum.length;
+    const name = i => s.names[i] ? `${s.names[i]}님` : '한 분';
     const count = (i, v) => s.paths[i].filter(y => y === v).length, total = i => s.paths[i].filter(y => y != null).length;
     const allSame = v => s.paths.filter(p => p.some(y => y != null) && p.every(y => y == null || y === v)).length;
-    const parts = ['이 그래프는 여러분이 고른 선택을 외적·내적으로 나눠, 나이에 따라 쌓아 올린 그래프입니다. 외적 목표를 고르면 한 칸 위로, 내적 목표를 고르면 한 칸 아래로 갑니다.'];
-    if (N > 1) {
-      const k = total(bottom), m = count(bottom, -1), all = allSame(-1);
-      parts.push(m === k
-        ? `그런데 초록색 선을 보세요. ${who(bottom)} 평생 ${k}번의 갈림길에서 한 번도 빠짐없이 내적 목표만 고르셨어요. 간디 같은 분이 계시네요!${all > 1 ? ` 이렇게 내적 목표만 고른 분이 모두 ${all}명이에요.` : ''}`
-        : `초록색 선이 가장 내적인 길이에요. ${who(bottom)} ${k}번의 갈림길 중 ${m}번 내적 목표를 고르셨어요.`);
-    }
-    {
-      const k = total(top), m = count(top, 1), all = allSame(1);
-      const so = N > 1 ? '반대로 ' : '';
-      parts.push(m === k
-        ? `${so}주황색 선, ${who(top)} 평생 ${k}번 모두 외적 목표를 고르셨어요. 끝까지 성취를 좇는 삶이네요.${all > 1 ? ` 이렇게 외적 목표만 고른 분이 모두 ${all}명이에요.` : ''}`
-        : `${so}주황색 선이 가장 외적인 길이에요. ${who(top)} ${k}번 중 ${m}번 외적 목표를 고르셨어요.`);
-    }
-    const mid = cum.filter(v => Math.abs(lastOf(v)) <= 2).length, tr = trendOf(cum, s.ages.map(c => c.age));
-    const end = tr ? tr.at(s.ages.at(-1).age) : 0;
-    const slope = end > .5 ? '나이가 들수록 조금씩 외적 쪽으로 올라가요' : end < -.5 ? '나이가 들수록 조금씩 내적 쪽으로 내려가요' : '0 근처를 지나가요';
-    if (N >= 3) parts.push(mid * 2 >= N
-      ? `그렇지만 대부분은 가운데에 모입니다. ${N}명 중 ${mid}명이 마지막에 −2에서 +2 사이에 있어요. 우리 반 전체를 나타내는 굵은 선은 ${slope}.`
-      : `생각보다 양쪽으로 넓게 퍼져 있네요. 마지막에 −2에서 +2 사이에 있는 사람은 ${mid ? `${N}명 중 ${mid}명뿐이에요` : '한 명도 없어요'}. 우리 반 전체를 나타내는 굵은 선은 ${slope}.`);
-    return { facts: `1차 ${N}명 · 갈림길 ${s.paths[0]?.length || 0}개 · 주황 선 끝 ${signed(lastOf(cum[top]))}${N > 1 ? ` · 초록 선 끝 ${signed(lastOf(cum[bottom]))}` : ''}${named ? '' : ' · 닉네임은 로그인해야 들어가요'}`, blocks: [{ where: HERE, when: '두 끝의 사람과 대부분', text: parts.join(' ') }] };
+    const mid = cum.filter(v => Math.abs(lastOf(v)) <= 2).length;
+    const facts = [
+      N > 1 && `초록 선(가장 내적): ${name(bottom)}, ${total(bottom)}번 중 내적 ${count(bottom, -1)}번 · 내적만 고른 사람 ${allSame(-1)}명`,
+      `주황 선(가장 외적): ${name(top)}, ${total(top)}번 중 외적 ${count(top, 1)}번 · 외적만 고른 사람 ${allSame(1)}명`,
+      `마지막 누적합이 −2~+2인 사람 ${N}명 중 ${mid}명`,
+    ].filter(Boolean).join(' · ');
+    return { facts, blocks: [], note: '17번은 발표자 노트를 그대로 써요. 결과에 따라 바뀌는 부분이 없어요. 위 숫자로 노트 내용이 맞는지만 확인하세요.' };
   }
   function scriptAge(s) {
     if (!s.people) return null;
-    const [young, , old] = s.periods, py = pct(young.extrinsic, young.extrinsic + young.intrinsic), po = pct(old.extrinsic, old.extrinsic + old.intrinsic);
-    if (!(young.extrinsic + young.intrinsic) || !(old.extrinsic + old.intrinsic)) return null;
-    const g = side(po, py), when = ['나이가 들수록 외적 목표가 줄어들 때', '나이에 따라 큰 변화가 없을 때', '나이가 들수록 외적 목표가 늘어날 때'][g + 1];
-    const here = [
-      `시기별로 보면 청년기에는 외적 목표가 ${py}%였는데, 노년기로 갈수록 ${po}%까지 줄어듭니다. 젊을 때는 성취와 인정을 좇다가, 나이가 들수록 관계와 건강 쪽으로 무게가 옮겨 간 거죠.`,
-      '시기별로 나눠 봐도 비율은 크게 달라지지 않았습니다. 청년기에 고른 방향을 노년기까지 비슷하게 유지한 거죠. 나이가 든다고 가치관이 저절로 바뀌는 건 아닌가 봅니다.',
-      `의외의 결과가 나왔습니다. 노년기로 갈수록 외적 목표 선택이 오히려 ${po}%까지 늘었어요. 나이가 들수록 노후 자금, 건강 관리, 가족의 안정처럼 현실적인 조건을 더 챙기게 된 것일 수도 있겠습니다.`,
-    ][g + 1];
-    const next = [
-      `그런데 모두가 그런 건 아니었습니다. 노년기에도 외적 목표를 고른 분이 ${s.oldExt}명 있었는데요, 이분처럼 나이가 들어서도 멋진 차와 성취를 즐기는 삶도 있습니다.`,
-      '이분처럼 젊을 때 좋아하던 것을 나이 들어서도 계속 즐기며 사는 분도 있죠.',
-      '이분처럼 나이가 들어서도 원하는 것을 손에 넣고 즐기는 삶, 우리 결과는 이런 모습에 더 가까웠습니다.',
-    ][g + 1] + '\n\n그렇다면 어떤 목표를 좇는 삶이 더 행복한지, 심리학자들은 이 질문을 실제로 연구해 왔습니다.';
-    const book = '김희삼 교수님은 ‘행복 공부’에서 이 질문에 대한 관점을 더해 주십니다.\n앞서 본 연구들처럼, 외적 목표를 이룬다고 행복이 보장되지는 않고, 사랑과 우정, 자아의 성장 같은 내적 목표가 더 높은 행복감과 관련된다고 설명하십니다.\n그런데 여기서 주목하고 싶은 건 세 번째입니다. 젊을 때는 외적 목표에 집중하다가도, 나이가 들면서 내적 가치를 중시하는 사람이 늘어난다는 것입니다.\n\n' + [
-      '아까 게임에서도 노년기로 갈수록 외적 목표 선택이 줄었죠. 여러분의 선택이 교수님 말씀과 같은 흐름을 보여 준 셈입니다.',
-      '아까 게임에서는 시기가 바뀌어도 선택의 비율이 크게 달라지지 않았는데요. 여러분은 아직 20대라서, 나이 든 나를 상상하며 고를 때도 지금의 가치관이 그대로 묻어났던 건 아닐까요?',
-      '그런데 아까 게임에서는 오히려 노년기로 갈수록 외적 목표 선택이 늘었습니다. 게임 속에서 노후 자금이나 가족의 안정 같은 현실적인 고민을 먼저 떠올리셨기 때문일 수도 있겠습니다.',
-    ][g + 1];
+    const [young, , old] = s.periods, ty = young.extrinsic + young.intrinsic, to = old.extrinsic + old.intrinsic;
+    if (!ty || !to) return null;
+    const py = pct(young.extrinsic, ty), po = pct(old.extrinsic, to);
+    const keys = po < py ? ['dec'] : po > py ? ['inc'] : ['dec', 'inc'];
+    const vals = { age: { dec: [py, po], inc: [po] }, ageNext: { dec: [`${s.oldExt}명`], inc: [] }, ageBook: { dec: [], inc: [] } };
     return {
       facts: `외적 목표 비율 청년기 ${py}% → 노년기 ${po}% (${signed(po - py)}%p) · 노년기에도 외적을 고른 사람 ${s.oldExt}명`,
-      blocks: [{ where: HERE, when, text: here }, { where: AGE_NEXT, when, text: next }, { where: AGE_BOOK, when, text: book }],
+      blocks: ['age', 'ageNext', 'ageBook'].flatMap(k => noteBlocks(k, keys.map(v => [v, vals[k][v]]))),
     };
   }
   function scriptEndings(s) {
     if (!s.pairs) return null;
-    const p = pct(s.changed, s.pairs), same = s.pairs - s.changed, intro = '여러분은 이미 게임을 한 번 경험했고, 이론과 연구를 배우고, 다른 사람들의 경험도 들었습니다.\n\n';
-    const many = s.changed >= same;
-    const move = s.top && s.top.n > 1 ? ` 특히 ${endingLabel(s.top.from)} 엔딩에서 ${endingLabel(s.top.to)} 엔딩으로 옮겨 간 분이 ${s.top.n}명으로 가장 많았어요.` : '';
-    const text = intro + (many
-      ? `보시는 것처럼 ${s.pairs}명 중 ${s.changed}명, ${p}%의 엔딩이 바뀌었습니다.${move} 30분 전에 같은 사람이 같은 질문에 답했는데, 다른 삶이 나온 겁니다.`
-      : `보시는 것처럼 ${s.pairs}명 중 ${same}명, ${100 - p}%는 두 번 모두 같은 엔딩을 받았습니다. 이론과 연구를 다 듣고 나서도 대부분 처음 선택을 지키신 거죠. 그만큼 각자가 중요하게 여기는 가치가 분명하다는 뜻일 겁니다. 그런데 같은 엔딩에 도착한 건 아닙니다. 옆자리 분은 저와 전혀 다른 길을 걸어 다른 엔딩을 받았고, 그분도 그 선택을 끝까지 지켰습니다.`);
-    return { facts: `두 번 한 ${s.pairs}명 중 엔딩 바뀜 ${s.changed}명 (${p}%)${s.top ? ` · 가장 많이 옮겨 간 길 ${endingLabel(s.top.from)} → ${endingLabel(s.top.to)} ${s.top.n}명` : ''}`, blocks: [{ where: HERE, when: many ? '바뀐 사람이 많을 때' : '안 바뀐 사람이 더 많을 때', text }] };
+    const p = pct(s.changed, s.pairs), same = s.pairs - s.changed;
+    const pick = s.changed >= same && s.top
+      ? ['many', [s.pairs, s.changed, p, `${endingLabel(s.top.from)} 엔딩`, `${endingLabel(s.top.to)} 엔딩`, s.top.n]]
+      : ['few', [s.pairs, same, 100 - p]];
+    return { facts: `두 번 한 ${s.pairs}명 중 엔딩 바뀜 ${s.changed}명 (${p}%)${s.top ? ` · 가장 많이 옮겨 간 길 ${endingLabel(s.top.from)} → ${endingLabel(s.top.to)} ${s.top.n}명` : ''}`, blocks: noteBlocks('endings', [pick]) };
   }
   function scriptShift(s) {
     if (!s.pairs) return null;
     const a = s.firstOfPairs, b = s.second, pa = pct(a.intrinsic, a.intrinsic + a.extrinsic), pb = pct(b.intrinsic, b.intrinsic + b.extrinsic), g = side(pb, pa);
-    const when = ['외적 목표 쪽으로 이동했을 때', '거의 그대로일 때', '내적 목표 쪽으로 이동했을 때'][g + 1];
-    const text = [
-      `숨겨진 게이지를 보면, 오히려 외적 목표 선택이 ${100 - pa}%에서 ${100 - pb}%로 늘었습니다.`,
-      `숨겨진 게이지도 1차 ${pa}%, 2차 ${pb}%로 거의 그대로였습니다. 내적 목표가 행복과 관련 있다는 연구를 듣고도 선택은 크게 바뀌지 않았어요.`,
-      `숨겨진 게이지도 비교해 보겠습니다. 1차에서 ${pa}%였던 내적 목표 선택이 2차에서는 ${pb}%로 늘었습니다.`,
-    ][g + 1] + '\n\n아마 쉽게 답하기 어려우실 겁니다. 연구가 보여 준 것은 \'많은 사람에게서 나타나는 경향\'이지, 한 사람의 삶이 더 행복한지 판정하는 기준은 아니었습니다. 외적 목표를 원하는 것 자체는 행복과 거의 관련이 없었다는 것도 기억하실 거예요.\n전후 결과가 바뀐 사람도 있고 그대로인 사람들도 있는데요 그러면 저희가 게임에서 몇개의 질문을 뽑아서 자신의 선택이 바뀌었는지, 바뀌었다면 그 이유에 대해 조원들과 함께 토론해보겠습니다..!!!!';
-    return { facts: `내적 목표 비율 1차 ${pa}% → 2차 ${pb}% (${signed(pb - pa)}%p) · 한 사람씩: 내적 쪽 ${s.shift.toInt}명 · 그대로 ${s.shift.same}명 · 외적 쪽 ${s.shift.toExt}명`, blocks: [{ where: HERE, when, text }] };
+    const pick = g > 0 ? ['int', [pa, pb]] : g < 0 ? ['ext', [100 - pa, 100 - pb]] : ['same', [pa, pb]];
+    return { facts: `내적 목표 비율 1차 ${pa}% → 2차 ${pb}% (${signed(pb - pa)}%p) · 한 사람씩: 내적 쪽 ${s.shift.toInt}명 · 그대로 ${s.shift.same}명 · 외적 쪽 ${s.shift.toExt}명`, blocks: noteBlocks('shift', [pick]) };
   }
 
+  // slide = 지금 구글 슬라이드(43장)에서 그 그래프가 들어가는 장 번호
   const VIEWS = [
-    { slide: 15, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare, script: scriptShare },
-    { slide: 16, title: '게임의 게이지 그래프', sub: '나이에 따른 외적/내적 선택의 누적', draw: viewDots, script: scriptDots },
-    { slide: 17, title: '게임의 게이지 그래프', sub: '나이대에 따른 내적/외적 목표 변화 그래프', draw: viewAge, script: scriptAge },
-    { slide: 26, title: '결과 그래프', sub: '1&2차 게임 전후 엔딩의 차이', draw: viewEndings, script: scriptEndings },
-    { slide: 27, title: '결과 그래프', sub: '1&2차 게임 전후 내적/외적 목표 비율 변화', draw: viewShift, script: scriptShift },
+    { slide: 16, title: '게임의 게이지 그래프', sub: '참가자 전체의 내적, 외적 목표 비율 그래프', draw: viewShare, script: scriptShare },
+    { slide: 17, title: '게임의 게이지 그래프', sub: '나이에 따른 외적/내적 선택의 누적', draw: viewDots, script: scriptDots },
+    { slide: 18, title: '게임의 게이지 그래프', sub: '나이대에 따른 내적/외적 목표 변화 그래프', draw: viewAge, script: scriptAge },
+    { slide: 29, title: '결과 그래프', sub: '1&2차 게임 전후 엔딩의 차이', draw: viewEndings, script: scriptEndings },
+    { slide: 30, title: '결과 그래프', sub: '1&2차 게임 전후 내적/외적 목표 비율 변화', draw: viewShift, script: scriptShift },
   ];
   const viewIndex = slide => VIEWS.findIndex(v => String(v.slide) === String(slide));
   let cur = Math.max(0, viewIndex(decodeURIComponent(location.hash.slice(1)))), last = null, extra = {}, status = '';
@@ -511,7 +505,7 @@ body.embed #nav { display: none !important; }
   function table(s) {
     const row = (...c) => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
     return `<b>표로 보기</b> (T로 닫기)<table><tr><th></th><th>외적</th><th>내적</th></tr>${row('1차 전체', s.first.extrinsic, s.first.intrinsic)}${s.periods.map(p => row(p.name, p.extrinsic, p.intrinsic)).join('')}${row('2차 (두 번 한 사람)', s.second.extrinsic, s.second.intrinsic)}</table>
-      ${(() => { const cum = s.paths.map(v => { let t = 0; return v.map(y => y == null ? null : (t += y)); }), tr = trendOf(cum, s.ages.map(c => c.age)), n = cum.length || 1; return `<table><tr><th>나이 (16번)</th><th>외적</th><th>내적</th><th>평균 누적합</th><th>굵은 선${tr ? ` (${tr.deg}차, RMSE ${tr.rmse.toFixed(3)})` : ''}</th></tr>${s.ages.map((c, k) => row(`${c.age}세 ${esc(c.era)}`, c.extrinsic, c.intrinsic, (cum.reduce((t, v) => t + (v[k] || 0), 0) / n).toFixed(2), tr ? tr.at(c.age).toFixed(2) : '-')).join('')}</table>`; })()}
+      ${(() => { const cum = s.paths.map(v => { let t = 0; return v.map(y => y == null ? null : (t += y)); }), tr = trendOf(cum, s.ages.map(c => c.age)), n = cum.length || 1; return `<table><tr><th>나이 (17번)</th><th>외적</th><th>내적</th><th>평균 누적합</th><th>굵은 선${tr ? ` (${tr.deg}차, RMSE ${tr.rmse.toFixed(3)})` : ''}</th></tr>${s.ages.map((c, k) => row(`${c.age}세 ${esc(c.era)}`, c.extrinsic, c.intrinsic, (cum.reduce((t, v) => t + (v[k] || 0), 0) / n).toFixed(2), tr ? tr.at(c.age).toFixed(2) : '-')).join('')}</table>`; })()}
       <table><tr><th>엔딩</th><th>1차</th><th>2차</th></tr>${ENDINGS.map(e => row(esc(e.label), s.before[e.key], s.after[e.key])).join('')}</table>
       <table>${row('1차 플레이', `${s.people}명`)}${row('두 번 플레이', `${s.pairs}명`)}${row('엔딩 바뀜', `${s.changed}명`)}${row('내적 쪽 / 그대로 / 외적 쪽', `${s.shift.toInt} / ${s.shift.same} / ${s.shift.toExt}`)}${row('노년기 외적 선택', `${s.oldExt}명`)}</table>`;
   }

@@ -20,7 +20,9 @@
   // 주소로 화면을 나눈다: 기본은 각자 플레이, /presentation/ 은 발표용 5문항 (단일 파일은 주소 끝에 #presentation)
   const MODE = document.documentElement.dataset.mode || (/presentation/.test(location.hash) ? 'presentation' : 'solo');
   const SAVE_KEY = `insaeng-galimgil.save.v5.${MODE}`, SET_KEY = 'insaeng-galimgil.settings.v5', NAME_KEY = 'insaeng-galimgil.name';
-  const SID_KEY = 'insaeng-galimgil.sid', GENDER_KEY = 'insaeng-galimgil.gender'; // 학번, 캐릭터 성별('m'|'f')
+  // 캐릭터('m'|'f')는 이 기기에만 기억하고 서버에는 보내지 않는다. 예전 버전이 기억해 둔 학번은 지운다.
+  const GENDER_KEY = 'insaeng-galimgil.gender';
+  try { localStorage.removeItem('insaeng-galimgil.sid'); } catch { /* 저장소 없음 */ }
   const decade = a => `${Math.max(1, Math.floor(a / 10)) * 10}대`;
 
   let C, REV, settings, state, history = [], world, savedGame = null;
@@ -63,17 +65,11 @@
     const key = CONFIG.supabaseKey, headers = { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
     if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
     const base = { run_id: String(s.seed), nickname: store.get(NAME_KEY) || '이름 없음', ending: E.typeOf(C, s.gauges), gauges: s.gauges, picks: s.picks.map(p => ({ stage: p.stageId, opt: p.opt })) };
-    let body = { ...base, student_id: store.get(SID_KEY) || null, gender: store.get(GENDER_KEY) || null };
     const post = b => fetch(`${CONFIG.supabaseUrl}/rest/v1/plays`, { method: 'POST', headers, body: JSON.stringify(b) });
     for (const wait of [0, 2000, 6000, 15000]) {
       await new Promise(r => setTimeout(r, wait));
       try {
-        let r = await post(body);
-        // DB에 아직 학번·성별 칸이 없으면(schema.sql을 다시 실행하기 전) 그 두 칸을 빼고라도 저장한다.
-        if (r.status === 400 && 'student_id' in body) {
-          const e = await r.json().catch(() => ({}));
-          if (e.code === 'PGRST204' || /column/i.test(e.message || '')) { console.warn('학번·성별 칸이 없어 빼고 저장합니다. schema.sql을 다시 실행해 주세요.'); body = base; r = await post(body); }
-        }
+        const r = await post(base);
         if (r.ok || r.status === 409) return; // 409: 이미 저장된 판
       } catch { /* 다음 시도 */ }
     }
@@ -813,7 +809,7 @@
       html = `<div class="e-kicker">${esc(cl.credits)}</div><h2 class="e-h2">${esc(cl.title)}</h2><p class="e-closing">${esc(cl.text)}</p><ol class="e-disc">${cl.discussion.map(d => `<li>${esc(d)}</li>`).join('')}</ol><div class="e-credit">${esc(cl.source)}</div>`;
     }
     const lastPage = state.page >= pages.length - 1;
-    el.innerHTML = `<div class="e-page" data-page="${page}">${html}</div><div class="e-nav"><div class="e-dots">${pages.map((_, k) => `<i class="${k === state.page ? 'on' : ''}"></i>`).join('')}</div><div class="btns">${lastPage ? `<button class="btn" data-act="restart">${A.icon('replay')} 처음 화면 <span class="kbd">R</span></button><button class="btn primary" data-act="replay">${A.icon('play')} 다시 살아 보기</button>` : `<button class="btn primary" data-act="next">다음 ${A.icon('arrow')} <span class="kbd">Space</span></button>`}</div></div>`;
+    el.innerHTML = `<div class="e-page" data-page="${page}">${html}</div><div class="e-nav"><div class="e-dots">${pages.map((_, k) => `<i class="${k === state.page ? 'on' : ''}"></i>`).join('')}</div><div class="btns">${lastPage ? `<button class="btn primary" data-act="restart">${A.icon('replay')} 처음 화면 <span class="kbd">R</span></button>` : `<button class="btn primary" data-act="next">다음 ${A.icon('arrow')} <span class="kbd">Space</span></button>`}</div></div>`;
   }
   // 하나만 다시 고르기: 목록 → 고르면 두 도넛 비교
   function rewindPage(sum) {
@@ -909,10 +905,9 @@
     else if (kind === 'name') {
       const g0 = store.get(GENDER_KEY);
       let gender = g0 === 'm' || g0 === 'f' ? g0 : null;
-      m.innerHTML = `<div class="m-box small name-box"><h2>닉네임과 학번을 적어 주세요</h2><p>기억할 수 있는 닉네임으로 진행해 주세요. 2차 때도 같은 닉네임과 학번을 써 주세요.</p>
+      m.innerHTML = `<div class="m-box small name-box"><h2>닉네임을 적어 주세요</h2><p>기억할 수 있는 닉네임으로 진행해 주세요. 2차 때도 같은 닉네임을 써 주세요.</p>
         <form id="name-form" novalidate>
           <label class="f-row"><span>닉네임</span><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="닉네임" value="${esc(store.get(NAME_KEY) || '')}"></label>
-          <label class="f-row"><span>학번</span><input class="name-input" name="sid" maxlength="20" autocomplete="off" inputmode="numeric" placeholder="학번" value="${esc(store.get(SID_KEY) || '')}"></label>
           <div class="f-row"><span>캐릭터</span><div class="gender" role="radiogroup" aria-label="캐릭터">${[['m', '남자'], ['f', '여자']].map(([v, l]) => `<button type="button" role="radio" aria-checked="${gender === v}" class="${gender === v ? 'on' : ''}" data-gender="${v}">${l}</button>`).join('')}</div></div>
           <p class="f-err" hidden></p>
           <div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div>
@@ -925,11 +920,10 @@
       f.nick.focus(); f.nick.select();
       f.addEventListener('submit', e => {
         e.preventDefault();
-        const nick = f.nick.value.trim(), sid = f.sid.value.trim();
+        const nick = f.nick.value.trim();
         if (!nick) { err('닉네임을 적어 주세요.'); return f.nick.focus(); }
-        if (!/^[0-9A-Za-z-]{4,20}$/.test(sid)) { err(sid ? '학번을 다시 확인해 주세요.' : '학번을 적어 주세요.'); return f.sid.focus(); }
         if (!gender) return err('캐릭터를 남자·여자 중에서 골라 주세요.');
-        store.set(NAME_KEY, nick); store.set(SID_KEY, sid); store.set(GENDER_KEY, gender); closeModal(); newGame();
+        store.set(NAME_KEY, nick); store.set(GENDER_KEY, gender); closeModal(); newGame();
       });
     }
     else if (kind === 'vote') {
@@ -989,7 +983,6 @@
       case 'close': return closeModal();
       case 'restart': return state.phase === 'ending' ? startTitle() : openModal('confirm');
       case 'restart-yes': return startTitle();
-      case 'replay': return newGame();
       case 'sound': settings.sound = !settings.sound; saveSettings(); renderToolbar(); if (settings.sound) Sound.play('pop'); return toast(settings.sound ? '소리를 켰어요.' : '소리를 껐어요.');
     }
   }

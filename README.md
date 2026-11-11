@@ -35,7 +35,7 @@ The site has three pages.
 | --- | --- |
 | [Game](https://kms8720.github.io/life-crossroads/) | Each student plays on their own laptop, tablet, or phone. Post this link on the LMS. |
 | [Presentation](https://kms8720.github.io/life-crossroads/presentation/) | The shared screen. Five questions, decided by a show of hands. |
-| [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 15, 16, 17, 26 and 27. Updates every five seconds. Add `?demo` to preview with sample data. |
+| [Results](https://kms8720.github.io/life-crossroads/results/) | The charts for slides 16, 17, 18, 29 and 30. Updates every five seconds. Add `?demo` to preview with sample data. |
 | [Presenter](https://kms8720.github.io/life-crossroads/admin/) | Clears the saved plays, records the hand count, exports the charts as images, and fills in the speaker notes from the results. Needs the team passphrase. |
 
 ### Before the class
@@ -48,15 +48,16 @@ The first person to open the presenter page sets the team passphrase (six charac
 
 ### During the class
 
-- **Students enter a nickname, their student ID, and a male or female character.** All three are required. The character only changes how the player and their partner look.
-- **Students must use the same nickname for both plays.** On the same device the nickname, student ID, and character are filled in automatically. On a different device they have to type them again exactly.
+- **Students enter a nickname and pick a male or female character.** Both are required. The character only changes how the player and their partner look, and it stays on the device. It is not saved with the play.
+- **Only each student's first and second plays count.** A third play or later is still saved, but the results ignore it. The last ending page has no replay button, so students go back to the title screen to start the second play.
+- **Students must use the same nickname for both plays.** On the same device the nickname and character are filled in automatically. On a different device they have to type the nickname again exactly.
 - **Ask for a name nobody else in the class uses.** Plays with the same name count as one person, ignoring capital letters and spaces at either end. If someone plays three or more times, the first and the latest are compared.
 - **A play is saved only when the ending screen appears.** Students who stop partway are not counted.
 - **Team members should not finish a game on the student page during the class**, because it would be counted too. The presentation page never saves anything.
 - If the database is unreachable, the game still plays normally but nothing is saved, and the results page stays blank.
-- **Slide 13 hand count:** type the two numbers on the presenter page. They appear next to the game results on slide 15.
+- **Slide 15 hand count:** type the two numbers on the presenter page. They appear next to the game results on slide 16.
 - **Charts for the slides:** on the presenter page, press a slide number. The chart is copied to the clipboard as a 3840×2160 image, so it can be pasted straight into the slide. To get JPG files instead, use the save buttons below the numbers.
-- **Speaker notes:** below the preview, the presenter page shows the script for the chosen chart. It picks the variant from the team's speaker notes that matches the current results (for example, more extrinsic or more intrinsic choices) and fills in the numbers. Each block has a copy button. On slide 16 it names the two highlighted players when the page is signed in. Differences of 3 percentage points or less count as "about the same" (`NEAR` in `src/results.html`).
+- **Speaker notes:** below the preview, the presenter page shows the script for the chosen chart. The team's speaker notes are copied word for word into `NOTES` in `src/results.html`. The page keeps only the variant that matches the current results and fills in the blanks in order. Blanks with no data yet, such as the hand count, stay as `[ ]`. The notes for slides 19 and 23 follow the slide 18 result, so they appear under slide 18. Slide 17 keeps its notes unchanged. Each block has a copy button. Differences of 3 percentage points or less count as "about the same" (`NEAR`).
 
 On the presentation page:
 
@@ -132,7 +133,7 @@ GitHub Pages only serves files, so finished playthroughs are stored in a free [S
 1. Create a project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor.
 2. Put the project URL and the publishable key in `config.json`. Never use the secret key here, because this repository is public.
 
-The publishable key can add a playthrough and read the totals, but it cannot read individual rows, nicknames, or student IDs. The nicknames on slide 27 come from a separate function that checks the presenter passphrase, so they appear only in a browser that is signed in to the presenter page. To see them, open the `plays` table in the Supabase dashboard (Table Editor), where it can also be exported as CSV. If the game is deployed before `schema.sql` is run again, plays are still saved, just without the student ID and character. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
+The publishable key can add a playthrough and read the totals, but it cannot read individual rows or nicknames. The nicknames on slide 30 come from a separate function that checks the presenter passphrase, so they appear only in a browser that is signed in to the presenter page. To see them, open the `plays` table in the Supabase dashboard (Table Editor), where it can also be exported as CSV. The game no longer sends a student ID or character. The `student_id` and `gender` columns stay in the table only for plays saved by the earlier version. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
 
 If the database is unavailable, the game still plays normally. It just doesn't save the result.
 

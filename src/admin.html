@@ -44,6 +44,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
 .script-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 4px; }
 .script-head h3 { margin: 0; font-size: 18px; }
 .script .facts { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.script .script-note { margin: 0; padding: 12px 16px; border-radius: 12px; background: #F3EFE6; color: var(--ink-2); font-weight: 500; }
 .script .demo-tag { color: var(--danger); font-size: 14px; font-weight: 700; }
 .sblock { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 14px; margin-top: 10px; background: #FFFDF8; }
 .sblock-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
@@ -80,17 +81,17 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   </section>
 
   <section class="card" id="c-hands">
-    <h2>2. 13번 슬라이드 손들기</h2>
-    <p class="desc">"지금 내 삶에서 외적·내적 목표 중 어느 쪽이 더 큰가요?"에 손 든 인원을 넣으면, 15번 그래프에 게임 결과와 나란히 나옵니다.</p>
+    <h2>2. 15번 슬라이드 손들기</h2>
+    <p class="desc">"지금 내 삶에서 외적·내적 목표 중 어느 쪽이 더 큰가요?"에 손 든 인원을 넣으면, 16번 그래프에 게임 결과와 나란히 나옵니다.</p>
     <form class="row" id="hands-form"><label class="field">외적 목표가 더 크다<input type="number" id="h-ext" min="0" max="999" inputmode="numeric"></label><label class="field">내적 목표가 더 크다<input type="number" id="h-int" min="0" max="999" inputmode="numeric"></label><button class="primary" type="submit" id="hands-btn" disabled style="align-self:flex-end">저장</button></form>
     <div class="msg" id="hands-msg"></div>
   </section>
 
   <section class="card" id="c-jpg">
     <h2>3. 결과 그래프 사진으로 내보내기</h2>
-    <p class="desc">번호를 누르면 그 장이 미리보기에 뜨고 클립보드에 복사돼요. 그 장의 대본(발표자 노트)은 미리보기 아래에 결과에 맞춰 채워져요. 18·20번 슬라이드 대본은 17번 결과로 정해져서 17번 아래에 함께 나와요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣은 뒤 슬라이드 전체 크기로 맞추면 됩니다. JPG 파일이 필요하면 저장 버튼을 누르세요. 슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다.</p>
+    <p class="desc">번호를 누르면 그 장이 미리보기에 뜨고 클립보드에 복사돼요. 그 장의 대본(발표자 노트)은 미리보기 아래에 결과에 맞춰 채워져요. 19·23번 슬라이드 대본은 18번 결과로 정해져서 18번 아래에 함께 나와요. 17번은 노트를 그대로 써요. 슬라이드에서 Ctrl+V(맥은 ⌘+V)로 붙여넣은 뒤 슬라이드 전체 크기로 맞추면 됩니다. JPG 파일이 필요하면 저장 버튼을 누르세요. 슬라이드 크기(16:9) 그대로 3840×2160으로 만듭니다.</p>
     <div class="row"><span class="row-label">복사</span><span id="jpg-btns"></span></div>
-    <div class="row" style="margin-top:10px"><span class="row-label">저장</span><button id="save-cur">15번 JPG 저장</button><button class="primary" id="jpg-all">5장 모두 JPG 저장</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
+    <div class="row" style="margin-top:10px"><span class="row-label">저장</span><button id="save-cur">16번 JPG 저장</button><button class="primary" id="jpg-all">5장 모두 JPG 저장</button><label class="check"><input type="checkbox" id="demo"> 가상 데이터로 시험</label></div>
     <div class="preview" id="preview"><iframe id="frame" title="결과 그래프 미리보기"></iframe></div>
     <div class="msg" id="jpg-msg"></div>
     <div class="script" id="script" aria-live="polite"></div>
@@ -183,18 +184,18 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
     const ext = Math.max(0, parseInt($('#h-ext').value, 10) || 0), int = Math.max(0, parseInt($('#h-int').value, 10) || 0);
     const r = await rpc('admin_set_hands', { pin, hands_ext: ext, hands_int: int }).catch(err => ({ ok: false, error: err.message }));
     if (!r.ok) return say('#hands-msg', ERR[r.error] || r.error, false);
-    say('#hands-msg', `저장했어요: 외적 ${ext}명 · 내적 ${int}명. 결과 그래프 15번에 5초 안에 반영돼요.`); reloadFrame();
+    say('#hands-msg', `저장했어요: 외적 ${ext}명 · 내적 ${int}명. 결과 그래프 16번에 5초 안에 반영돼요.`); reloadFrame();
   });
 
   // ---------- 그래프 미리보기와 JPG ----------
-  const SLIDES = [15, 16, 17, 26, 27];
+  const SLIDES = [16, 17, 18, 29, 30]; // 지금 구글 슬라이드(43장) 번호
   let curSlide = SLIDES[0];
   const frame = $('#frame');
   function fitFrame() { frame.style.transform = `scale(${$('#preview').clientWidth / 1920})`; }
   // GitHub Pages는 페이지를 10분 동안 캐시하게 한다. 미리보기(그리고 내보내는 그림)가 방금 배포한 결과 화면을 쓰도록 주소를 매번 바꾼다.
-  // 다시 열 때마다 주소의 n을 바꾼다. 해시(#15)까지 같은 주소를 넣으면 브라우저가 페이지를 새로 읽지 않는다.
+  // 다시 열 때마다 주소의 n을 바꾼다. 해시(#16)까지 같은 주소를 넣으면 브라우저가 페이지를 새로 읽지 않는다.
   const FRESH = Date.now().toString(36); let loads = 0;
-  function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}&n=${++loads}#${slide || curSlide || 15}`; }
+  function reloadFrame(slide) { frame.src = `../results/?embed${$('#demo').checked ? '&demo' : ''}&v=${FRESH}&n=${++loads}#${slide || curSlide || SLIDES[0]}`; }
   // ---------- 대본: 고른 장의 발표자 노트를 지금 결과로 채운다 (결과 화면이 5초마다 새 기록을 받을 때마다 다시 채움) ----------
   const escHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let scriptBlocks = [], scriptHtml = '';
@@ -202,7 +203,7 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
     const R = frame.contentWindow?.__results, r = R?.script ? R.script(curSlide) : null;
     scriptBlocks = r?.blocks || [];
     const html = `<div class="script-head"><h3>${curSlide}번 대본</h3>${r?.demo ? '<span class="demo-tag">가상 데이터로 채운 예시</span>' : ''}</div>` + (r
-      ? `<p class="facts">${escHtml(r.facts)}</p>${scriptBlocks.map((b, i) => `<div class="sblock"><div class="sblock-top"><b>${escHtml(b.where)}</b><span class="when">${escHtml(b.when)}</span><button type="button" data-copy-script="${i}">복사</button></div><p>${escHtml(b.text)}</p></div>`).join('')}`
+      ? `<p class="facts">${escHtml(r.facts)}</p>${r.note ? `<p class="script-note">${escHtml(r.note)}</p>` : ''}${scriptBlocks.map((b, i) => `<div class="sblock"><div class="sblock-top"><b>${escHtml(b.where)}</b><span class="when">${escHtml(b.when)}</span><button type="button" data-copy-script="${i}">복사</button></div><p>${escHtml(b.text)}</p></div>`).join('')}`
       : `<p class="facts">${R ? '이 장에 필요한 기록이 아직 없어요. 플레이가 쌓이면 숫자가 채워져요.' : '결과 화면을 불러오는 중이에요.'}</p>`);
     if (html !== scriptHtml) { scriptHtml = html; $('#script').innerHTML = html; } // 같은 내용이면 다시 그리지 않는다 (글을 고르는 중일 수 있다)
   }
@@ -215,8 +216,8 @@ label.check { display: inline-flex; gap: 6px; align-items: center; color: var(--
   });
   addEventListener('resize', fitFrame); fitFrame(); reloadFrame();
   $('#demo').addEventListener('change', () => reloadFrame());
-  // 1차 게임(15·16·17)과 1&2차 게임 비교(26·27) 사이에 작은 틈을 둔다.
-  $('#jpg-btns').innerHTML = SLIDES.map((n, i) => `${i && n >= 26 && SLIDES[i - 1] < 26 ? '<span class="btn-gap"></span>' : ''}<button data-jpg="${n}">${n}번</button> `).join('');
+  // 1차 게임(16·17·18)과 1&2차 게임 비교(29·30) 사이에 작은 틈을 둔다: 번호가 이어지지 않는 곳.
+  $('#jpg-btns').innerHTML = SLIDES.map((n, i) => `${i && n - SLIDES[i - 1] > 1 ? '<span class="btn-gap"></span>' : ''}<button data-jpg="${n}">${n}번</button> `).join('');
   const busy = on => document.querySelectorAll('#c-jpg button').forEach(b => { b.disabled = on; });
   const demoNote = () => $('#demo').checked ? ' (가상 데이터)' : '';
   function select(n) {

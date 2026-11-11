@@ -20,7 +20,8 @@ alter table public.plays enable row level security;
 
 -- The public key gets one table permission only, whatever the project's defaults are.
 revoke all on public.plays from anon, authenticated;
--- Student ID and the character the player picked ('m' or 'f'). Like nicknames, the publishable key can write them but never read them.
+-- Student ID and the character the player picked ('m' or 'f'), from an earlier version of the game. The game no longer sends them.
+-- The columns stay so older rows keep their values. Like nicknames, the publishable key can write them but never read them.
 alter table public.plays add column if not exists student_id text;
 alter table public.plays add column if not exists gender text;
 alter table public.plays drop constraint if exists plays_student_id_check;
@@ -33,7 +34,7 @@ drop policy if exists "anyone can add a play" on public.plays;
 create policy "anyone can add a play" on public.plays
   for insert to anon with check (true);
 
--- Compares each person's first and latest playthrough.
+-- Compares each person's first and second playthrough. A third play or later is saved but not counted.
 create or replace function public.results_summary()
 returns json
 language sql
@@ -45,16 +46,14 @@ as $$
     select
       lower(trim(nickname)) as who,
       ending,
-      row_number() over (partition by lower(trim(nickname)) order by created_at asc, id asc) as first_rank,
-      row_number() over (partition by lower(trim(nickname)) order by created_at desc, id desc) as last_rank,
-      count(*) over (partition by lower(trim(nickname))) as total
+      row_number() over (partition by lower(trim(nickname)) order by created_at asc, id asc) as play_no
     from plays
   ),
   pairs as (
     select f.ending as before_ending, l.ending as after_ending
     from ranked f
-    join ranked l on l.who = f.who and l.last_rank = 1
-    where f.first_rank = 1 and f.total >= 2
+    join ranked l on l.who = f.who and l.play_no = 2
+    where f.play_no = 1
   )
   select json_build_object(
     'players', (select count(distinct who) from ranked),
@@ -68,9 +67,8 @@ $$;
 revoke all on function public.results_summary() from public;
 grant execute on function public.results_summary() to anon;
 
--- Each person's first and latest playthrough with their choices, for the goal charts.
--- Names are used only to pair the two plays and are never returned.
--- One row per person: first and latest play. Nicknames are filled in only for the presenter.
+-- Each person's first and second playthrough with their choices, for the goal charts.
+-- One row per person. A third play or later is saved but not counted. Nicknames are filled in only for the presenter.
 -- Student IDs and genders are stored with each play but never returned here.
 create or replace function public.results_people(with_names boolean)
 returns json
@@ -85,19 +83,17 @@ as $$
       trim(nickname) as nick,
       ending,
       picks,
-      row_number() over (partition by lower(trim(nickname)) order by created_at asc, id asc) as first_rank,
-      row_number() over (partition by lower(trim(nickname)) order by created_at desc, id desc) as last_rank,
-      count(*) over (partition by lower(trim(nickname))) as total
+      row_number() over (partition by lower(trim(nickname)) order by created_at asc, id asc) as play_no
     from plays
   )
   select coalesce(json_agg(json_build_object(
     'first', json_build_object('ending', f.ending, 'picks', f.picks),
-    'last', case when f.total >= 2 then json_build_object('ending', l.ending, 'picks', l.picks) end,
+    'last', case when l.who is not null then json_build_object('ending', l.ending, 'picks', l.picks) end,
     'name', case when with_names then f.nick end
   ) order by random()), '[]'::json)
   from ranked f
-  join ranked l on l.who = f.who and l.last_rank = 1
-  where f.first_rank = 1;
+  left join ranked l on l.who = f.who and l.play_no = 2
+  where f.play_no = 1;
 $$;
 revoke all on function public.results_people(boolean) from public, anon, authenticated;
 
