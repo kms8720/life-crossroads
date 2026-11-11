@@ -20,9 +20,8 @@
   // 주소로 화면을 나눈다: 기본은 각자 플레이, /presentation/ 은 발표용 5문항 (단일 파일은 주소 끝에 #presentation)
   const MODE = document.documentElement.dataset.mode || (/presentation/.test(location.hash) ? 'presentation' : 'solo');
   const SAVE_KEY = `insaeng-galimgil.save.v5.${MODE}`, SET_KEY = 'insaeng-galimgil.settings.v5', NAME_KEY = 'insaeng-galimgil.name';
-  // 캐릭터('m'|'f')는 이 기기에만 기억하고 서버에는 보내지 않는다. 예전 버전이 기억해 둔 학번은 지운다.
-  const GENDER_KEY = 'insaeng-galimgil.gender';
-  try { localStorage.removeItem('insaeng-galimgil.sid'); } catch { /* 저장소 없음 */ }
+  // 예전 버전이 이 기기에 기억해 둔 학번·캐릭터(남/여)는 지운다. 지금은 닉네임만 받고, 모두 같은 캐릭터로 플레이한다.
+  try { localStorage.removeItem('insaeng-galimgil.sid'); localStorage.removeItem('insaeng-galimgil.gender'); } catch { /* 저장소 없음 */ }
   const decade = a => `${Math.max(1, Math.floor(a / 10)) * 10}대`;
 
   let C, REV, settings, state, history = [], world, savedGame = null;
@@ -347,23 +346,20 @@
     const fr = friendBack ? ['friend1'] : friends && !partner && age < 23 ? friends : [];
     return { me: { wear: [...me.wear], outfit: me.outfit, hold: me.hold, reach: meReach, face }, partner: partner && { look: partner.look, hold: partnerHold, mood: partnerMood || null, reach: pReach }, kid, friends: fr, friendBack, give };
   }
-  // 여자 캐릭터를 고르면 주인공은 meF, 연인·배우자는 짧은 머리(partnerM…)로 그린다. 발표 화면(행복이)은 그대로.
-  const FEMALE_LOOK = { me: 'meF', partner: 'partnerM', partner2: 'partnerM2', partner3: 'partnerM3' };
-  const lookOf = name => !present() && store.get(GENDER_KEY) === 'f' ? FEMALE_LOOK[name] || name : name;
   function drawPeople(age, s, popNew = false) {
     const ap = appearance(s, age);
-    const key = JSON.stringify({ g: lookOf('me'), st: A.lifeStage(age), me: ap.me, p: ap.partner, k: ap.kid && { st: A.lifeStage(ap.kid.age), baby: ap.kid.baby, hold: ap.kid.hold, mood: ap.kid.mood }, f: ap.friends });
+    const key = JSON.stringify({ g: 'me', st: A.lifeStage(age), me: ap.me, p: ap.partner, k: ap.kid && { st: A.lifeStage(ap.kid.age), baby: ap.kid.baby, hold: ap.kid.hold, mood: ap.kid.mood }, f: ap.friends });
     if (key === peopleKey) return;
     peopleKey = key;
     const prev = lastLook; lastLook = ap;
     const pop = cond => popNew && cond ? 'pop' : '';
-    const meSvg = A.person(lookOf('me'), age, { ...ap.me, baby: ap.kid?.baby });
+    const meSvg = A.person('me', age, { ...ap.me, baby: ap.kid?.baby });
     $('#me').innerHTML = ap.me.face === 'left' ? `<g transform="scale(-1 1)">${meSvg}</g>` : meSvg;
-    $('#partner').innerHTML = ap.partner ? `<g class="${pop(!prev?.partner || prev.partner.look !== ap.partner.look)}">${A.person(lookOf(ap.partner.look), age, ap.partner)}</g>` : '';
+    $('#partner').innerHTML = ap.partner ? `<g class="${pop(!prev?.partner || prev.partner.look !== ap.partner.look)}">${A.person(ap.partner.look, age, ap.partner)}</g>` : '';
     $('#kid').innerHTML = ap.kid && !ap.kid.baby ? `<g class="${pop(!prev?.kid || prev.kid.baby)}">${A.person('kid', ap.kid.age, ap.kid)}</g>` : '';
     const start = ap.partner ? 1 : 0, slots = [PARTNER_DX, KID_DX, KID_DX + 100];
     $('#friends').innerHTML = ap.friends.map((f, k) => `<g class="fr" data-dx="${slots[k + start]}"><g class="${pop(!(prev?.friends || []).includes(f))}">${A.person(f, ap.friendBack ? age : Math.min(age, 22), {})}</g></g>`).join('');
-    if (popNew && prev && ap.partner && prev.partner && prev.partner.look !== ap.partner.look) ghost(A.person(lookOf(prev.partner.look), age, {}), PARTNER_DX);
+    if (popNew && prev && ap.partner && prev.partner && prev.partner.look !== ap.partner.look) ghost(A.person(prev.partner.look, age, {}), PARTNER_DX);
     if (popNew && prev && prev.friends.length && !ap.friends.length) prev.friends.forEach((f, k) => ghost(A.person(f, Math.min(age, 22), {}), [PARTNER_DX, KID_DX, KID_DX + 100][k]));
     place(view.x, view.cam, view.lane);
   }
@@ -903,27 +899,19 @@
       : [['완전한 전체 화면', '브라우저 메뉴 → 홈 화면에 추가 → 홈 화면의 ‘인생 갈림길’로 열기']]).map(([l, t]) => `<div><span>${l}</span><span>${t}</span></div>`).join('')}</div>
       <p class="m-note">홈 화면에서 열면 이름을 한 번 더 적어야 해요. 1차 때와 똑같이 적어 주세요.</p><div class="m-actions"><button class="btn primary" data-act="close">닫기</button></div></div>`;
     else if (kind === 'name') {
-      const g0 = store.get(GENDER_KEY);
-      let gender = g0 === 'm' || g0 === 'f' ? g0 : null;
       m.innerHTML = `<div class="m-box small name-box"><h2>닉네임을 적어 주세요</h2><p>기억할 수 있는 닉네임으로 진행해 주세요. 2차 때도 같은 닉네임을 써 주세요.</p>
         <form id="name-form" novalidate>
           <label class="f-row"><span>닉네임</span><input class="name-input" name="nick" maxlength="20" autocomplete="off" placeholder="닉네임" value="${esc(store.get(NAME_KEY) || '')}"></label>
-          <div class="f-row"><span>캐릭터</span><div class="gender" role="radiogroup" aria-label="캐릭터">${[['m', '남자'], ['f', '여자']].map(([v, l]) => `<button type="button" role="radio" aria-checked="${gender === v}" class="${gender === v ? 'on' : ''}" data-gender="${v}">${l}</button>`).join('')}</div></div>
           <p class="f-err" hidden></p>
           <div class="m-actions"><button type="button" class="btn" data-act="close">취소 <span class="kbd">Esc</span></button><button class="btn primary" type="submit">시작하기 <span class="kbd">Enter</span></button></div>
         </form></div>`;
       const f = $('#name-form'), err = t => { const el = f.querySelector('.f-err'); el.textContent = t; el.hidden = !t; };
-      f.querySelectorAll('[data-gender]').forEach(b => b.addEventListener('click', () => {
-        gender = b.dataset.gender; err('');
-        f.querySelectorAll('[data-gender]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', String(x === b)); });
-      }));
       f.nick.focus(); f.nick.select();
       f.addEventListener('submit', e => {
         e.preventDefault();
         const nick = f.nick.value.trim();
         if (!nick) { err('닉네임을 적어 주세요.'); return f.nick.focus(); }
-        if (!gender) return err('캐릭터를 남자·여자 중에서 골라 주세요.');
-        store.set(NAME_KEY, nick); store.set(GENDER_KEY, gender); closeModal(); newGame();
+        store.set(NAME_KEY, nick); closeModal(); newGame();
       });
     }
     else if (kind === 'vote') {

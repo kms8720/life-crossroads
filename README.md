@@ -48,9 +48,9 @@ The first person to open the presenter page sets the team passphrase (six charac
 
 ### During the class
 
-- **Students enter a nickname and pick a male or female character.** Both are required. The character only changes how the player and their partner look, and it stays on the device. It is not saved with the play.
+- **Students enter only a nickname.** Everyone plays the same character.
 - **Only each student's first and second plays count.** A third play or later is still saved, but the results ignore it. The last ending page has no replay button, so students go back to the title screen to start the second play.
-- **Students must use the same nickname for both plays.** On the same device the nickname and character are filled in automatically. On a different device they have to type the nickname again exactly.
+- **Students must use the same nickname for both plays.** On the same device the nickname is filled in automatically. On a different device they have to type it again exactly.
 - **Ask for a name nobody else in the class uses.** Plays with the same name count as one person, ignoring capital letters and spaces at either end. If someone plays three or more times, the first and the latest are compared.
 - **A play is saved only when the ending screen appears.** Students who stop partway are not counted.
 - **Team members should not finish a game on the student page during the class**, because it would be counted too. The presentation page never saves anything.
@@ -133,7 +133,7 @@ GitHub Pages only serves files, so finished playthroughs are stored in a free [S
 1. Create a project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor.
 2. Put the project URL and the publishable key in `config.json`. Never use the secret key here, because this repository is public.
 
-The publishable key can add a playthrough and read the totals, but it cannot read individual rows or nicknames. The nicknames on slide 30 come from a separate function that checks the presenter passphrase, so they appear only in a browser that is signed in to the presenter page. To see them, open the `plays` table in the Supabase dashboard (Table Editor), where it can also be exported as CSV. The game no longer sends a student ID or character. The `student_id` and `gender` columns stay in the table only for plays saved by the earlier version. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
+The publishable key can add a playthrough and read the totals, but it cannot read individual rows or nicknames. The nicknames on slide 30 come from a separate function that checks the presenter passphrase, so they appear only in a browser that is signed in to the presenter page. To see them, open the `plays` table in the Supabase dashboard (Table Editor), where it can also be exported as CSV. The game no longer asks for a student ID or character. The `student_id` and `gender` columns stay in the table only for plays saved by the earlier version. Free projects pause after a week with no requests, so [`.github/workflows/keep-db-awake.yml`](.github/workflows/keep-db-awake.yml) sends a request every three days.
 
 If the database is unavailable, the game still plays normally. It just doesn't save the result.
 
